@@ -1,0 +1,132 @@
+name: Test and Release
+
+permissions:
+  id-token: write
+  contents: write
+  issues: write
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      skipCleanup:
+        description: "Skip cleanup"
+        required: false
+        default: "no"
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  AWS_REGION: eu-west-1
+  AWS_DEFAULT_REGION: eu-west-1
+  AWS_ROLE: arn:aws:iam::127234870185:role/github-actions
+
+jobs:
+  e2e-tests:
+    name: End-to-end tests
+
+    runs-on: ubuntu-22.04
+
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Keep npm cache around to speed up installs
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: build-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Check TypeScript
+        run: npx tsc
+
+      - name: Run Unit Tests
+        run: npm test
+
+      - name: Cache AWS CLI (Linux)
+        id: cache-aws-cli
+        uses: actions/cache@v3
+        with:
+          path: aws/
+          key: cache-aws-cli
+
+      - name: Install AWS
+        if: steps.cache-aws-cli.outputs.cache-hit != 'true'
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -q awscliv2.zip
+          sudo ./aws/install --update
+
+      - name: configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          role-session-name: thingy-rocks-backend
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Generate Stack ID
+        run: |
+          RANDOM_STRING=`node -e "const crypto = require('crypto'); process.stdout.write(crypto.randomBytes(Math.ceil(8 * 0.5)).toString('hex').slice(0, 8));"`
+          echo "STACK_NAME=thingy-rocks-backend-${RANDOM_STRING}" >> $GITHUB_ENV
+
+      - run: aws sts get-caller-identity
+
+      - run: echo "VERSION=${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Bootstrap AWS account for CDK
+        run: |
+          npx cdk bootstrap aws://`aws sts get-caller-identity | jq -r '.Account' | tr -d '\n'`/${{ env.AWS_REGION }}
+
+      - name: Deploy test stack
+        run: |
+          npx cdk -a 'node --unhandled-rejections=strict dist/cdk/test-resources.js' deploy --require-approval never
+
+      - name: Deploy solution stack
+        run: npx cdk deploy --require-approval never
+
+      - name: Run End-to-End Tests
+        run: npm run test:e2e
+
+      - name: Clean up End-to-End test resources
+        if: always()
+        run: |
+          npx cdk -a 'node --unhandled-rejections=strict dist/cdk/test-resources.js' destroy -f
+
+      - name: Destroy solution stack
+        if: always()
+        run: npx cdk destroy -f
+
+  release:
+    needs:
+      - e2e-tests
+
+    runs-on: ubuntu-22.04
+
+    if: github.ref == 'refs/heads/saga'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Keep npm cache around to speed up installs
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: build-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --no-audit
+
+      - name: Semantic release
+        run: npx semantic-release

@@ -1,0 +1,70 @@
+{
+  "name": "@nordicsemiconductor/thingy-rocks-cloud",
+  "version": "0.0.0-development",
+  "description": "Cloud backend for the thingy.rocks AWS IoT dashboard developed using AWS CDK in TypeScript.",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky install && check-node-version --package"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NordicPlayground/thingy-rocks-cloud-aws-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NordicPlayground/thingy-rocks-cloud-aws-js/issues"
+  },
+  "homepage": "https://github.com/NordicPlayground/thingy-rocks-cloud-aws-js#readme",
+  "keywords": [
+    "iot",
+    "aws",
+    "cdk",
+    "demo"
+  ],
+  "author": "Nordic Semiconductor ASA | nordicsemi.no",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@nordicsemiconductor/eslint-config-asset-tracker-cloud-typescript": "10.0.50",
+    "@types/aws-lambda": "8.10.108",
+    "@types/glob": "8.0.0",
+    "@types/node": "18.11.9",
+    "@types/yazl": "2.4.2",
+    "aws-cdk-lib": "2.51.1",
+    "constructs": "10.1.166",
+    "dependency-tree": "8.1.2",
+    "glob": "8.0.3",
+    "husky": "8.0.2",
+    "tsx": "3.12.1",
+    "typescript": "4.9.3",
+    "yazl": "2.5.1"
+  },
+  "lint-staged": {
+    "*.{md,json,yaml,yml}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --ext .js,.ts"
+    ]
+  },
+  "engines": {
+    "node": ">=18",
+    "npm": ">=8"
+  },
+  "release": {
+    "branches": [
+      "saga"
+    ],
+    "remoteTags": true,
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/github"
+    ]
+  },
+  "prettier": "@nordicsemiconductor/asset-tracker-cloud-code-style/.prettierrc",
+  "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "3.213.0",
+    "@aws-sdk/client-dynamodb": "3.214.0",
+    "@nordicsemiconductor/from-env": "1.0.3"
+  }
+}

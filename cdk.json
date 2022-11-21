@@ -1,0 +1,3 @@
+{
+  "app": "npx tsc cdk/backend.ts"
+}
