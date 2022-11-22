@@ -1,6 +1,9 @@
-import { DynamoDBClient, DeleteItemCommand } from '@aws-sdk/client-dynamodb'
-import type { APIGatewayProxyWebsocketEventV2 } from 'aws-lambda'
+import { DeleteItemCommand, DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
+import type {
+	APIGatewayProxyStructuredResultV2,
+	APIGatewayProxyWebsocketEventV2,
+} from 'aws-lambda'
 const { TableName } = fromEnv({ TableName: 'CONNECTIONS_TABLE_NAME' })(
 	process.env,
 )
@@ -9,7 +12,7 @@ const db = new DynamoDBClient({})
 
 export const handler = async (
 	event: APIGatewayProxyWebsocketEventV2,
-): Promise<void> => {
+): Promise<APIGatewayProxyStructuredResultV2> => {
 	console.log(
 		JSON.stringify({
 			event,
@@ -26,4 +29,6 @@ export const handler = async (
 			},
 		}),
 	)
+
+	return { statusCode: 200, body: 'Disconnected. Good bye.' }
 }

@@ -11,6 +11,7 @@ export class BackendApp extends App {
 		lambdaSources: {
 			publishThingEvents: PackedLambda
 			onConnect: PackedLambda
+			onMessage: PackedLambda
 			onDisconnect: PackedLambda
 		}
 		layer: PackedLayer

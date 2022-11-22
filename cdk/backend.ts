@@ -18,6 +18,7 @@ new BackendApp({
 	lambdaSources: {
 		publishThingEvents: await pack('publishThingEvents'),
 		onConnect: await pack('onConnect'),
+		onMessage: await pack('onMessage'),
 		onDisconnect: await pack('onDisconnect'),
 	},
 	layer: await packLayer({

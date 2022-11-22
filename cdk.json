@@ -1,3 +1,3 @@
 {
-  "app": "npx tsc cdk/backend.ts"
+  "app": "npx tsx cdk/backend.ts"
 }

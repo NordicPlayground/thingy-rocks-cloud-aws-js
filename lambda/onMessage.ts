@@ -1,4 +1,4 @@
-import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import type {
 	APIGatewayProxyStructuredResultV2,
@@ -20,17 +20,20 @@ export const handler = async (
 	)
 
 	await db.send(
-		new PutItemCommand({
+		new UpdateItemCommand({
 			TableName,
-			Item: {
+			Key: {
 				connectionId: {
 					S: event.requestContext.connectionId,
 				},
-				lastSeen: {
+			},
+			UpdateExpression: 'SET #lastSeen = :lastSeen',
+			ExpressionAttributeNames: {
+				'#lastSeen': 'lastSeen',
+			},
+			ExpressionAttributeValues: {
+				':lastSeen': {
 					S: new Date().toISOString(),
-				},
-				ttl: {
-					N: `${Math.round(Date.now() / 1000) + 60 * 60}`,
 				},
 			},
 		}),
@@ -38,6 +41,6 @@ export const handler = async (
 
 	return {
 		statusCode: 200,
-		body: `Connected. Hello ${event.requestContext.connectionId}!`,
+		body: `Got your message, ${event.requestContext.connectionId}!`,
 	}
 }

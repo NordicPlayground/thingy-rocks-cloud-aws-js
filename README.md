@@ -1,4 +1,4 @@
-# thingy.rocks IoT dashboard
+# thingy.rocks IoT dashboard backend
 
 [![GitHub Actions](https://github.com/NordicPlayground/thingy-rocks-cloud-aws-js/workflows/Test%20and%20Release/badge.svg)](https://github.com/NordicPlayground/thingy-rocks-cloud-aws-js/actions)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
@@ -20,8 +20,12 @@ Provide your AWS credentials, for example using the `.envrc` (see
 
 Install the dependencies:
 
-    npm ci
+```bash
+npm ci
+```
 
 ### Deploy
 
-    npx cdk deploy
+```bash
+npx cdk deploy
+```
