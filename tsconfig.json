@@ -19,6 +19,6 @@
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
-    "isolatedModules": true,
+    "isolatedModules": true
   }
 }
