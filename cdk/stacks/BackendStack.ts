@@ -312,3 +312,7 @@ export class BackendStack extends Stack {
 		connectionsTable.grantReadData(publishThingEvents)
 	}
 }
+
+export type StackOutputs = {
+	WebSocketURI: string
+}

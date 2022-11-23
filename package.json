@@ -23,6 +23,8 @@
   "author": "Nordic Semiconductor ASA | nordicsemi.no",
   "license": "BSD-3-Clause",
   "devDependencies": {
+    "@aws-sdk/client-iot": "3.216.0",
+    "@aws-sdk/client-iot-data-plane": "3.216.0",
     "@nordicsemiconductor/asset-tracker-cloud-code-style": "11.0.145",
     "@nordicsemiconductor/eslint-config-asset-tracker-cloud-typescript": "10.0.51",
     "@types/aws-lambda": "8.10.108",
@@ -31,6 +33,7 @@
     "@types/yazl": "2.4.2",
     "aws-cdk-lib": "2.51.1",
     "cdk": "2.51.1",
+    "chalk": "5.1.2",
     "constructs": "10.1.167",
     "dependency-tree": "8.1.2",
     "glob": "8.0.3",
