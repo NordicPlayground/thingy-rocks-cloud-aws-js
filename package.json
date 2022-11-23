@@ -15,6 +15,7 @@
   },
   "homepage": "https://github.com/NordicPlayground/thingy-rocks-cloud-aws-js#readme",
   "keywords": [
+    "thingy-world",
     "iot",
     "aws",
     "cdk",
