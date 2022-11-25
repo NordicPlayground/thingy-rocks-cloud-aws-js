@@ -13,7 +13,7 @@ export class BackendStack extends Stack {
 			layer,
 		}: {
 			lambdaSources: {
-				publishThingEvents: PackedLambda
+				publishToWebsocketClients: PackedLambda
 				onConnect: PackedLambda
 				onMessage: PackedLambda
 				onDisconnect: PackedLambda

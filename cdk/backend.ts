@@ -16,7 +16,7 @@ const pack = async (id: string) =>
 
 new BackendApp({
 	lambdaSources: {
-		publishThingEvents: await pack('publishThingEvents'),
+		publishToWebsocketClients: await pack('publishToWebsocketClients'),
 		onConnect: await pack('onConnect'),
 		onMessage: await pack('onMessage'),
 		onDisconnect: await pack('onDisconnect'),

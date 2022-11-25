@@ -18,10 +18,19 @@ const apiGwManagementClient = new ApiGatewayManagementApi({
 	endpoint: apiEndpoint,
 })
 
-export const handler = async (event: {
-	reported: Record<string, any>
-	deviceId: string
-}): Promise<void> => {
+export const handler = async (
+	event: {
+		deviceId: string
+		receivedTimestamp: string
+	} & (
+		| {
+				reported: Record<string, any>
+		  }
+		| {
+				message: Record<string, any>
+		  }
+	),
+): Promise<void> => {
 	console.log(
 		JSON.stringify({
 			event,
@@ -39,15 +48,20 @@ export const handler = async (event: {
 			continue
 		}
 		try {
+			const Data =
+				'reported' in event
+					? {
+							'@context': 'https://thingy.rocks/device-shadow',
+							...event,
+					  }
+					: {
+							'@context': 'https://thingy.rocks/device-message',
+							...event,
+					  }
 			await apiGwManagementClient.send(
 				new PostToConnectionCommand({
 					ConnectionId: connectionId.S,
-					Data: Buffer.from(
-						JSON.stringify({
-							'@context': 'https://thingy.rocks/device-event',
-							...event,
-						}),
-					),
+					Data: Buffer.from(JSON.stringify(Data)),
 				}),
 			)
 		} catch (err) {

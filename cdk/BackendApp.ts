@@ -9,7 +9,7 @@ export class BackendApp extends App {
 		layer,
 	}: {
 		lambdaSources: {
-			publishThingEvents: PackedLambda
+			publishToWebsocketClients: PackedLambda
 			onConnect: PackedLambda
 			onMessage: PackedLambda
 			onDisconnect: PackedLambda

@@ -23,7 +23,7 @@ export class WebsocketAPI extends Construct {
 			layer,
 		}: {
 			lambdaSources: {
-				publishThingEvents: PackedLambda
+				publishToWebsocketClients: PackedLambda
 				onConnect: PackedLambda
 				onMessage: PackedLambda
 				onDisconnect: PackedLambda
@@ -192,6 +192,8 @@ export class WebsocketAPI extends Construct {
 			apiId: api.ref,
 		})
 
+		this.websocketURI = `wss://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.ref}`
+
 		onMessage.addPermission('invokeByAPI', {
 			principal: new IAM.ServicePrincipal(
 				'apigateway.amazonaws.com',
@@ -213,39 +215,49 @@ export class WebsocketAPI extends Construct {
 
 		// Publish events
 
-		const publishThingEvents = new Lambda.Function(this, 'publishThingEvents', {
-			handler: lambdaSources.publishThingEvents.handler,
-			architecture: Lambda.Architecture.ARM_64,
-			runtime: Lambda.Runtime.NODEJS_18_X,
-			timeout: Duration.minutes(1),
-			memorySize: 1792,
-			code: Lambda.Code.fromAsset(
-				lambdaSources.publishThingEvents.lambdaZipFile,
-			),
-			description: 'Publishes AWS IoT thing events to the websocket API.',
-			environment: {
-				VERSION: this.node.tryGetContext('version'),
-				CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
-				API_ENDPOINT: `https://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.stageName}`,
-			},
-			initialPolicy: [
-				new IAM.PolicyStatement({
-					actions: ['execute-api:ManageConnections'],
-					resources: [
-						`arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/POST/@connections/*`,
-					],
-				}),
-			],
-			layers: [baseLayer],
-		})
-
-		new LambdaLogGroup(this, 'publishThingEventsLogs', publishThingEvents)
-
-		connectionsTable.grantWriteData(publishThingEvents)
-
-		const publishThingEventsRuleRole = new IAM.Role(
+		const publishToWebsocketClients = new Lambda.Function(
 			this,
-			'publishThingEventsRuleRole',
+			'publishToWebsocketClients',
+			{
+				handler: lambdaSources.publishToWebsocketClients.handler,
+				architecture: Lambda.Architecture.ARM_64,
+				runtime: Lambda.Runtime.NODEJS_18_X,
+				timeout: Duration.minutes(1),
+				memorySize: 1792,
+				code: Lambda.Code.fromAsset(
+					lambdaSources.publishToWebsocketClients.lambdaZipFile,
+				),
+				description: 'Publishes device events to the websocket API.',
+				environment: {
+					VERSION: this.node.tryGetContext('version'),
+					CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
+					API_ENDPOINT: `https://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.stageName}`,
+				},
+				initialPolicy: [
+					new IAM.PolicyStatement({
+						actions: ['execute-api:ManageConnections'],
+						resources: [
+							`arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/POST/@connections/*`,
+						],
+					}),
+				],
+				layers: [baseLayer],
+			},
+		)
+
+		connectionsTable.grantReadData(publishToWebsocketClients)
+
+		new LambdaLogGroup(
+			this,
+			'publishToWebsocketClientsLogs',
+			publishToWebsocketClients,
+		)
+
+		connectionsTable.grantWriteData(publishToWebsocketClients)
+
+		const publishToWebsocketClientsRuleRole = new IAM.Role(
+			this,
+			'publishToWebsocketClientsRuleRole',
 			{
 				assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
 				inlinePolicies: {
@@ -267,25 +279,25 @@ export class WebsocketAPI extends Construct {
 			},
 		)
 
-		const publishThingEventsRule = new IoT.CfnTopicRule(
+		const publishShadowUpdatesRule = new IoT.CfnTopicRule(
 			this,
-			'publishThingEventsRule',
+			'publishShadowUpdatesRule',
 			{
 				topicRulePayload: {
-					description: `Invokes the lambda function which publishes the thing events`,
+					description: `Publish shadow updates to the Websocket API`,
 					ruleDisabled: false,
 					awsIotSqlVersion: '2016-03-23',
-					sql: "SELECT current.state.reported AS reported, topic(3) as deviceId FROM '$aws/things/+/shadow/name/+/update/documents'",
+					sql: `SELECT current.state.reported AS reported, topic(3) as deviceId, parse_time("yyyy-MM-dd'T'HH:mm:ss.S'Z'", timestamp()) as receivedTimestamp FROM '$aws/things/+/shadow/update/documents'`,
 					actions: [
 						{
 							lambda: {
-								functionArn: publishThingEvents.functionArn,
+								functionArn: publishToWebsocketClients.functionArn,
 							},
 						},
 					],
 					errorAction: {
 						republish: {
-							roleArn: publishThingEventsRuleRole.roleArn,
+							roleArn: publishToWebsocketClientsRuleRole.roleArn,
 							topic: 'errors',
 						},
 					},
@@ -293,16 +305,46 @@ export class WebsocketAPI extends Construct {
 			},
 		)
 
-		publishThingEvents.addPermission(
-			'publishThingEventsInvokeByIotPermission',
+		publishToWebsocketClients.addPermission(
+			'invokeByPublishShadowUpdatesRulePermission',
 			{
 				principal: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
-				sourceArn: publishThingEventsRule.attrArn,
+				sourceArn: publishShadowUpdatesRule.attrArn,
 			},
 		)
 
-		connectionsTable.grantReadData(publishThingEvents)
+		const publishMessagesRule = new IoT.CfnTopicRule(
+			this,
+			'publishMessagesRule',
+			{
+				topicRulePayload: {
+					description: `Publish device messages to the Websocket API`,
+					ruleDisabled: false,
+					awsIotSqlVersion: '2016-03-23',
+					sql: `SELECT * AS message, topic(1) as deviceId, parse_time("yyyy-MM-dd'T'HH:mm:ss.S'Z'", timestamp()) as receivedTimestamp FROM '+/messages'`,
+					actions: [
+						{
+							lambda: {
+								functionArn: publishToWebsocketClients.functionArn,
+							},
+						},
+					],
+					errorAction: {
+						republish: {
+							roleArn: publishToWebsocketClientsRuleRole.roleArn,
+							topic: 'errors',
+						},
+					},
+				},
+			},
+		)
 
-		this.websocketURI = `wss://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.ref}`
+		publishToWebsocketClients.addPermission(
+			'invokeByPublishMessagesRulePermission',
+			{
+				principal: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
+				sourceArn: publishMessagesRule.attrArn,
+			},
+		)
 	}
 }
