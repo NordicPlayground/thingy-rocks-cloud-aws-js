@@ -1,6 +1,8 @@
 import {
 	aws_apigatewayv2 as ApiGateway,
 	aws_dynamodb as DynamoDB,
+	aws_events as Events,
+	aws_events_targets as EventTargets,
 	aws_iam as IAM,
 	aws_iot as IoT,
 	aws_lambda as Lambda,
@@ -21,14 +23,17 @@ export class WebsocketAPI extends Construct {
 		{
 			lambdaSources,
 			layer,
+			assetTrackerStackName,
 		}: {
 			lambdaSources: {
 				publishToWebsocketClients: PackedLambda
 				onConnect: PackedLambda
 				onMessage: PackedLambda
 				onDisconnect: PackedLambda
+				onCellGeoLocationResolved: PackedLambda
 			}
 			layer: PackedLayer
+			assetTrackerStackName: string
 		},
 	) {
 		super(parent, 'WebsocketAPI')
@@ -344,6 +349,67 @@ export class WebsocketAPI extends Construct {
 			{
 				principal: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
 				sourceArn: publishMessagesRule.attrArn,
+			},
+		)
+
+		// Publish cell geo location resolution results
+
+		const onCellGeoLocationResolved = new Lambda.Function(
+			this,
+			'onCellGeoLocationResolvedLambda',
+			{
+				handler: lambdaSources.onCellGeoLocationResolved.handler,
+				architecture: Lambda.Architecture.ARM_64,
+				runtime: Lambda.Runtime.NODEJS_18_X,
+				timeout: Duration.seconds(1),
+				memorySize: 1792,
+				code: Lambda.Code.fromAsset(
+					lambdaSources.onCellGeoLocationResolved.lambdaZipFile,
+				),
+				description: 'Publish cell geolocation resolutions',
+				environment: {
+					VERSION: this.node.tryGetContext('version'),
+					CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
+				},
+				initialPolicy: [],
+				layers: [baseLayer],
+			},
+		)
+		connectionsTable.grantReadData(onCellGeoLocationResolved)
+
+		new LambdaLogGroup(
+			this,
+			'onCellGeoLocationResolvedLogGroup',
+			onCellGeoLocationResolved,
+		)
+
+		const publishCellGeolocationSuccessEventsRule = new Events.Rule(
+			this,
+			'publishCellGeolocationSuccessEventsRule',
+			{
+				description:
+					'Invokes a lambda on success results from the Cell Geolocation StepFunction',
+				eventPattern: {
+					source: ['aws.states'],
+					detailType: ['Step Functions Execution Status Change'],
+					detail: {
+						status: ['SUCCEEDED'],
+						stateMachineArn: [
+							`arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-cellGeo`,
+						],
+					},
+				},
+				targets: [new EventTargets.LambdaFunction(onCellGeoLocationResolved)],
+			},
+		)
+
+		onCellGeoLocationResolved.addPermission(
+			'invokeByPublishCellGeolocationSuccessEventsRulePermission',
+			{
+				principal: new IAM.ServicePrincipal(
+					'events.amazonaws.com',
+				) as IPrincipal,
+				sourceArn: publishCellGeolocationSuccessEventsRule.ruleArn,
 			},
 		)
 	}

@@ -40,6 +40,8 @@
     "glob": "8.0.3",
     "husky": "8.0.2",
     "prettier": "2.7.1",
+    "tessera": "0.15.3",
+    "tilelive-aws": "3.2.0",
     "tsx": "3.12.1",
     "typescript": "4.9.3",
     "yazl": "2.5.1"

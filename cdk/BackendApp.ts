@@ -7,16 +7,19 @@ export class BackendApp extends App {
 	public constructor({
 		lambdaSources,
 		layer,
+		assetTrackerStackName,
 	}: {
 		lambdaSources: {
 			publishToWebsocketClients: PackedLambda
 			onConnect: PackedLambda
 			onMessage: PackedLambda
 			onDisconnect: PackedLambda
+			onCellGeoLocationResolved: PackedLambda
 		}
 		layer: PackedLayer
+		assetTrackerStackName: string
 	}) {
 		super()
-		new BackendStack(this, { lambdaSources, layer })
+		new BackendStack(this, { lambdaSources, layer, assetTrackerStackName })
 	}
 }
