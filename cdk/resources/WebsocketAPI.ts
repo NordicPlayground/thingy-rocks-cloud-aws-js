@@ -1,8 +1,6 @@
 import {
 	aws_apigatewayv2 as ApiGateway,
 	aws_dynamodb as DynamoDB,
-	aws_events as Events,
-	aws_events_targets as EventTargets,
 	aws_iam as IAM,
 	aws_iot as IoT,
 	aws_lambda as Lambda,
@@ -10,35 +8,33 @@ import {
 	RemovalPolicy,
 	Stack,
 } from 'aws-cdk-lib'
-import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../packLambda.js'
-import type { PackedLayer } from '../packLayer.js'
+import type { PackedLambda } from '../backend.js'
 import { LambdaLogGroup } from '../resources/LambdaLogGroup.js'
 
 export class WebsocketAPI extends Construct {
 	public readonly websocketURI: string
+	public readonly connectionsTable: DynamoDB.ITable
+	public readonly websocketAPIArn: string
+	public readonly websocketManagementAPIURL: string
 	public constructor(
 		parent: Stack,
 		{
 			lambdaSources,
-			layer,
-			assetTrackerStackName,
+			baseLayer,
 		}: {
 			lambdaSources: {
 				publishToWebsocketClients: PackedLambda
 				onConnect: PackedLambda
 				onMessage: PackedLambda
 				onDisconnect: PackedLambda
-				onCellGeoLocationResolved: PackedLambda
 			}
-			layer: PackedLayer
-			assetTrackerStackName: string
+			baseLayer: Lambda.ILayerVersion
 		},
 	) {
 		super(parent, 'WebsocketAPI')
 
-		const connectionsTable = new DynamoDB.Table(this, 'connectionsTable', {
+		this.connectionsTable = new DynamoDB.Table(this, 'connectionsTable', {
 			billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
 			partitionKey: {
 				name: 'connectionId',
@@ -46,13 +42,7 @@ export class WebsocketAPI extends Construct {
 			},
 			timeToLiveAttribute: 'ttl',
 			removalPolicy: RemovalPolicy.DESTROY,
-		})
-
-		const baseLayer = new Lambda.LayerVersion(this, 'baseLayer', {
-			code: Lambda.Code.fromAsset(layer.layerZipFile),
-			compatibleArchitectures: [Lambda.Architecture.ARM_64],
-			compatibleRuntimes: [Lambda.Runtime.NODEJS_18_X],
-		})
+		}) as DynamoDB.ITable
 
 		// OnConnect
 
@@ -66,12 +56,12 @@ export class WebsocketAPI extends Construct {
 			description: 'Registers new clients',
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
-				CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
+				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
 			},
 			initialPolicy: [],
 			layers: [baseLayer],
 		})
-		connectionsTable.grantWriteData(onConnect)
+		this.connectionsTable.grantWriteData(onConnect)
 
 		new LambdaLogGroup(this, 'onConnectLogs', onConnect)
 
@@ -87,12 +77,12 @@ export class WebsocketAPI extends Construct {
 			description: 'Receives messages from clients',
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
-				CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
+				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
 			},
 			initialPolicy: [],
 			layers: [baseLayer],
 		})
-		connectionsTable.grantWriteData(onMessage)
+		this.connectionsTable.grantWriteData(onMessage)
 
 		new LambdaLogGroup(this, 'onMessageLogs', onMessage)
 
@@ -108,12 +98,12 @@ export class WebsocketAPI extends Construct {
 			description: 'Registers new clients',
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
-				CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
+				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
 			},
 			initialPolicy: [],
 			layers: [baseLayer],
 		})
-		connectionsTable.grantWriteData(onDisconnect)
+		this.connectionsTable.grantWriteData(onDisconnect)
 
 		new LambdaLogGroup(this, 'onDisconnectLogs', onDisconnect)
 
@@ -202,24 +192,25 @@ export class WebsocketAPI extends Construct {
 		onMessage.addPermission('invokeByAPI', {
 			principal: new IAM.ServicePrincipal(
 				'apigateway.amazonaws.com',
-			) as IPrincipal,
+			) as IAM.IPrincipal,
 			sourceArn: `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/sendmessage`,
 		})
 		onConnect.addPermission('invokeByAPI', {
 			principal: new IAM.ServicePrincipal(
 				'apigateway.amazonaws.com',
-			) as IPrincipal,
+			) as IAM.IPrincipal,
 			sourceArn: `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/$connect`,
 		})
 		onDisconnect.addPermission('invokeByAPI', {
 			principal: new IAM.ServicePrincipal(
 				'apigateway.amazonaws.com',
-			) as IPrincipal,
+			) as IAM.IPrincipal,
 			sourceArn: `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/$disconnect`,
 		})
 
 		// Publish events
-
+		this.websocketAPIArn = `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/POST/@connections/*`
+		this.websocketManagementAPIURL = `https://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.stageName}`
 		const publishToWebsocketClients = new Lambda.Function(
 			this,
 			'publishToWebsocketClients',
@@ -235,22 +226,20 @@ export class WebsocketAPI extends Construct {
 				description: 'Publishes device events to the websocket API.',
 				environment: {
 					VERSION: this.node.tryGetContext('version'),
-					CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
-					API_ENDPOINT: `https://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.stageName}`,
+					CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
+					WEBSOCKET_MANAGEMENT_API_URL: this.websocketManagementAPIURL,
 				},
 				initialPolicy: [
 					new IAM.PolicyStatement({
 						actions: ['execute-api:ManageConnections'],
-						resources: [
-							`arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/POST/@connections/*`,
-						],
+						resources: [this.websocketAPIArn],
 					}),
 				],
 				layers: [baseLayer],
 			},
 		)
 
-		connectionsTable.grantReadData(publishToWebsocketClients)
+		this.connectionsTable.grantReadWriteData(publishToWebsocketClients)
 
 		new LambdaLogGroup(
 			this,
@@ -258,20 +247,16 @@ export class WebsocketAPI extends Construct {
 			publishToWebsocketClients,
 		)
 
-		connectionsTable.grantWriteData(publishToWebsocketClients)
-
 		const publishToWebsocketClientsRuleRole = new IAM.Role(
 			this,
 			'publishToWebsocketClientsRuleRole',
 			{
-				assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
+				assumedBy: new IAM.ServicePrincipal(
+					'iot.amazonaws.com',
+				) as IAM.IPrincipal,
 				inlinePolicies: {
 					rootPermissions: new IAM.PolicyDocument({
 						statements: [
-							new IAM.PolicyStatement({
-								actions: ['iot:DescribeThing'],
-								resources: [`*`],
-							}),
 							new IAM.PolicyStatement({
 								actions: ['iot:Publish'],
 								resources: [
@@ -313,7 +298,9 @@ export class WebsocketAPI extends Construct {
 		publishToWebsocketClients.addPermission(
 			'invokeByPublishShadowUpdatesRulePermission',
 			{
-				principal: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
+				principal: new IAM.ServicePrincipal(
+					'iot.amazonaws.com',
+				) as IAM.IPrincipal,
 				sourceArn: publishShadowUpdatesRule.attrArn,
 			},
 		)
@@ -347,69 +334,10 @@ export class WebsocketAPI extends Construct {
 		publishToWebsocketClients.addPermission(
 			'invokeByPublishMessagesRulePermission',
 			{
-				principal: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
-				sourceArn: publishMessagesRule.attrArn,
-			},
-		)
-
-		// Publish cell geo location resolution results
-
-		const onCellGeoLocationResolved = new Lambda.Function(
-			this,
-			'onCellGeoLocationResolvedLambda',
-			{
-				handler: lambdaSources.onCellGeoLocationResolved.handler,
-				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_18_X,
-				timeout: Duration.seconds(1),
-				memorySize: 1792,
-				code: Lambda.Code.fromAsset(
-					lambdaSources.onCellGeoLocationResolved.lambdaZipFile,
-				),
-				description: 'Publish cell geolocation resolutions',
-				environment: {
-					VERSION: this.node.tryGetContext('version'),
-					CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
-				},
-				initialPolicy: [],
-				layers: [baseLayer],
-			},
-		)
-		connectionsTable.grantReadData(onCellGeoLocationResolved)
-
-		new LambdaLogGroup(
-			this,
-			'onCellGeoLocationResolvedLogGroup',
-			onCellGeoLocationResolved,
-		)
-
-		const publishCellGeolocationSuccessEventsRule = new Events.Rule(
-			this,
-			'publishCellGeolocationSuccessEventsRule',
-			{
-				description:
-					'Invokes a lambda on success results from the Cell Geolocation StepFunction',
-				eventPattern: {
-					source: ['aws.states'],
-					detailType: ['Step Functions Execution Status Change'],
-					detail: {
-						status: ['SUCCEEDED'],
-						stateMachineArn: [
-							`arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-cellGeo`,
-						],
-					},
-				},
-				targets: [new EventTargets.LambdaFunction(onCellGeoLocationResolved)],
-			},
-		)
-
-		onCellGeoLocationResolved.addPermission(
-			'invokeByPublishCellGeolocationSuccessEventsRulePermission',
-			{
 				principal: new IAM.ServicePrincipal(
-					'events.amazonaws.com',
-				) as IPrincipal,
-				sourceArn: publishCellGeolocationSuccessEventsRule.ruleArn,
+					'iot.amazonaws.com',
+				) as IAM.IPrincipal,
+				sourceArn: publishMessagesRule.attrArn,
 			},
 		)
 	}

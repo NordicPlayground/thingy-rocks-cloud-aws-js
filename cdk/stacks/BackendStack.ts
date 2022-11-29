@@ -1,8 +1,9 @@
-import { App, CfnOutput, Stack } from 'aws-cdk-lib'
-import type { PackedLambda } from '../packLambda.js'
+import { App, aws_lambda as Lambda, CfnOutput, Fn, Stack } from 'aws-cdk-lib'
+import type { PackedLambda } from '../backend.js'
 import type { PackedLayer } from '../packLayer.js'
 import { FirmwareCI } from '../resources/FirmwareCI.js'
 import { Map } from '../resources/Map.js'
+import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
 import { STACK_NAME } from './stackName.js'
@@ -21,6 +22,7 @@ export class BackendStack extends Stack {
 				onMessage: PackedLambda
 				onDisconnect: PackedLambda
 				onCellGeoLocationResolved: PackedLambda
+				resolveCellLocation: PackedLambda
 			}
 			layer: PackedLayer
 			assetTrackerStackName: string
@@ -28,10 +30,26 @@ export class BackendStack extends Stack {
 	) {
 		super(parent, STACK_NAME)
 
+		const baseLayer = new Lambda.LayerVersion(this, 'baseLayer', {
+			code: Lambda.Code.fromAsset(layer.layerZipFile),
+			compatibleArchitectures: [Lambda.Architecture.ARM_64],
+			compatibleRuntimes: [Lambda.Runtime.NODEJS_18_X],
+		})
+
 		const api = new WebsocketAPI(this, {
 			lambdaSources,
-			layer,
+			baseLayer,
+		})
+
+		new ResolveCellLocation(this, {
+			lambdaSources,
+			baseLayer,
 			assetTrackerStackName,
+			connectionsTable: api.connectionsTable,
+			geolocationApiUrl: Fn.importValue(
+				`${assetTrackerStackName}:geolocationApiUrl`,
+			),
+			websocketAPI: api,
 		})
 
 		const firmwareCI = new FirmwareCI(this)
@@ -42,34 +60,34 @@ export class BackendStack extends Stack {
 		)
 
 		const map = new Map(this, 'map', {
-			userAuthentication
+			userAuthentication,
 		})
 
 		// Outputs
 		new CfnOutput(this, 'WebSocketURI', {
-			exportName: 'WebSocketURI',
+			exportName: `${this.stackName}:WebSocketURI`,
 			description: 'The WSS Protocol URI to connect to',
 			value: api.websocketURI,
 		})
 
 		new CfnOutput(this, 'firmwareCIUserAccessKeyId', {
 			value: firmwareCI.accessKey.ref,
-			exportName: `firmwareCIUserAccessKeyId`,
+			exportName: `${this.stackName}:firmwareCIUserAccessKeyId`,
 		})
 
 		new CfnOutput(this, 'firmwareCIUserSecretAccessKey', {
 			value: firmwareCI.accessKey.attrSecretAccessKey,
-			exportName: `firmwareCIUserSecretAccessKey`,
+			exportName: `${this.stackName}:firmwareCIUserSecretAccessKey`,
 		})
 
 		new CfnOutput(this, 'mapName', {
 			value: map.map.mapName,
-			exportName: 'mapName',
+			exportName: `${this.stackName}:mapName`,
 		})
 
 		new CfnOutput(this, 'identityPoolId', {
 			value: userAuthentication.identityPool.ref,
-			exportName: 'identityPoolId',
+			exportName: `${this.stackName}:identityPoolId`,
 		})
 	}
 }

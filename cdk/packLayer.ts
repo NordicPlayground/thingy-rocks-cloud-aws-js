@@ -23,7 +23,7 @@ export const packLayer = async ({
 	)
 
 	const layerDir = path.join(process.cwd(), 'dist', 'layers', id)
-	const nodejsDir = path.join(layerDir, 'nodejs')
+	const nodejsDir = path.join(layerDir, 'nodejs', 'node18')
 
 	try {
 		await rm(layerDir, { recursive: true })
