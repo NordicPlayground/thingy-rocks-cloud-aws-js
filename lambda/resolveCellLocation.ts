@@ -64,7 +64,7 @@ export const handler = async (event: {
 			console.log({ result: JSON.stringify(body) })
 			await notifier({
 				deviceId,
-				location: body,
+				location: { ...body, source: 'single-cell' },
 				receivedTimestamp,
 			})
 			break

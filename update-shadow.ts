@@ -32,12 +32,55 @@ const updateShadow = async () => {
 	await iotData.send(
 		new UpdateThingShadowCommand({
 			thingName,
-			shadowName: 'demo',
 			payload: Buffer.from(
 				JSON.stringify({
 					state: {
 						reported: {
-							ts,
+							cfg: {
+								act: true,
+								loct: 30,
+								actwt: 60,
+								mvres: 120,
+								mvt: 3600,
+								accath: 4,
+								accith: 4,
+								accito: 60,
+								nod: [],
+							},
+							dev: {
+								v: {
+									imei: '351358815341265',
+									iccid: '89457387300008502281',
+									modV: 'mfw_nrf9160_1.3.2',
+									brdV: 'thingy91_nrf9160',
+									appV: '1.1.0-thingy91_nrf9160_ns',
+								},
+								ts,
+							},
+							roam: {
+								v: {
+									band: 20,
+									nw: 'LTE-M',
+									rsrp: -88,
+									area: 30401,
+									mccmnc: 24201,
+									cell: 21679616,
+									ip: '100.74.127.54',
+								},
+								ts,
+							},
+							env: {
+								v: {
+									temp: 27.75,
+									hum: 13.257,
+									atmp: 101.497,
+								},
+								ts,
+							},
+							bat: {
+								v: 4398,
+								ts,
+							},
 						},
 					},
 				}),
@@ -46,6 +89,6 @@ const updateShadow = async () => {
 	)
 }
 
-updateShadow()
+updateShadow().catch(console.error)
 
 setInterval(updateShadow, 5000)
