@@ -8,11 +8,22 @@ import {
 	ScanCommand,
 } from '@aws-sdk/client-dynamodb'
 
-export type Location = {
+export type GeoLocation = {
 	lat: number
 	lng: number
 	accuracy: number
 	source: 'single-cell' | 'multi-cell' | 'wifi' | 'gnss'
+}
+
+export enum Network {
+	lteM = 'LTE-m',
+	nbIoT = 'NB-IoT',
+}
+type Cell = {
+	area: number //30401
+	cell: number //21679616
+	mccmnc: number //24201
+	nw: Network
 }
 
 export type DeviceEvent = {
@@ -26,9 +37,18 @@ export type DeviceEvent = {
 			message: Record<string, any>
 	  }
 	| {
-			location: Location
+			location: GeoLocation
 	  }
 )
+
+export type CellGeoLocationEvent = {
+	cellGeoLocation: {
+		cell: Cell
+		geoLocation: Omit<GeoLocation, 'source'>
+	}
+}
+
+type Event = DeviceEvent | CellGeoLocationEvent
 
 export const notifyClients =
 	({
@@ -40,7 +60,7 @@ export const notifyClients =
 		connectionsTableName: string
 		apiGwManagementClient: ApiGatewayManagementApiClient
 	}) =>
-	async (event: DeviceEvent): Promise<void> => {
+	async (event: Event): Promise<void> => {
 		console.log(
 			JSON.stringify({
 				event,
@@ -92,9 +112,11 @@ export const notifyClients =
 			}
 		}
 	}
-const getEventContext = (event: DeviceEvent): string | null => {
+const getEventContext = (event: Event): string | null => {
 	if ('reported' in event) return 'https://thingy.rocks/device-shadow'
 	if ('message' in event) return 'https://thingy.rocks/device-message'
 	if ('location' in event) return 'https://thingy.rocks/device-location'
+	if ('cellGeoLocation' in event)
+		return 'https://thingy.rocks/cell-geo-location'
 	return null
 }

@@ -156,8 +156,14 @@ export class ResolveCellLocation extends Construct {
 				environment: {
 					VERSION: this.node.tryGetContext('version'),
 					CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
+					WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
 				},
-				initialPolicy: [],
+				initialPolicy: [
+					new IAM.PolicyStatement({
+						actions: ['execute-api:ManageConnections'],
+						resources: [websocketAPI.websocketAPIArn],
+					}),
+				],
 				layers: [baseLayer],
 			},
 		)

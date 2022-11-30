@@ -3,11 +3,12 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { notifyClients } from './notifyClients.js'
 
-const { TableName, websocketManagementAPIURL, geolocationApiUrl } = fromEnv({
-	TableName: 'CONNECTIONS_TABLE_NAME',
-	websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
-	geolocationApiUrl: 'GEOLOCATION_API_URL',
-})(process.env)
+const { connectionsTableName, websocketManagementAPIURL, geolocationApiUrl } =
+	fromEnv({
+		connectionsTableName: 'CONNECTIONS_TABLE_NAME',
+		websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
+		geolocationApiUrl: 'GEOLOCATION_API_URL',
+	})(process.env)
 
 const db = new DynamoDBClient({})
 export const apiGwManagementClient = new ApiGatewayManagementApi({
@@ -15,7 +16,7 @@ export const apiGwManagementClient = new ApiGatewayManagementApi({
 })
 const notifier = notifyClients({
 	db,
-	connectionsTableName: TableName,
+	connectionsTableName,
 	apiGwManagementClient,
 })
 

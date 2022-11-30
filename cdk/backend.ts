@@ -5,7 +5,11 @@ import { packLayer } from './packLayer.js'
 import { ASSET_TRACKER_STACK_NAME } from './stacks/stackName.js'
 export type PackedLambda = { lambdaZipFile: string; handler: string }
 
-const packagesInLayer: string[] = ['@nordicsemiconductor/from-env']
+const packagesInLayer: string[] = [
+	'@nordicsemiconductor/from-env',
+	'@sinclair/typebox',
+	'ajv',
+]
 const pack = async (id: string, handler = 'handler'): Promise<PackedLambda> => {
 	const zipFile = path.join(process.cwd(), 'dist', 'lambdas', `${id}.zip`)
 	await packLambda({

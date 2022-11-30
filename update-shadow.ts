@@ -91,4 +91,4 @@ const updateShadow = async () => {
 
 updateShadow().catch(console.error)
 
-setInterval(updateShadow, 5000)
+setInterval(updateShadow, 30 * 1000)

@@ -3,8 +3,8 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { notifyClients } from './notifyClients.js'
 
-const { TableName, websocketManagementAPIURL } = fromEnv({
-	TableName: 'CONNECTIONS_TABLE_NAME',
+const { connectionsTableName, websocketManagementAPIURL } = fromEnv({
+	connectionsTableName: 'CONNECTIONS_TABLE_NAME',
 	websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
 })(process.env)
 
@@ -14,7 +14,7 @@ export const apiGwManagementClient = new ApiGatewayManagementApi({
 })
 const notifier = notifyClients({
 	db,
-	connectionsTableName: TableName,
+	connectionsTableName,
 	apiGwManagementClient,
 })
 
