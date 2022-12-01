@@ -17,9 +17,10 @@ export class Map extends Construct {
 	) {
 		super(parent, id)
 
-		this.map = new Location.CfnMap(this, 'map', {
-			mapName: 'thingy-rocks',
-			description: 'Map used to display on the dashboard',
+		this.map = new Location.CfnMap(this, 'mapDark', {
+			mapName: `${parent.stackName}-map`,
+			description:
+				'Map used to display on the dashboard (Esri Dark Gray Canvas)',
 			configuration: {
 				style: 'VectorEsriDarkGrayCanvas',
 			},
