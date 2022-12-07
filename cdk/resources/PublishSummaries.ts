@@ -81,7 +81,7 @@ export class PublishSummaries extends Construct {
 
 		new LambdaLogGroup(this, 'Logs', lambda)
 
-		websocketAPI.connectionsTable.grantWriteData(lambda)
+		websocketAPI.connectionsTable.grantFullAccess(lambda)
 
 		const rule = new Events.Rule(this, 'Rule', {
 			schedule: Events.Schedule.expression('rate(1 minute)'),

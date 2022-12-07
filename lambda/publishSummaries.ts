@@ -37,6 +37,8 @@ export const handler = async (): Promise<void> => {
 		timestream,
 	})
 
+	console.log(JSON.stringify({ summaries }))
+
 	for (const [deviceId, history] of Object.entries(summaries)) {
 		await notifier({
 			deviceId,
