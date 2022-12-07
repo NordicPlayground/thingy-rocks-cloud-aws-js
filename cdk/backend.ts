@@ -9,6 +9,7 @@ const packagesInLayer: string[] = [
 	'@nordicsemiconductor/from-env',
 	'@sinclair/typebox',
 	'ajv',
+	'@nordicsemiconductor/timestream-helpers',
 ]
 const pack = async (id: string, handler = 'handler'): Promise<PackedLambda> => {
 	const zipFile = path.join(process.cwd(), 'dist', 'lambdas', `${id}.zip`)
@@ -30,6 +31,7 @@ new BackendApp({
 		onDisconnect: await pack('onDisconnect'),
 		onCellGeoLocationResolved: await pack('onCellGeoLocationResolved'),
 		resolveCellLocation: await pack('resolveCellLocation'),
+		publishSummaries: await pack('publishSummaries'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

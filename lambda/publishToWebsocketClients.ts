@@ -21,7 +21,6 @@ const notifier = notifyClients({
 export const handler = async (
 	event: {
 		deviceId: string
-		receivedTimestamp: string
 	} & (
 		| {
 				reported: Record<string, any>

@@ -1,5 +1,4 @@
 import {
-	aws_dynamodb as DynamoDB,
 	aws_events as Events,
 	aws_events_targets as EventTargets,
 	aws_iam as IAM,
@@ -20,7 +19,6 @@ export class ResolveCellLocation extends Construct {
 		{
 			lambdaSources,
 			baseLayer,
-			connectionsTable,
 			assetTrackerStackName,
 			geolocationApiUrl,
 			websocketAPI,
@@ -30,7 +28,6 @@ export class ResolveCellLocation extends Construct {
 				onCellGeoLocationResolved: PackedLambda
 			}
 			baseLayer: Lambda.ILayerVersion
-			connectionsTable: DynamoDB.ITable
 			assetTrackerStackName: string
 			geolocationApiUrl: string
 			websocketAPI: WebsocketAPI
@@ -103,9 +100,7 @@ export class ResolveCellLocation extends Construct {
 					awsIotSqlVersion: '2016-03-23',
 					sql: [
 						`SELECT current.state.reported.roam AS roam,`,
-						`topic(3) as deviceId,`,
-						`parse_time("yyyy-MM-dd'T'HH:mm:ss.S'Z'",`,
-						`timestamp()) as receivedTimestamp`,
+						`topic(3) as deviceId`,
 						`FROM '$aws/things/+/shadow/update/documents'`,
 						`WHERE`,
 						'isUndefined(current.state.reported.roam.v.area) = false',
@@ -155,7 +150,7 @@ export class ResolveCellLocation extends Construct {
 				description: 'Publish cell geolocation resolutions',
 				environment: {
 					VERSION: this.node.tryGetContext('version'),
-					CONNECTIONS_TABLE_NAME: connectionsTable.tableName,
+					CONNECTIONS_TABLE_NAME: websocketAPI.connectionsTable.tableName,
 					WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
 				},
 				initialPolicy: [
@@ -167,7 +162,7 @@ export class ResolveCellLocation extends Construct {
 				layers: [baseLayer],
 			},
 		)
-		connectionsTable.grantReadData(onCellGeoLocationResolved)
+		websocketAPI.connectionsTable.grantReadData(onCellGeoLocationResolved)
 
 		new LambdaLogGroup(
 			this,

@@ -3,6 +3,7 @@ import type { PackedLambda } from '../backend.js'
 import type { PackedLayer } from '../packLayer.js'
 import { FirmwareCI } from '../resources/FirmwareCI.js'
 import { Map } from '../resources/Map.js'
+import { PublishSummaries } from '../resources/PublishSummaries.js'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
@@ -23,6 +24,7 @@ export class BackendStack extends Stack {
 				onDisconnect: PackedLambda
 				onCellGeoLocationResolved: PackedLambda
 				resolveCellLocation: PackedLambda
+				publishSummaries: PackedLambda
 			}
 			layer: PackedLayer
 			assetTrackerStackName: string
@@ -45,7 +47,6 @@ export class BackendStack extends Stack {
 			lambdaSources,
 			baseLayer,
 			assetTrackerStackName,
-			connectionsTable: api.connectionsTable,
 			geolocationApiUrl: Fn.importValue(
 				`${assetTrackerStackName}:geolocationApiUrl`,
 			),
@@ -61,6 +62,13 @@ export class BackendStack extends Stack {
 
 		const map = new Map(this, 'map', {
 			userAuthentication,
+		})
+
+		new PublishSummaries(this, {
+			lambdaSources,
+			baseLayer,
+			assetTrackerStackName,
+			websocketAPI: api,
 		})
 
 		// Outputs

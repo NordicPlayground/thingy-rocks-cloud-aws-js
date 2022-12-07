@@ -7,6 +7,7 @@ import {
 	DynamoDBClient,
 	ScanCommand,
 } from '@aws-sdk/client-dynamodb'
+import type { Summary } from './chartSummary'
 
 export type GeoLocation = {
 	lat: number
@@ -28,7 +29,6 @@ type Cell = {
 
 export type DeviceEvent = {
 	deviceId: string
-	receivedTimestamp: string
 } & (
 	| {
 			reported: Record<string, any>
@@ -38,6 +38,9 @@ export type DeviceEvent = {
 	  }
 	| {
 			location: GeoLocation
+	  }
+	| {
+			history: Summary
 	  }
 )
 
@@ -116,6 +119,7 @@ const getEventContext = (event: Event): string | null => {
 	if ('reported' in event) return 'https://thingy.rocks/device-shadow'
 	if ('message' in event) return 'https://thingy.rocks/device-message'
 	if ('location' in event) return 'https://thingy.rocks/device-location'
+	if ('history' in event) return 'https://thingy.rocks/device-history'
 	if ('cellGeoLocation' in event)
 		return 'https://thingy.rocks/cell-geo-location'
 	return null

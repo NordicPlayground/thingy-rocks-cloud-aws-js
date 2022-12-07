@@ -16,6 +16,7 @@ export class BackendApp extends App {
 			onDisconnect: PackedLambda
 			onCellGeoLocationResolved: PackedLambda
 			resolveCellLocation: PackedLambda
+			publishSummaries: PackedLambda
 		}
 		layer: PackedLayer
 		assetTrackerStackName: string

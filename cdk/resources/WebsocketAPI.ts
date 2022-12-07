@@ -277,7 +277,7 @@ export class WebsocketAPI extends Construct {
 					description: `Publish shadow updates to the Websocket API`,
 					ruleDisabled: false,
 					awsIotSqlVersion: '2016-03-23',
-					sql: `SELECT current.state.reported AS reported, topic(3) as deviceId, parse_time("yyyy-MM-dd'T'HH:mm:ss.S'Z'", timestamp()) as receivedTimestamp FROM '$aws/things/+/shadow/update/documents'`,
+					sql: `SELECT current.state.reported AS reported, topic(3) as deviceId FROM '$aws/things/+/shadow/update/documents'`,
 					actions: [
 						{
 							lambda: {
@@ -313,7 +313,7 @@ export class WebsocketAPI extends Construct {
 					description: `Publish device messages to the Websocket API`,
 					ruleDisabled: false,
 					awsIotSqlVersion: '2016-03-23',
-					sql: `SELECT * AS message, topic(1) as deviceId, parse_time("yyyy-MM-dd'T'HH:mm:ss.S'Z'", timestamp()) as receivedTimestamp FROM '+/messages'`,
+					sql: `SELECT * AS message, topic(1) as deviceId FROM '+/messages'`,
 					actions: [
 						{
 							lambda: {

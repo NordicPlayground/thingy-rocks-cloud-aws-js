@@ -34,7 +34,6 @@ export const handler = async (event: {
 		ts: number // 1669651881654
 	}
 	deviceId: string // '351358815341265'
-	receivedTimestamp: string // '2022-11-29T14:10:49.8Z'
 }): Promise<void> => {
 	console.log(JSON.stringify({ event, geolocationApiUrl }, null, 2))
 
@@ -43,7 +42,6 @@ export const handler = async (event: {
 			v: { nw, area, mccmnc, cell },
 		},
 		deviceId,
-		receivedTimestamp,
 	} = event
 
 	const request = {
@@ -66,7 +64,6 @@ export const handler = async (event: {
 			await notifier({
 				deviceId,
 				location: { ...body, source: 'single-cell' },
-				receivedTimestamp,
 			})
 			break
 		default:
