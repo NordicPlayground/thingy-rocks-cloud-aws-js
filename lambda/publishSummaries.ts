@@ -3,7 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { TimestreamQueryClient } from '@aws-sdk/client-timestream-query'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { createChartSummary } from './chartSummary.js'
-import { notifyClients } from './notifyClients.js'
+import { getActiveConnections, notifyClients } from './notifyClients.js'
 
 const {
 	connectionsTableName,
@@ -31,6 +31,16 @@ const [historicaldataDatabaseName, historicaldataTableName] =
 const timestream = new TimestreamQueryClient({})
 
 export const handler = async (): Promise<void> => {
+	const connectionIds: string[] = await getActiveConnections(
+		db,
+		connectionsTableName,
+	)
+
+	if (connectionIds.length === 0) {
+		console.log(`No clients to notify.`)
+		return
+	}
+
 	const summaries = await createChartSummary({
 		historicaldataDatabaseName,
 		historicaldataTableName,

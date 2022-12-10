@@ -69,25 +69,20 @@ export const notifyClients =
 				event,
 			}),
 		)
-		const res = await db.send(
-			new ScanCommand({
-				TableName: connectionsTableName,
-			}),
+		const connectionIds: string[] = await getActiveConnections(
+			db,
+			connectionsTableName,
 		)
 
-		for (const { connectionId } of res?.Items ?? []) {
-			if (connectionId?.S === undefined) {
-				console.log(`No connection ID defined`, connectionId)
-				continue
-			}
+		for (const connectionId of connectionIds) {
 			try {
 				const context = getEventContext(event)
 				if (context === null)
 					throw new Error(`Unknown event: ${JSON.stringify(event)}`)
-				console.log(`Notifying client`, connectionId.S)
+				console.log(`Notifying client`, connectionId)
 				await apiGwManagementClient.send(
 					new PostToConnectionCommand({
-						ConnectionId: connectionId.S,
+						ConnectionId: connectionId,
 						Data: Buffer.from(
 							JSON.stringify({
 								'@context': context,
@@ -98,13 +93,13 @@ export const notifyClients =
 				)
 			} catch (err) {
 				if ((err as Error).name === 'GoneException') {
-					console.log(`Client is gone`, connectionId.S)
+					console.log(`Client is gone`, connectionId)
 					await db.send(
 						new DeleteItemCommand({
 							TableName: connectionsTableName,
 							Key: {
 								connectionId: {
-									S: connectionId.S,
+									S: connectionId,
 								},
 							},
 						}),
@@ -115,6 +110,7 @@ export const notifyClients =
 			}
 		}
 	}
+
 const getEventContext = (event: Event): string | null => {
 	if ('reported' in event) return 'https://thingy.rocks/device-shadow'
 	if ('message' in event) return 'https://thingy.rocks/device-message'
@@ -123,4 +119,19 @@ const getEventContext = (event: Event): string | null => {
 	if ('cellGeoLocation' in event)
 		return 'https://thingy.rocks/cell-geo-location'
 	return null
+}
+export async function getActiveConnections(
+	db: DynamoDBClient,
+	connectionsTableName: string,
+): Promise<string[]> {
+	const res = await db.send(
+		new ScanCommand({
+			TableName: connectionsTableName,
+		}),
+	)
+
+	const connectionIds: string[] = res?.Items?.map(
+		({ connectionId }) => connectionId?.S,
+	).filter((connectionId) => connectionId !== undefined) as string[]
+	return connectionIds
 }
