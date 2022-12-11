@@ -2,7 +2,7 @@ import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import type { DynamoDBStreamEvent } from 'aws-lambda'
-import { notifyClients } from './notifyClients.js'
+import { getActiveConnections, notifyClients } from './notifyClients.js'
 
 const {
 	connectionsTableName,
@@ -45,6 +45,16 @@ export const handler = async (
 	},
 ): Promise<void> => {
 	console.log(JSON.stringify({ event, neighborCellGeolocationApiUrl }))
+
+	const connectionIds: string[] = await getActiveConnections(
+		db,
+		connectionsTableName,
+	)
+	if (connectionIds.length === 0) {
+		console.log(`No clients to notify.`)
+		return
+	}
+
 	for (const { dynamodb } of event.Records) {
 		const reportId = dynamodb.Keys.reportId.S
 		const deviceId = dynamodb.NewImage.deviceId.S

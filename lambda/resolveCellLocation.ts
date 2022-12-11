@@ -1,7 +1,7 @@
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
-import { notifyClients } from './notifyClients.js'
+import { getActiveConnections, notifyClients } from './notifyClients.js'
 
 const { connectionsTableName, websocketManagementAPIURL, geolocationApiUrl } =
 	fromEnv({
@@ -36,6 +36,15 @@ export const handler = async (event: {
 	deviceId: string // '351358815341265'
 }): Promise<void> => {
 	console.log(JSON.stringify({ event, geolocationApiUrl }))
+
+	const connectionIds: string[] = await getActiveConnections(
+		db,
+		connectionsTableName,
+	)
+	if (connectionIds.length === 0) {
+		console.log(`No clients to notify.`)
+		return
+	}
 
 	const {
 		roam: {

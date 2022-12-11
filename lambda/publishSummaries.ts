@@ -35,7 +35,6 @@ export const handler = async (): Promise<void> => {
 		db,
 		connectionsTableName,
 	)
-
 	if (connectionIds.length === 0) {
 		console.log(`No clients to notify.`)
 		return
