@@ -1,10 +1,17 @@
-import { App, aws_lambda as Lambda, CfnOutput, Fn, Stack } from 'aws-cdk-lib'
-import type { PackedLambda } from '../backend.js'
+import {
+	App,
+	aws_dynamodb as DynamoDB,
+	aws_lambda as Lambda,
+	CfnOutput,
+	Fn,
+	Stack,
+} from 'aws-cdk-lib'
 import type { PackedLayer } from '../packLayer.js'
 import { FirmwareCI } from '../resources/FirmwareCI.js'
 import { Map } from '../resources/Map.js'
 import { PublishSummaries } from '../resources/PublishSummaries.js'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
+import { ResolveNcellmeasGeoLocation } from '../resources/ResolveNcellmeasGeoLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
 import { STACK_NAME } from './stackName.js'
@@ -17,15 +24,7 @@ export class BackendStack extends Stack {
 			layer,
 			assetTrackerStackName,
 		}: {
-			lambdaSources: {
-				publishToWebsocketClients: PackedLambda
-				onConnect: PackedLambda
-				onMessage: PackedLambda
-				onDisconnect: PackedLambda
-				onCellGeoLocationResolved: PackedLambda
-				resolveCellLocation: PackedLambda
-				publishSummaries: PackedLambda
-			}
+			lambdaSources: BackendLambdas
 			layer: PackedLayer
 			assetTrackerStackName: string
 		},
@@ -46,11 +45,29 @@ export class BackendStack extends Stack {
 		new ResolveCellLocation(this, {
 			lambdaSources,
 			baseLayer,
-			assetTrackerStackName,
 			geolocationApiUrl: Fn.importValue(
 				`${assetTrackerStackName}:geolocationApiUrl`,
 			),
 			websocketAPI: api,
+			cellGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-cellGeo`,
+		})
+
+		new ResolveNcellmeasGeoLocation(this, {
+			lambdaSources,
+			baseLayer,
+			neighborCellGeolocationApiUrl: Fn.importValue(
+				`${assetTrackerStackName}:neighborCellGeolocationApiUrl`,
+			),
+			websocketAPI: api,
+			reportsTable: DynamoDB.Table.fromTableAttributes(this, 'reportsTable', {
+				tableArn: Fn.importValue(
+					`${assetTrackerStackName}:ncellmeasStorageTableArn`,
+				),
+				tableStreamArn: Fn.importValue(
+					`${assetTrackerStackName}:ncellmeasStorageTableStreamArn`,
+				),
+			}),
+			ncellmeasGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-ncellmeasGeo`,
 		})
 
 		const firmwareCI = new FirmwareCI(this)
@@ -67,8 +84,13 @@ export class BackendStack extends Stack {
 		new PublishSummaries(this, {
 			lambdaSources,
 			baseLayer,
-			assetTrackerStackName,
 			websocketAPI: api,
+			historicaldataTableInfo: Fn.importValue(
+				`${assetTrackerStackName}:historicaldataTableInfo`,
+			),
+			historicaldataTableArn: Fn.importValue(
+				`${assetTrackerStackName}:historicaldataTableArn`,
+			),
 		})
 
 		// Outputs

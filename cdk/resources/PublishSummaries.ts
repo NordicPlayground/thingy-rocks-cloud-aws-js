@@ -4,7 +4,6 @@ import {
 	aws_iam as IAM,
 	aws_lambda as Lambda,
 	Duration,
-	Fn,
 	Stack,
 } from 'aws-cdk-lib'
 import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
@@ -22,15 +21,17 @@ export class PublishSummaries extends Construct {
 		{
 			lambdaSources,
 			baseLayer,
-			assetTrackerStackName,
 			websocketAPI,
+			historicaldataTableInfo,
+			historicaldataTableArn,
 		}: {
 			lambdaSources: {
 				publishSummaries: PackedLambda
 			}
 			baseLayer: Lambda.ILayerVersion
-			assetTrackerStackName: string
 			websocketAPI: WebsocketAPI
+			historicaldataTableInfo: string
+			historicaldataTableArn: string
 		},
 	) {
 		super(parent, 'PublishSummaries')
@@ -39,7 +40,7 @@ export class PublishSummaries extends Construct {
 			handler: lambdaSources.publishSummaries.handler,
 			architecture: Lambda.Architecture.ARM_64,
 			runtime: Lambda.Runtime.NODEJS_18_X,
-			timeout: Duration.seconds(15),
+			timeout: Duration.seconds(60),
 			memorySize: 1792,
 			code: Lambda.Code.fromAsset(lambdaSources.publishSummaries.lambdaZipFile),
 			description:
@@ -49,9 +50,7 @@ export class PublishSummaries extends Construct {
 				VERSION: this.node.tryGetContext('version'),
 				CONNECTIONS_TABLE_NAME: websocketAPI.connectionsTable.tableName,
 				WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
-				HISTORICALDATA_TABLE_INFO: Fn.importValue(
-					`${assetTrackerStackName}:historicaldataTableInfo`,
-				),
+				HISTORICALDATA_TABLE_INFO: historicaldataTableInfo,
 			},
 			initialPolicy: [
 				new IAM.PolicyStatement({
@@ -59,9 +58,7 @@ export class PublishSummaries extends Construct {
 					resources: [websocketAPI.websocketAPIArn],
 				}),
 				new IAM.PolicyStatement({
-					resources: [
-						Fn.importValue(`${assetTrackerStackName}:historicaldataTableArn`),
-					],
+					resources: [historicaldataTableArn],
 					actions: [
 						'timestream:Select',
 						'timestream:DescribeTable',

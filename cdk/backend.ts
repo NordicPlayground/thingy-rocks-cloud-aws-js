@@ -32,6 +32,8 @@ new BackendApp({
 		onCellGeoLocationResolved: await pack('onCellGeoLocationResolved'),
 		resolveCellLocation: await pack('resolveCellLocation'),
 		publishSummaries: await pack('publishSummaries'),
+		onNewNcellmeasReport: await pack('onNewNcellmeasReport'),
+		onNcellmeasReportResolved: await pack('onNcellmeasReportResolved'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

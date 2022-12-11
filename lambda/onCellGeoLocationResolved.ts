@@ -70,7 +70,7 @@ export const handler = async (event: {
 		source,
 		detail: { status, output },
 	} = event
-	console.log(JSON.stringify({ event }, null, 2))
+	console.log(JSON.stringify({ event }))
 	if (source !== 'aws.states') throw new Error(`Unexpected source: ${source}!`)
 	if (status !== 'SUCCEEDED') throw new Error(`Unexpected status: ${status}!`)
 	const result = JSON.parse(output)

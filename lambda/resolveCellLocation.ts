@@ -35,7 +35,7 @@ export const handler = async (event: {
 	}
 	deviceId: string // '351358815341265'
 }): Promise<void> => {
-	console.log(JSON.stringify({ event, geolocationApiUrl }, null, 2))
+	console.log(JSON.stringify({ event, geolocationApiUrl }))
 
 	const {
 		roam: {

@@ -7,7 +7,6 @@ import {
 	Duration,
 	Stack,
 } from 'aws-cdk-lib'
-import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
 import { LambdaLogGroup } from '../resources/LambdaLogGroup.js'
@@ -19,18 +18,18 @@ export class ResolveCellLocation extends Construct {
 		{
 			lambdaSources,
 			baseLayer,
-			assetTrackerStackName,
 			geolocationApiUrl,
 			websocketAPI,
+			cellGeoStateMachineARN,
 		}: {
 			lambdaSources: {
 				resolveCellLocation: PackedLambda
 				onCellGeoLocationResolved: PackedLambda
 			}
 			baseLayer: Lambda.ILayerVersion
-			assetTrackerStackName: string
 			geolocationApiUrl: string
 			websocketAPI: WebsocketAPI
+			cellGeoStateMachineARN: string
 		},
 	) {
 		super(parent, 'ResolveCellLocation')
@@ -44,7 +43,7 @@ export class ResolveCellLocation extends Construct {
 				handler: lambdaSources.resolveCellLocation.handler,
 				architecture: Lambda.Architecture.ARM_64,
 				runtime: Lambda.Runtime.NODEJS_18_X,
-				timeout: Duration.seconds(1),
+				timeout: Duration.seconds(60),
 				memorySize: 1792,
 				code: Lambda.Code.fromAsset(
 					lambdaSources.resolveCellLocation.lambdaZipFile,
@@ -68,13 +67,15 @@ export class ResolveCellLocation extends Construct {
 
 		new LambdaLogGroup(this, 'resolveCellLocationLogs', resolveCellLocation)
 
-		websocketAPI.connectionsTable.grantReadData(resolveCellLocation)
+		websocketAPI.connectionsTable.grantFullAccess(resolveCellLocation)
 
 		const resolveCellLocationRuleRole = new IAM.Role(
 			this,
 			'resolveCellLocationRuleRole',
 			{
-				assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
+				assumedBy: new IAM.ServicePrincipal(
+					'iot.amazonaws.com',
+				) as IAM.IPrincipal,
 				inlinePolicies: {
 					rootPermissions: new IAM.PolicyDocument({
 						statements: [
@@ -128,7 +129,9 @@ export class ResolveCellLocation extends Construct {
 		resolveCellLocation.addPermission(
 			'invokeByResolveCellLocationRulePermission',
 			{
-				principal: new IAM.ServicePrincipal('iot.amazonaws.com') as IPrincipal,
+				principal: new IAM.ServicePrincipal(
+					'iot.amazonaws.com',
+				) as IAM.IPrincipal,
 				sourceArn: resolveCellLocationRule.attrArn,
 			},
 		)
@@ -142,7 +145,7 @@ export class ResolveCellLocation extends Construct {
 				handler: lambdaSources.onCellGeoLocationResolved.handler,
 				architecture: Lambda.Architecture.ARM_64,
 				runtime: Lambda.Runtime.NODEJS_18_X,
-				timeout: Duration.seconds(1),
+				timeout: Duration.seconds(60),
 				memorySize: 1792,
 				code: Lambda.Code.fromAsset(
 					lambdaSources.onCellGeoLocationResolved.lambdaZipFile,
@@ -162,7 +165,7 @@ export class ResolveCellLocation extends Construct {
 				layers: [baseLayer],
 			},
 		)
-		websocketAPI.connectionsTable.grantReadData(onCellGeoLocationResolved)
+		websocketAPI.connectionsTable.grantFullAccess(onCellGeoLocationResolved)
 
 		new LambdaLogGroup(
 			this,
@@ -181,9 +184,7 @@ export class ResolveCellLocation extends Construct {
 					detailType: ['Step Functions Execution Status Change'],
 					detail: {
 						status: ['SUCCEEDED'],
-						stateMachineArn: [
-							`arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-cellGeo`,
-						],
+						stateMachineArn: [cellGeoStateMachineARN],
 					},
 				},
 				targets: [new EventTargets.LambdaFunction(onCellGeoLocationResolved)],
@@ -195,7 +196,7 @@ export class ResolveCellLocation extends Construct {
 			{
 				principal: new IAM.ServicePrincipal(
 					'events.amazonaws.com',
-				) as IPrincipal,
+				) as IAM.IPrincipal,
 				sourceArn: publishCellGeolocationSuccessEventsRule.ruleArn,
 			},
 		)
