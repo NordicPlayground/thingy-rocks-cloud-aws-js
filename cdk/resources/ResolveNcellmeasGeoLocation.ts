@@ -70,6 +70,10 @@ export class ResolveNcellmeasGeoLocation extends Construct {
 						actions: ['execute-api:ManageConnections'],
 						resources: [websocketAPI.websocketAPIArn],
 					}),
+					new IAM.PolicyStatement({
+						actions: ['iot:DescribeThing'],
+						resources: ['*'],
+					}),
 				],
 			},
 		)
@@ -111,6 +115,10 @@ export class ResolveNcellmeasGeoLocation extends Construct {
 					new IAM.PolicyStatement({
 						actions: ['execute-api:ManageConnections'],
 						resources: [websocketAPI.websocketAPIArn],
+					}),
+					new IAM.PolicyStatement({
+						actions: ['iot:DescribeThing'],
+						resources: ['*'],
 					}),
 				],
 				layers: [baseLayer],

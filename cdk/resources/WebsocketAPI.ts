@@ -234,6 +234,10 @@ export class WebsocketAPI extends Construct {
 						actions: ['execute-api:ManageConnections'],
 						resources: [this.websocketAPIArn],
 					}),
+					new IAM.PolicyStatement({
+						actions: ['iot:DescribeThing'],
+						resources: ['*'],
+					}),
 				],
 				layers: [baseLayer],
 			},

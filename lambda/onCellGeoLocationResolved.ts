@@ -41,29 +41,10 @@ const validateCellGeoLocation = validateWithTypeBox(
 )
 
 export const handler = async (event: {
-	version: string //'0'
-	id: string //'e3c73557-c877-3318-e97d-b81b349a46bd'
-	'detail-type': string //'Step Functions Execution Status Change'
 	source: string //'aws.states'
-	account: string //'374216331074'
-	time: string //'2022-11-30T14:50:34Z'
-	region: string //'eu-central-1'
-	resources: string[] //['arn:aws:states:eu-central-1:374216331074:execution:nrf-asset-tracker-cellGeo:3c422dc3-84aa-4ab4-abb1-969714b09232',]
 	detail: {
-		executionArn: string // 'arn:aws:states:eu-central-1:374216331074:execution:nrf-asset-tracker-cellGeo:3c422dc3-84aa-4ab4-abb1-969714b09232'
-		stateMachineArn: string // 'arn:aws:states:eu-central-1:374216331074:stateMachine:nrf-asset-tracker-cellGeo'
-		name: string // '3c422dc3-84aa-4ab4-abb1-969714b09232'
 		status: 'SUCCEEDED' | 'FAILED' // 'SUCCEEDED'
-		startDate: number // 1669819829585
-		stopDate: number // 1669819834065
-		input: string //'{"area":30401,"cell":21679616,"mccmnc":24201,"nw":"ltem"}'
 		output: string //'{"area":30401,"cell":21679616,"mccmnc":24201,"nw":"ltem","cellgeo":{"lat":63.419001,"lng":10.437035,"accuracy":500,"located":true,"source":"nrfcloud"},"storedInCache":true}'
-		inputDetails: {
-			included: boolean //true
-		}
-		outputDetails: {
-			included: boolean //true
-		}
 	}
 }): Promise<void> => {
 	const {

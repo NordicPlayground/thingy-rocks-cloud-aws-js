@@ -29,6 +29,7 @@ type Cell = {
 
 export type DeviceEvent = {
 	deviceId: string
+	deviceAlias?: string
 } & (
 	| {
 			reported: Record<string, any>
@@ -80,6 +81,7 @@ export const notifyClients =
 				if (context === null)
 					throw new Error(`Unknown event: ${JSON.stringify(event)}`)
 				console.log(`Notifying client`, connectionId)
+
 				await apiGwManagementClient.send(
 					new PostToConnectionCommand({
 						ConnectionId: connectionId,

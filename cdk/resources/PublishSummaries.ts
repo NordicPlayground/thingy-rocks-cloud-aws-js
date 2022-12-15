@@ -73,6 +73,10 @@ export class PublishSummaries extends Construct {
 						'timestream:CancelQuery',
 					],
 				}),
+				new IAM.PolicyStatement({
+					actions: ['iot:DescribeThing'],
+					resources: ['*'],
+				}),
 			],
 		})
 

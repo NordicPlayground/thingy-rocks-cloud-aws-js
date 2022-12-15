@@ -61,6 +61,10 @@ export class ResolveCellLocation extends Construct {
 						actions: ['execute-api:ManageConnections'],
 						resources: [websocketAPI.websocketAPIArn],
 					}),
+					new IAM.PolicyStatement({
+						actions: ['iot:DescribeThing'],
+						resources: ['*'],
+					}),
 				],
 			},
 		)
