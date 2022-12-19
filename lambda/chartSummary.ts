@@ -44,6 +44,7 @@ export type Summary = {
 	bat?: Readings
 	temp?: Readings
 	solBat?: Readings
+	solBat8hrs?: Reading
 	solGain?: Readings
 	base: Date
 }
@@ -131,5 +132,46 @@ export const createChartSummary = async ({
 	groupResult(summaries, 'temp', temp, now)
 	groupResult(summaries, 'solBat', solBat, now)
 	groupResult(summaries, 'solGain', solGain, now)
+
+	// Get battery values from 8 hours ago
+	const solBat8hrs = (
+		await Promise.all(
+			Object.entries(summaries)
+				.filter(([, summary]) => 'solBat' in summary)
+				.map(async ([deviceId]) => {
+					const res = await timestream.send(
+						new QueryCommand({
+							QueryString: [
+								`SELECT measure_value::double as v, time as ts`,
+								`FROM "${historicaldataDatabaseName}"."${historicaldataTableName}"`,
+								`WHERE measure_name = 'bat'`,
+								`AND time < date_add('hour', -8, now())`,
+								`AND deviceId = '${deviceId}'`,
+								`ORDER BY time DESC`,
+								`LIMIT 1`,
+							].join(' '),
+						}),
+					)
+					return {
+						deviceId,
+						historyBat: parseResult<{ v: number; ts: Date }>(res)[0],
+					}
+				}),
+		)
+	).reduce((solBat8hrs, { deviceId, historyBat }) => {
+		if (historyBat === undefined) return solBat8hrs
+		const { v, ts } = historyBat
+		return {
+			...solBat8hrs,
+			[deviceId]: <Reading>[
+				v,
+				Math.max(0, Math.floor((now.getTime() - ts.getTime()) / 1000)),
+			],
+		}
+	}, {} as Record<string, Reading>)
+	for (const [deviceId, reading] of Object.entries(solBat8hrs)) {
+		;(summaries[deviceId] as Summary).solBat8hrs = reading
+	}
+
 	return summaries
 }
