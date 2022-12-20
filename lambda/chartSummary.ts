@@ -44,7 +44,17 @@ export type Summary = {
 	bat?: Readings
 	temp?: Readings
 	solBat?: Readings
-	solBat8hrs?: Reading
+	/**
+	 * Contains one or more significant readings to display as guides.
+	 *
+	 * Used for example to visualize that the battery level did not change for Thingys with Solar shield.
+	 */
+	guides?: [
+		type: 'bat' | 'temp' | 'solGain',
+		v: number,
+		// Delta to the base date in seconds
+		d: number,
+	][]
 	solGain?: Readings
 	base: Date
 }
@@ -134,7 +144,7 @@ export const createChartSummary = async ({
 	groupResult(summaries, 'solGain', solGain, now)
 
 	// Get battery values from 8 hours ago
-	const solBat8hrs = (
+	const batLevels = (
 		await Promise.all(
 			Object.entries(summaries)
 				.filter(([, summary]) => 'solBat' in summary)
@@ -158,19 +168,19 @@ export const createChartSummary = async ({
 					}
 				}),
 		)
-	).reduce((solBat8hrs, { deviceId, historyBat }) => {
-		if (historyBat === undefined) return solBat8hrs
+	).reduce((batLevels, { deviceId, historyBat }) => {
+		if (historyBat === undefined) return batLevels
 		const { v, ts } = historyBat
 		return {
-			...solBat8hrs,
+			...batLevels,
 			[deviceId]: <Reading>[
 				v,
 				Math.max(0, Math.floor((now.getTime() - ts.getTime()) / 1000)),
 			],
 		}
 	}, {} as Record<string, Reading>)
-	for (const [deviceId, reading] of Object.entries(solBat8hrs)) {
-		;(summaries[deviceId] as Summary).solBat8hrs = reading
+	for (const [deviceId, reading] of Object.entries(batLevels)) {
+		;(summaries[deviceId] as Summary).guides = [['bat', ...reading]]
 	}
 
 	return summaries
