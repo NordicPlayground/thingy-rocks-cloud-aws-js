@@ -147,7 +147,7 @@ export const createChartSummary = async ({
 	const batLevels = (
 		await Promise.all(
 			Object.entries(summaries)
-				.filter(([, summary]) => 'solBat' in summary)
+				.filter(([, summary]) => 'bat' in summary)
 				.map(async ([deviceId]) => {
 					const res = await timestream.send(
 						new QueryCommand({
