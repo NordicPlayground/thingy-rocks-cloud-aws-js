@@ -152,7 +152,7 @@ export const createChartSummary = async ({
 					const res = await timestream.send(
 						new QueryCommand({
 							QueryString: [
-								`SELECT measure_value::double as v, time as ts`,
+								`SELECT measure_value::double / 1000 as v, time as ts`,
 								`FROM "${historicaldataDatabaseName}"."${historicaldataTableName}"`,
 								`WHERE measure_name = 'bat'`,
 								`AND time < date_add('hour', -8, now())`,
