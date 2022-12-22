@@ -34,6 +34,7 @@ new BackendApp({
 		publishSummaries: await pack('publishSummaries'),
 		onNewNcellmeasReport: await pack('onNewNcellmeasReport'),
 		onNcellmeasReportResolved: await pack('onNcellmeasReportResolved'),
+		onNewWiFiSiteSurveyReport: await pack('onNewWiFiSiteSurveyReport'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

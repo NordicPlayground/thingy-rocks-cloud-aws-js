@@ -36,12 +36,12 @@ export const handler = async (
 				dynamodb: {
 					Keys: {
 						reportId: {
-							S: '85b0a8a4-cf4c-4c0c-85d3-dca5df4401c5'
+							S: string // '85b0a8a4-cf4c-4c0c-85d3-dca5df4401c5'
 						}
 					}
 					NewImage: {
 						deviceId: {
-							S: '351358811471140'
+							S: string // '351358811471140'
 						}
 					}
 				}

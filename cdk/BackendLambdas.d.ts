@@ -1,3 +1,5 @@
+import type { PackedLambda } from './backend'
+
 type BackendLambdas = {
 	publishToWebsocketClients: PackedLambda
 	onConnect: PackedLambda
@@ -8,4 +10,5 @@ type BackendLambdas = {
 	publishSummaries: PackedLambda
 	onNewNcellmeasReport: PackedLambda
 	onNcellmeasReportResolved: PackedLambda
+	onNewWiFiSiteSurveyReport: PackedLambda
 }

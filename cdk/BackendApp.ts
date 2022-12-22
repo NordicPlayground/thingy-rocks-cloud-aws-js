@@ -1,4 +1,5 @@
 import { App } from 'aws-cdk-lib'
+import type { BackendLambdas } from './BackendLambdas.js'
 import type { PackedLayer } from './packLayer.js'
 import { BackendStack } from './stacks/BackendStack.js'
 

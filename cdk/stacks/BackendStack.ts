@@ -6,12 +6,14 @@ import {
 	Fn,
 	Stack,
 } from 'aws-cdk-lib'
+import type { BackendLambdas } from '../BackendLambdas.js'
 import type { PackedLayer } from '../packLayer.js'
 import { FirmwareCI } from '../resources/FirmwareCI.js'
 import { Map } from '../resources/Map.js'
 import { PublishSummaries } from '../resources/PublishSummaries.js'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
 import { ResolveNcellmeasGeoLocation } from '../resources/ResolveNcellmeasGeoLocation.js'
+import { ResolveWiFiSiteSurveyGeoLocation } from '../resources/ResolveWiFiSiteSurveyGeoLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
 import { STACK_NAME } from './stackName.js'
@@ -68,6 +70,23 @@ export class BackendStack extends Stack {
 				),
 			}),
 			ncellmeasGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-ncellmeasGeo`,
+		})
+
+		new ResolveWiFiSiteSurveyGeoLocation(this, {
+			lambdaSources,
+			baseLayer,
+			wiFiSiteSurveyGeolocationApiUrl: Fn.importValue(
+				`${assetTrackerStackName}:wifiSiteSurveyGeolocationApiUrl`,
+			),
+			websocketAPI: api,
+			surveysTable: DynamoDB.Table.fromTableAttributes(this, 'surveysTable', {
+				tableArn: Fn.importValue(
+					`${assetTrackerStackName}:wifiSiteSurveyStorageTableArn`,
+				),
+				tableStreamArn: Fn.importValue(
+					`${assetTrackerStackName}:wifiSiteSurveyStorageTableStreamArn`,
+				),
+			}),
 		})
 
 		const firmwareCI = new FirmwareCI(this)
