@@ -1,3 +1,4 @@
+import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { BackendApp } from './BackendApp.js'
 import { packLambda } from './packLambda.js'
@@ -12,6 +13,13 @@ const packagesInLayer: string[] = [
 	'@nordicsemiconductor/timestream-helpers',
 ]
 const pack = async (id: string, handler = 'handler'): Promise<PackedLambda> => {
+	try {
+		await mkdir(path.join(process.cwd(), 'dist', 'lambdas'), {
+			recursive: true,
+		})
+	} catch {
+		// Directory exists
+	}
 	const zipFile = path.join(process.cwd(), 'dist', 'lambdas', `${id}.zip`)
 	await packLambda({
 		sourceFile: path.join(process.cwd(), 'lambda', `${id}.ts`),
