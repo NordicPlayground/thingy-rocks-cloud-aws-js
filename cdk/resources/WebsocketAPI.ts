@@ -89,13 +89,13 @@ export class WebsocketAPI extends Construct {
 		// OnDisconnect
 
 		const onDisconnect = new Lambda.Function(this, 'onDisconnect', {
-			handler: lambdaSources.onConnect.handler,
+			handler: lambdaSources.onDisconnect.handler,
 			architecture: Lambda.Architecture.ARM_64,
 			runtime: Lambda.Runtime.NODEJS_18_X,
 			timeout: Duration.seconds(5),
 			memorySize: 1792,
 			code: Lambda.Code.fromAsset(lambdaSources.onDisconnect.lambdaZipFile),
-			description: 'Registers new clients',
+			description: 'De-registers disconnected clients',
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
 				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
