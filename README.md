@@ -37,6 +37,12 @@ Configure the bridge settings using the `.envrc` (see
 
 Run:
 
-```
+```bash
 npx tsx wirepas-5g-mesh-bridge/bridge.ts
+```
+
+Run as a service using systemd:
+
+```bash
+systemd-run -E BRIDGE_MQTT_ENDPOINT=${BRIDGE_MQTT_ENDPOINT} -E BRIDGE_AWS_ACCESS_KEY_ID=${BRIDGE_AWS_ACCESS_KEY_ID} -E BRIDGE_AWS_SECRET_ACCESS_KEY=${BRIDGE_AWS_SECRET_ACCESS_KEY} -E BRIDGE_CONNECTIONS_TABLE_NAME=${BRIDGE_CONNECTIONS_TABLE_NAME} -E BRIDGE_WEBSOCKET_MANAGEMENT_API_URL=${BRIDGE_WEBSOCKET_MANAGEMENT_API_URL} --working-directory ${PWD} npx tsx wirepas-5g-mesh-bridge/bridge.ts
 ```

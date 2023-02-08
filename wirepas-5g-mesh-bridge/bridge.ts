@@ -76,7 +76,7 @@ client.on('connect', () => {
 client.on('message', function (topic, message) {
 	const packetReceivedEvent = (GenericMessage.decode(message) as any)?.wirepas
 		?.packetReceivedEvent
-	if (packetReceivedEvent !== undefined) {
+	if (packetReceivedEvent !== undefined && packetReceivedEvent !== null) {
 		const {
 			sourceAddress,
 			rxTimeMsEpoch,
