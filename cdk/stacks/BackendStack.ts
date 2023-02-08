@@ -16,6 +16,7 @@ import { ResolveNcellmeasGeoLocation } from '../resources/ResolveNcellmeasGeoLoc
 import { ResolveWiFiSiteSurveyGeoLocation } from '../resources/ResolveWiFiSiteSurveyGeoLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
+import { Wirepas5GMeshBridge } from '../resources/Wirepas5GMeshBridge.js'
 import { STACK_NAME } from './stackName.js'
 
 export class BackendStack extends Stack {
@@ -112,11 +113,23 @@ export class BackendStack extends Stack {
 			),
 		})
 
+		const wirepasBridge = new Wirepas5GMeshBridge(this, { websocketAPI: api })
+
 		// Outputs
 		new CfnOutput(this, 'WebSocketURI', {
 			exportName: `${this.stackName}:WebSocketURI`,
 			description: 'The WSS Protocol URI to connect to',
 			value: api.websocketURI,
+		})
+
+		new CfnOutput(this, 'WebSocketManagementApiURL', {
+			exportName: `${this.stackName}:WebSocketManagementApiURL`,
+			value: api.websocketManagementAPIURL,
+		})
+
+		new CfnOutput(this, 'connectionsTableName', {
+			exportName: `${this.stackName}:connectionsTableName`,
+			value: api.connectionsTable.tableName,
 		})
 
 		new CfnOutput(this, 'firmwareCIUserAccessKeyId', {
@@ -137,6 +150,16 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'identityPoolId', {
 			value: userAuthentication.identityPool.ref,
 			exportName: `${this.stackName}:identityPoolId`,
+		})
+
+		new CfnOutput(this, 'wirepasBridgeUserAccessKeyId', {
+			value: wirepasBridge.accessKey.ref,
+			exportName: `${this.stackName}:wirepasBridgeUserAccessKeyId`,
+		})
+
+		new CfnOutput(this, 'wirepasBridgeUserSecretAccessKey', {
+			value: wirepasBridge.accessKey.attrSecretAccessKey,
+			exportName: `${this.stackName}:wirepasBridgeUserSecretAccessKey`,
 		})
 	}
 }

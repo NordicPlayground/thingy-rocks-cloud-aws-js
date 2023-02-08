@@ -52,7 +52,25 @@ export type CellGeoLocationEvent = {
 	}
 }
 
-type Event = DeviceEvent | CellGeoLocationEvent
+export type Wirepas5GMeshNodePayload =
+	| { counter: number }
+	| { button: number }
+	| { led: Record<number, number> }
+
+export type Wirepas5GMeshNodeEvent = {
+	meshNodeEvent: {
+		meta: {
+			node: string
+			gateway: string
+			rxTime: Date
+			travelTimeMs: number
+			hops: number
+		}
+		message: Wirepas5GMeshNodePayload
+	}
+}
+
+type Event = DeviceEvent | CellGeoLocationEvent | Wirepas5GMeshNodeEvent
 
 export const notifyClients =
 	({
@@ -120,6 +138,8 @@ const getEventContext = (event: Event): string | null => {
 	if ('history' in event) return 'https://thingy.rocks/device-history'
 	if ('cellGeoLocation' in event)
 		return 'https://thingy.rocks/cell-geo-location'
+	if ('meshNodeEvent' in event)
+		return 'https://thingy.rocks/wirepas-5g-mesh-node-event'
 	return null
 }
 export async function getActiveConnections(

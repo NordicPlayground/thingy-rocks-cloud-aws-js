@@ -11,7 +11,7 @@ const { connectionsTableName, websocketManagementAPIURL } = fromEnv({
 })(process.env)
 
 const db = new DynamoDBClient({})
-export const apiGwManagementClient = new ApiGatewayManagementApi({
+const apiGwManagementClient = new ApiGatewayManagementApi({
 	endpoint: websocketManagementAPIURL,
 })
 const notifier = notifyClients({

@@ -29,3 +29,14 @@ npm ci
 ```bash
 npx cdk deploy
 ```
+
+## Running the Wirepas 5G Mesh bridge
+
+Configure the bridge settings using the `.envrc` (see
+[the example](./envrc.example)).
+
+Run:
+
+```
+npx tsx wirepas-5g-mesh-bridge/bridge.ts
+```
