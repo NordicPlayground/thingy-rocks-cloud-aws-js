@@ -70,7 +70,18 @@ export type Wirepas5GMeshNodeEvent = {
 	}
 }
 
-type Event = DeviceEvent | CellGeoLocationEvent | Wirepas5GMeshNodeEvent
+export type LightbulbEvent = {
+	lightbulb: {
+		type: 'rgb'
+		color?: [number, number, number]
+	}
+}
+
+type Event =
+	| DeviceEvent
+	| CellGeoLocationEvent
+	| Wirepas5GMeshNodeEvent
+	| LightbulbEvent
 
 export const notifyClients =
 	({
@@ -140,6 +151,7 @@ const getEventContext = (event: Event): string | null => {
 		return 'https://thingy.rocks/cell-geo-location'
 	if ('meshNodeEvent' in event)
 		return 'https://thingy.rocks/wirepas-5g-mesh-node-event'
+	if ('lightbulb' in event) return 'https://thingy.rocks/lightbulb'
 	return null
 }
 export async function getActiveConnections(

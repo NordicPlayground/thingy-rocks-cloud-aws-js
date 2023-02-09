@@ -9,6 +9,7 @@ import {
 import type { BackendLambdas } from '../BackendLambdas.js'
 import type { PackedLayer } from '../packLayer.js'
 import { FirmwareCI } from '../resources/FirmwareCI.js'
+import { LightbulbThings } from '../resources/LightbulbThings.js'
 import { Map } from '../resources/Map.js'
 import { PublishSummaries } from '../resources/PublishSummaries.js'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
@@ -114,6 +115,12 @@ export class BackendStack extends Stack {
 		})
 
 		const wirepasBridge = new Wirepas5GMeshBridge(this, { websocketAPI: api })
+
+		new LightbulbThings(this, {
+			lambdaSources,
+			baseLayer,
+			websocketAPI: api,
+		})
 
 		// Outputs
 		new CfnOutput(this, 'WebSocketURI', {

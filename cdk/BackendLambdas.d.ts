@@ -11,4 +11,5 @@ type BackendLambdas = {
 	onNewNcellmeasReport: PackedLambda
 	onNcellmeasReportResolved: PackedLambda
 	onNewWiFiSiteSurveyReport: PackedLambda
+	lightbulbPing: PackedLambda
 }

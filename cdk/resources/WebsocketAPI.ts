@@ -44,8 +44,30 @@ export class WebsocketAPI extends Construct {
 			removalPolicy: RemovalPolicy.DESTROY,
 		}) as DynamoDB.ITable
 
-		// OnConnect
+		// API
+		const api = new ApiGateway.CfnApi(this, 'api', {
+			name: 'deviceUpdates',
+			protocolType: 'WEBSOCKET',
+			routeSelectionExpression: '$request.body.message',
+		})
 
+		// Deploy
+		const deployment = new ApiGateway.CfnDeployment(this, 'apiDeployment', {
+			apiId: api.ref,
+		})
+
+		const stage = new ApiGateway.CfnStage(this, 'prodStage', {
+			stageName: '2022-11-22',
+			description: 'production stage',
+			deploymentId: deployment.ref,
+			apiId: api.ref,
+		})
+
+		this.websocketURI = `wss://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.ref}`
+		this.websocketAPIArn = `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/POST/@connections/*`
+		this.websocketManagementAPIURL = `https://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.stageName}`
+
+		// Connect
 		const onConnect = new Lambda.Function(this, 'onConnect', {
 			handler: lambdaSources.onConnect.handler,
 			architecture: Lambda.Architecture.ARM_64,
@@ -64,9 +86,26 @@ export class WebsocketAPI extends Construct {
 		this.connectionsTable.grantWriteData(onConnect)
 
 		new LambdaLogGroup(this, 'onConnectLogs', onConnect)
+		const connectIntegration = new ApiGateway.CfnIntegration(
+			this,
+			'connectIntegration',
+			{
+				apiId: api.ref,
+				description: 'Connect integration',
+				integrationType: 'AWS_PROXY',
+				integrationUri: `arn:aws:apigateway:${parent.region}:lambda:path/2015-03-31/functions/${onConnect.functionArn}/invocations`,
+			},
+		)
+		const connectRoute = new ApiGateway.CfnRoute(this, 'connectRoute', {
+			apiId: api.ref,
+			routeKey: '$connect',
+			authorizationType: 'NONE',
+			operationName: 'ConnectRoute',
+			target: `integrations/${connectIntegration.ref}`,
+		})
+		deployment.node.addDependency(connectRoute)
 
-		// onMessage
-
+		// Send
 		const onMessage = new Lambda.Function(this, 'onMessage', {
 			handler: lambdaSources.onMessage.handler,
 			architecture: Lambda.Architecture.ARM_64,
@@ -78,16 +117,47 @@ export class WebsocketAPI extends Construct {
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
 				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
+				WEBSOCKET_MANAGEMENT_API_URL: this.websocketManagementAPIURL,
 			},
-			initialPolicy: [],
+			initialPolicy: [
+				new IAM.PolicyStatement({
+					actions: ['iot:DescribeThing'],
+					resources: ['*'],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['iot:Publish'],
+					resources: ['arn:aws:iot:*:*:topic/light-bulb/*'],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['execute-api:ManageConnections'],
+					resources: [this.websocketAPIArn],
+				}),
+			],
 			layers: [baseLayer],
 		})
-		this.connectionsTable.grantWriteData(onMessage)
+		this.connectionsTable.grantReadWriteData(onMessage)
 
 		new LambdaLogGroup(this, 'onMessageLogs', onMessage)
+		const sendMessageIntegration = new ApiGateway.CfnIntegration(
+			this,
+			'sendMessageIntegration',
+			{
+				apiId: api.ref,
+				description: 'Send messages integration',
+				integrationType: 'AWS_PROXY',
+				integrationUri: `arn:aws:apigateway:${parent.region}:lambda:path/2015-03-31/functions/${onMessage.functionArn}/invocations`,
+			},
+		)
+		const sendMessageRoute = new ApiGateway.CfnRoute(this, 'sendMessageRoute', {
+			apiId: api.ref,
+			routeKey: 'sendmessage',
+			authorizationType: 'NONE',
+			operationName: 'sendMessageRoute',
+			target: `integrations/${sendMessageIntegration.ref}`,
+		})
+		deployment.node.addDependency(sendMessageRoute)
 
-		// OnDisconnect
-
+		// Disconnect
 		const onDisconnect = new Lambda.Function(this, 'onDisconnect', {
 			handler: lambdaSources.onDisconnect.handler,
 			architecture: Lambda.Architecture.ARM_64,
@@ -106,54 +176,6 @@ export class WebsocketAPI extends Construct {
 		this.connectionsTable.grantWriteData(onDisconnect)
 
 		new LambdaLogGroup(this, 'onDisconnectLogs', onDisconnect)
-
-		// API
-
-		const api = new ApiGateway.CfnApi(this, 'api', {
-			name: 'deviceUpdates',
-			protocolType: 'WEBSOCKET',
-			routeSelectionExpression: '$request.body.message',
-		})
-
-		// Connect
-		const connectIntegration = new ApiGateway.CfnIntegration(
-			this,
-			'connectIntegration',
-			{
-				apiId: api.ref,
-				description: 'Connect integration',
-				integrationType: 'AWS_PROXY',
-				integrationUri: `arn:aws:apigateway:${parent.region}:lambda:path/2015-03-31/functions/${onConnect.functionArn}/invocations`,
-			},
-		)
-		const connectRoute = new ApiGateway.CfnRoute(this, 'connectRoute', {
-			apiId: api.ref,
-			routeKey: '$connect',
-			authorizationType: 'NONE',
-			operationName: 'ConnectRoute',
-			target: `integrations/${connectIntegration.ref}`,
-		})
-
-		// Send
-		const sendMessageIntegration = new ApiGateway.CfnIntegration(
-			this,
-			'sendMessageIntegration',
-			{
-				apiId: api.ref,
-				description: 'Send messages integration',
-				integrationType: 'AWS_PROXY',
-				integrationUri: `arn:aws:apigateway:${parent.region}:lambda:path/2015-03-31/functions/${onMessage.functionArn}/invocations`,
-			},
-		)
-		const sendMessageRoute = new ApiGateway.CfnRoute(this, 'sendMessageRoute', {
-			apiId: api.ref,
-			routeKey: 'sendmessage',
-			authorizationType: 'NONE',
-			operationName: 'sendMessageRoute',
-			target: `integrations/${sendMessageIntegration.ref}`,
-		})
-
-		// Disconnect
 		const disconnectIntegration = new ApiGateway.CfnIntegration(
 			this,
 			'disconnectIntegration',
@@ -171,23 +193,7 @@ export class WebsocketAPI extends Construct {
 			operationName: 'DisconnectRoute',
 			target: `integrations/${disconnectIntegration.ref}`,
 		})
-
-		// Deploy
-		const deployment = new ApiGateway.CfnDeployment(this, 'apiDeployment', {
-			apiId: api.ref,
-		})
-		deployment.node.addDependency(connectRoute)
-		deployment.node.addDependency(sendMessageRoute)
 		deployment.node.addDependency(disconnectRoute)
-
-		const stage = new ApiGateway.CfnStage(this, 'prodStage', {
-			stageName: '2022-11-22',
-			description: 'production stage',
-			deploymentId: deployment.ref,
-			apiId: api.ref,
-		})
-
-		this.websocketURI = `wss://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.ref}`
 
 		onMessage.addPermission('invokeByAPI', {
 			principal: new IAM.ServicePrincipal(
@@ -209,8 +215,6 @@ export class WebsocketAPI extends Construct {
 		})
 
 		// Publish events
-		this.websocketAPIArn = `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/POST/@connections/*`
-		this.websocketManagementAPIURL = `https://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.stageName}`
 		const publishToWebsocketClients = new Lambda.Function(
 			this,
 			'publishToWebsocketClients',

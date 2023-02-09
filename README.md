@@ -30,6 +30,17 @@ npm ci
 npx cdk deploy
 ```
 
+## Support for the MQTT Sample
+
+Because the sample is not using the shadow, some manual work is needed to make
+it work:
+
+1. Create a thing group `mqtt-lightbulbs` for it, and assign the
+   `LightbulbThingspolicy...` policy
+1. Create a thing type `rgb-light` (they cannot be created using CloudFormation)
+1. Add the thing for the lightbulb to the group
+1. Assign the thing type `rgb-light` to the thing
+
 ## Running the Wirepas 5G Mesh bridge
 
 Configure the bridge settings using the `.envrc` (see

@@ -43,6 +43,7 @@ new BackendApp({
 		onNewNcellmeasReport: await pack('onNewNcellmeasReport'),
 		onNcellmeasReportResolved: await pack('onNcellmeasReportResolved'),
 		onNewWiFiSiteSurveyReport: await pack('onNewWiFiSiteSurveyReport'),
+		lightbulbPing: await pack('lightbulbPing'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',
