@@ -35,11 +35,19 @@ npx cdk deploy
 Because the sample is not using the shadow, some manual work is needed to make
 it work:
 
-1. Create a thing group `mqtt-lightbulbs` for it, and assign the
-   `LightbulbThingspolicy...` policy
-1. Create a thing type `rgb-light` (they cannot be created using CloudFormation)
-1. Add the thing for the lightbulb to the group
-1. Assign the thing type `rgb-light` to the thing
+1. Create a thing type `rgb-light` (they cannot be created using
+   CloudFormation).
+1. Assign the thing type `rgb-light` to the thing which should act as a light
+   bulb.
+
+## Authentication
+
+For changing the state of light bulbs and 5G Mesh Nodes, create a Thing
+attribute named `code` and provide a secret there. This is compared to the code
+presented in received update messages. Only if the code matches will a message
+with the new RGB value be sent to the light bulb, or the LED state changed using
+the
+[Wirepas Gateway](https://developer.wirepas.com/support/solutions/articles/77000489804-wirepas-software-and-apis-overview#Wirepas-Gateway-to-Cloud-API).
 
 ## Running the Wirepas 5G Mesh bridge
 

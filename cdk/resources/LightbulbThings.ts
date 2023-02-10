@@ -30,25 +30,6 @@ export class LightbulbThings extends Construct {
 	) {
 		super(parent, 'LightbulbThings')
 
-		// Attach this policy to a group for MQTT lightbulbs things
-		new IoT.CfnPolicy(this, 'policy', {
-			policyDocument: {
-				Version: '2012-10-17',
-				Statement: [
-					{
-						Effect: 'Allow',
-						Action: ['iot:Subscribe'],
-						Resource: ['arn:aws:iot:*:*:topicfilter/light-bulb/*'],
-					},
-					{
-						Effect: 'Allow',
-						Action: ['iot:Publish'],
-						Resource: ['arn:aws:iot:*:*:topic/light-bulb/*'],
-					},
-				],
-			},
-		})
-
 		// lightbulbPing
 
 		const lightbulbPing = new Lambda.Function(this, 'lightbulbPing', {
