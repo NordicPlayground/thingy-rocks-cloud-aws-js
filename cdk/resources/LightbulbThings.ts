@@ -89,7 +89,7 @@ export class LightbulbThings extends Construct {
 					// Lambda does not support binary data, must be encoded
 					`SELECT encode(*, 'base64') AS message,`,
 					`clientid() as deviceId`,
-					`FROM 'light-bulb/telemetry'`,
+					`FROM '+/light-bulb/telemetry'`,
 				].join(' '),
 				actions: [
 					{
