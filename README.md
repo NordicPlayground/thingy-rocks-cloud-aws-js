@@ -40,6 +40,17 @@ it work:
 1. Assign the thing type `rgb-light` to the thing which should act as a light
    bulb.
 
+## Support for managing Wirepas 5G Mesh nodes
+
+For interacting with these nodes,
+
+1. Create a thing type `mesh-node` (they cannot be created using
+   CloudFormation).
+1. Assign the thing type `mesh-node` to the thing which should act as a 5G Mesh
+   Node.
+
+The thing type is check when an state update is received from the UI.
+
 ## Authentication
 
 For changing the state of light bulbs and 5G Mesh Nodes, create a Thing

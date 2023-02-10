@@ -91,25 +91,46 @@ export const handler = async (
 						thingName: deviceId,
 					}),
 				)
-				if (
-					res.attributes?.code === code &&
-					res.thingTypeName === 'rgb-light'
-				) {
-					await iotData.send(
-						new PublishCommand({
-							topic: `${deviceId}/light-bulb/led-ctrl`,
-							payload: new TextEncoder().encode(ledColor.join(',')),
-						}),
-					)
+				if (res.attributes?.code === code) {
+					switch (res.thingTypeName) {
+						case 'rgb-light':
+							await iotData.send(
+								new PublishCommand({
+									topic: `${deviceId}/light-bulb/led-ctrl`,
+									payload: new TextEncoder().encode(ledColor.join(',')),
+								}),
+							)
 
-					await notifier({
-						deviceId,
-						deviceAlias: res.attributes.name,
-						lightbulb: {
-							type: 'rgb',
-							color: ledColor,
-						},
-					})
+							await notifier({
+								deviceId,
+								deviceAlias: res.attributes.name,
+								lightbulb: {
+									type: 'rgb',
+									color: ledColor,
+								},
+							})
+							break
+						case 'mesh-node':
+							await notifier({
+								deviceId,
+								deviceAlias: res.attributes.name,
+								meshNodeEvent: {
+									message: {
+										led: { [0]: isOn(ledColor) ? 1 : 0 },
+									},
+									meta: {
+										node: deviceId.split(':')[0] ?? '',
+										gateway: deviceId.split(':')[1] ?? '',
+										hops: 0,
+										rxTime: new Date(),
+										travelTimeMs: 0,
+									},
+								},
+							})
+							break
+						default:
+							console.error(`Thing has unsupported type`, res.thingTypeName)
+					}
 				}
 			}
 		} catch (err) {
@@ -122,3 +143,6 @@ export const handler = async (
 		body: `Got your message, ${event.requestContext.connectionId}!`,
 	}
 }
+
+const isOn = (rgb: [number, number, number]): boolean =>
+	rgb.reduce((sum, c) => sum + c, 0) > 0
