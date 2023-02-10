@@ -95,14 +95,10 @@ export const handler = async (
 					res.attributes?.code === code &&
 					res.thingTypeName === 'rgb-light'
 				) {
-					// FIXME: Address per-device topic
 					await iotData.send(
 						new PublishCommand({
-							topic: 'light-bulb/led-ctrl',
-							payload: new TextEncoder().encode(
-								// FIXME: MQTT sample implements wrong order
-								[ledColor[0], ledColor[2], ledColor[1]].join(','),
-							),
+							topic: `${deviceId}/light-bulb/led-ctrl`,
+							payload: new TextEncoder().encode(ledColor.join(',')),
 						}),
 					)
 

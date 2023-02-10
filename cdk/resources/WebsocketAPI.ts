@@ -126,7 +126,7 @@ export class WebsocketAPI extends Construct {
 				}),
 				new IAM.PolicyStatement({
 					actions: ['iot:Publish'],
-					resources: ['arn:aws:iot:*:*:topic/light-bulb/*'],
+					resources: ['arn:aws:iot:*:*:topic/*/light-bulb/*'],
 				}),
 				new IAM.PolicyStatement({
 					actions: ['execute-api:ManageConnections'],
