@@ -13,11 +13,11 @@ export const wirepasPublish =
 	({ gatewayMqttEndpoint }: { gatewayMqttEndpoint: string }) =>
 	async ({
 		gateway,
-		sink,
+		node,
 		ledState,
 	}: {
 		gateway: string
-		sink: number
+		node: number
 		ledState: boolean
 	}): Promise<void> => {
 		const client = await new Promise<mqtt.MqttClient>((resolve, reject) => {
@@ -42,7 +42,7 @@ export const wirepasPublish =
 		const req: SendPacketReq = {
 			qos: 1,
 			sourceEndpoint: 1,
-			destinationAddress: 1,
+			destinationAddress: node,
 			destinationEndpoint: 1,
 			payload: Buffer.from([
 				129, // LED state set message
@@ -54,7 +54,7 @@ export const wirepasPublish =
 			},
 		}
 
-		const topic = `gw-request/send_data/${gateway}/${sink}`
+		const topic = `gw-request/send_data/${gateway}/sink1`
 
 		console.log('Publishing to', topic)
 		console.log(

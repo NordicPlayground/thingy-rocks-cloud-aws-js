@@ -123,7 +123,7 @@ export const handler = async (
 								const gateway = deviceId.split(':')[1] ?? ''
 								await publishToMesh({
 									gateway,
-									sink: node,
+									node,
 									ledState: isOn(ledColor),
 								})
 								await notifier({

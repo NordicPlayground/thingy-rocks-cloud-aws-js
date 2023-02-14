@@ -4,7 +4,7 @@ import { fromEnv } from '@nordicsemiconductor/from-env'
 import mqtt from 'mqtt'
 import { notifyClients } from '../lambda/notifyClients.js'
 import { decodePayload } from './decodePayload.js'
-import { debug, error, log } from './log.js'
+import { error, log } from './log.js'
 import { GenericMessage } from './protobuf/ts/generic_message.js'
 
 const {
@@ -83,8 +83,6 @@ client.on('message', (_, message) => {
 
 		// Only handle messages with payload
 		if (payload === undefined) return
-
-		debug(packetReceivedEvent)
 
 		const rxTime = new Date(parseInt(BigInt(rxTimeMsEpoch).toString()))
 		const decodedPayload = decodePayload(payload)
