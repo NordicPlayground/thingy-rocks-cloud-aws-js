@@ -17,7 +17,7 @@ import { ResolveNcellmeasGeoLocation } from '../resources/ResolveNcellmeasGeoLoc
 import { ResolveWiFiSiteSurveyGeoLocation } from '../resources/ResolveWiFiSiteSurveyGeoLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
-import { Wirepas5GMeshBridge } from '../resources/Wirepas5GMeshBridge.js'
+import { Wirepas5GMeshGateway } from '../resources/Wirepas5GMeshGateway.js'
 import { STACK_NAME } from './stackName.js'
 
 export class BackendStack extends Stack {
@@ -114,7 +114,7 @@ export class BackendStack extends Stack {
 			),
 		})
 
-		const wirepasBridge = new Wirepas5GMeshBridge(this, { websocketAPI: api })
+		const wirepasGateway = new Wirepas5GMeshGateway(this, { websocketAPI: api })
 
 		new LightbulbThings(this, {
 			lambdaSources,
@@ -159,14 +159,14 @@ export class BackendStack extends Stack {
 			exportName: `${this.stackName}:identityPoolId`,
 		})
 
-		new CfnOutput(this, 'wirepasBridgeUserAccessKeyId', {
-			value: wirepasBridge.accessKey.ref,
-			exportName: `${this.stackName}:wirepasBridgeUserAccessKeyId`,
+		new CfnOutput(this, 'wirepasGatewayUserAccessKeyId', {
+			value: wirepasGateway.accessKey.ref,
+			exportName: `${this.stackName}:wirepasGatewayUserAccessKeyId`,
 		})
 
-		new CfnOutput(this, 'wirepasBridgeUserSecretAccessKey', {
-			value: wirepasBridge.accessKey.attrSecretAccessKey,
-			exportName: `${this.stackName}:wirepasBridgeUserSecretAccessKey`,
+		new CfnOutput(this, 'wirepasGatewayUserSecretAccessKey', {
+			value: wirepasGateway.accessKey.attrSecretAccessKey,
+			exportName: `${this.stackName}:wirepasGatewayUserSecretAccessKey`,
 		})
 	}
 }

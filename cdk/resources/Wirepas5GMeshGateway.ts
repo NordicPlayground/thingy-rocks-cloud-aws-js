@@ -3,28 +3,28 @@ import { aws_iam as IAM } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { WebsocketAPI } from './WebsocketAPI'
 
-export class Wirepas5GMeshBridge extends Construct {
+export class Wirepas5GMeshGateway extends Construct {
 	public readonly accessKey
 	constructor(parent: Stack, { websocketAPI }: { websocketAPI: WebsocketAPI }) {
-		super(parent, 'Wirepas5GMeshBridge')
+		super(parent, 'Wirepas5GMeshGateway')
 
-		const bridgeUser = new IAM.User(this, 'bridgeUser')
-		bridgeUser.addToPolicy(
+		const gatewayUser = new IAM.User(this, 'gatewayUser')
+		gatewayUser.addToPolicy(
 			new IAM.PolicyStatement({
 				actions: ['iot:DescribeEndpoint'],
 				resources: [`*`],
 			}),
 		)
-		bridgeUser.addToPolicy(
+		gatewayUser.addToPolicy(
 			new IAM.PolicyStatement({
 				actions: ['execute-api:ManageConnections'],
 				resources: [websocketAPI.websocketAPIArn],
 			}),
 		)
-		websocketAPI.connectionsTable.grantFullAccess(bridgeUser)
+		websocketAPI.connectionsTable.grantFullAccess(gatewayUser)
 
 		this.accessKey = new IAM.CfnAccessKey(this, 'accessKey', {
-			userName: bridgeUser.userName,
+			userName: gatewayUser.userName,
 			status: 'Active',
 		})
 	}

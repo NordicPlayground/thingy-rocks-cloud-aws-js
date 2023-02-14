@@ -2,24 +2,23 @@ import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import mqtt from 'mqtt'
-import path from 'node:path'
-import protobuf from 'protobufjs'
 import { notifyClients } from '../lambda/notifyClients.js'
 import { decodePayload } from './decodePayload.js'
 import { debug, error, log } from './log.js'
+import { GenericMessage } from './protobuf/ts/generic_message.js'
 
 const {
 	connectionsTableName,
 	websocketManagementAPIURL,
 	accessKeyId,
 	secretAccessKey,
-	bridgeEndpoint,
+	gatewayEndpoint,
 } = fromEnv({
-	connectionsTableName: 'BRIDGE_CONNECTIONS_TABLE_NAME',
-	websocketManagementAPIURL: 'BRIDGE_WEBSOCKET_MANAGEMENT_API_URL',
-	bridgeEndpoint: 'BRIDGE_MQTT_ENDPOINT',
-	accessKeyId: 'BRIDGE_AWS_ACCESS_KEY_ID',
-	secretAccessKey: 'BRIDGE_AWS_SECRET_ACCESS_KEY',
+	connectionsTableName: 'GATEWAY_CONNECTIONS_TABLE_NAME',
+	websocketManagementAPIURL: 'GATEWAY_WEBSOCKET_MANAGEMENT_API_URL',
+	gatewayEndpoint: 'GATEWAY_MQTT_ENDPOINT',
+	accessKeyId: 'GATEWAY_AWS_ACCESS_KEY_ID',
+	secretAccessKey: 'GATEWAY_AWS_SECRET_ACCESS_KEY',
 })(process.env)
 
 const region =
@@ -45,24 +44,10 @@ const notifier = notifyClients({
 	apiGwManagementClient,
 })
 
-const root = await protobuf.load(
-	path.join(
-		process.cwd(),
-		'wirepas-5g-mesh-bridge',
-		'protobuf',
-		'generic_message.proto',
-	),
-)
-
-// Obtain a message type
-const GenericMessage = root.lookupType(
-	'wirepas.proto.gateway_api.GenericMessage',
-)
-
-const parsedEndpoint = new URL(bridgeEndpoint)
+const parsedEndpoint = new URL(gatewayEndpoint)
 log(`Connecting to`, parsedEndpoint.hostname)
 
-const client = mqtt.connect(bridgeEndpoint)
+const client = mqtt.connect(gatewayEndpoint)
 
 const topics = ['gw-event/#']
 
@@ -78,10 +63,10 @@ client.on('connect', () => {
 	}
 })
 
-client.on('message', function (topic, message) {
-	const packetReceivedEvent = (GenericMessage.decode(message) as any)?.wirepas
-		?.packetReceivedEvent
-	if (packetReceivedEvent !== undefined && packetReceivedEvent !== null) {
+client.on('message', (_, message) => {
+	const packetReceivedEvent =
+		GenericMessage.fromBinary(message)?.wirepas?.packetReceivedEvent
+	if (packetReceivedEvent !== undefined) {
 		const {
 			sourceAddress,
 			rxTimeMsEpoch,
@@ -96,6 +81,9 @@ client.on('message', function (topic, message) {
 		// Only handle messages on the 1/1 endpoint
 		if (sourceEndpoint !== 1 || destinationEndpoint !== 1) return
 
+		// Only handle messages with payload
+		if (payload === undefined) return
+
 		debug(packetReceivedEvent)
 
 		const rxTime = new Date(parseInt(BigInt(rxTimeMsEpoch).toString()))
@@ -108,7 +96,7 @@ client.on('message', function (topic, message) {
 						gateway: gwId,
 						rxTime,
 						travelTimeMs,
-						hops: hopCount,
+						...(hopCount !== undefined ? { hops: hopCount } : {}),
 					},
 					message: decodedPayload,
 				},

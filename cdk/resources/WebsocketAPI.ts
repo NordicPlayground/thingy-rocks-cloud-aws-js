@@ -4,6 +4,7 @@ import {
 	aws_iam as IAM,
 	aws_iot as IoT,
 	aws_lambda as Lambda,
+	aws_ssm as SSM,
 	Duration,
 	RemovalPolicy,
 	Stack,
@@ -118,6 +119,10 @@ export class WebsocketAPI extends Construct {
 				VERSION: this.node.tryGetContext('version'),
 				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
 				WEBSOCKET_MANAGEMENT_API_URL: this.websocketManagementAPIURL,
+				GATEWAY_MQTT_ENDPOINT: SSM.StringParameter.valueForStringParameter(
+					this,
+					`${parent.stackName}-Wirepas5GMeshGatewayEndpoint`,
+				),
 			},
 			initialPolicy: [
 				new IAM.PolicyStatement({

@@ -1,13 +1,13 @@
 import type { Wirepas5GMeshNodePayload } from '../lambda/notifyClients'
-import { ScannableBuffer } from './ScannableBuffer'
+import { ScannableArray } from './ScannableArray'
 
 /**
  * @see https://github.com/wirepas/wm-sdk/tree/v1.4.0/source/example_apps/evaluation_app#button-pressed-notification-message
  */
 export const decodePayload = (
-	payload: string,
+	payload: Uint8Array,
 ): Wirepas5GMeshNodePayload | null => {
-	const scannableMessage = new ScannableBuffer(Buffer.from(payload, 'base64'))
+	const scannableMessage = new ScannableArray(payload)
 	switch (scannableMessage.getChar()) {
 		case 0:
 			// Periodic message with a counter value
@@ -31,7 +31,7 @@ export const decodePayload = (
 	}
 }
 
-const counterMessage = (message: ScannableBuffer): { counter: number } => {
+const counterMessage = (message: ScannableArray): { counter: number } => {
 	const counterBytes = Buffer.alloc(4)
 	counterBytes.writeUInt8(message.getCharNext(), 0)
 	counterBytes.writeUInt8(message.getCharNext(), 1)

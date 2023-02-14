@@ -51,6 +51,12 @@ For interacting with these nodes,
 
 The thing type is check when an state update is received from the UI.
 
+Set the Wirepas 5G Mesh Gateway endpoint:
+
+```bash
+aws ssm put-parameter --name thingy-rocks-backend-Wirepas5GMeshGatewayEndpoint --type String --value $GATEWAY_MQTT_ENDPOINT
+```
+
 ## Authentication
 
 For changing the state of light bulbs and 5G Mesh Nodes, create a Thing
@@ -60,19 +66,19 @@ with the new RGB value be sent to the light bulb, or the LED state changed using
 the
 [Wirepas Gateway](https://developer.wirepas.com/support/solutions/articles/77000489804-wirepas-software-and-apis-overview#Wirepas-Gateway-to-Cloud-API).
 
-## Running the Wirepas 5G Mesh bridge
+## Running the Wirepas 5G Mesh Gateway
 
-Configure the bridge settings using the `.envrc` (see
+Configure the gateway settings using the `.envrc` (see
 [the example](./envrc.example)).
 
 Run:
 
 ```bash
-npx tsx wirepas-5g-mesh-bridge/bridge.ts
+npx tsx wirepas-5g-mesh-gateway/gateway.ts
 ```
 
 Run as a service using systemd:
 
 ```bash
-systemd-run -E BRIDGE_MQTT_ENDPOINT=${BRIDGE_MQTT_ENDPOINT} -E BRIDGE_AWS_ACCESS_KEY_ID=${BRIDGE_AWS_ACCESS_KEY_ID} -E BRIDGE_AWS_SECRET_ACCESS_KEY=${BRIDGE_AWS_SECRET_ACCESS_KEY} -E BRIDGE_CONNECTIONS_TABLE_NAME=${BRIDGE_CONNECTIONS_TABLE_NAME} -E BRIDGE_WEBSOCKET_MANAGEMENT_API_URL=${BRIDGE_WEBSOCKET_MANAGEMENT_API_URL} --working-directory ${PWD} npx tsx wirepas-5g-mesh-bridge/bridge.ts
+systemd-run -E GATEWAY_MQTT_ENDPOINT=${GATEWAY_MQTT_ENDPOINT} -E GATEWAY_AWS_ACCESS_KEY_ID=${GATEWAY_AWS_ACCESS_KEY_ID} -E GATEWAY_AWS_SECRET_ACCESS_KEY=${GATEWAY_AWS_SECRET_ACCESS_KEY} -E GATEWAY_CONNECTIONS_TABLE_NAME=${GATEWAY_CONNECTIONS_TABLE_NAME} -E GATEWAY_WEBSOCKET_MANAGEMENT_API_URL=${GATEWAY_WEBSOCKET_MANAGEMENT_API_URL} --working-directory ${PWD} npx tsx wirepas-5g-mesh-gateway/gateway.ts
 ```

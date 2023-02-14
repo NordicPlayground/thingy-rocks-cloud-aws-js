@@ -11,8 +11,13 @@ const packagesInLayer: string[] = [
 	'@sinclair/typebox',
 	'ajv',
 	'@nordicsemiconductor/timestream-helpers',
+	'mqtt',
+	'@protobuf-ts/runtime',
 ]
-const pack = async (id: string, handler = 'handler'): Promise<PackedLambda> => {
+const pack = async (
+	id: string,
+	handler = `${id}.handler`,
+): Promise<PackedLambda> => {
 	try {
 		await mkdir(path.join(process.cwd(), 'dist', 'lambdas'), {
 			recursive: true,
@@ -27,7 +32,7 @@ const pack = async (id: string, handler = 'handler'): Promise<PackedLambda> => {
 	})
 	return {
 		lambdaZipFile: zipFile,
-		handler: `${id}.${handler}`,
+		handler,
 	}
 }
 
@@ -35,7 +40,7 @@ new BackendApp({
 	lambdaSources: {
 		publishToWebsocketClients: await pack('publishToWebsocketClients'),
 		onConnect: await pack('onConnect'),
-		onMessage: await pack('onMessage'),
+		onMessage: await pack('onMessage', 'lambda/onMessage.handler'),
 		onDisconnect: await pack('onDisconnect'),
 		onCellGeoLocationResolved: await pack('onCellGeoLocationResolved'),
 		resolveCellLocation: await pack('resolveCellLocation'),

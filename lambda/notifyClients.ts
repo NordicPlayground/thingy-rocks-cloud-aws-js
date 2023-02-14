@@ -60,11 +60,11 @@ export type Wirepas5GMeshNodePayload =
 export type Wirepas5GMeshNodeEvent = {
 	meshNodeEvent: {
 		meta: {
-			node: string
+			node: number
 			gateway: string
 			rxTime: Date
 			travelTimeMs: number
-			hops: number
+			hops?: number
 		}
 		message: Wirepas5GMeshNodePayload
 	}

@@ -2,6 +2,7 @@ import swc from '@swc/core'
 import { createWriteStream } from 'node:fs'
 import { parse } from 'path'
 import * as yazl from 'yazl'
+import { commonParent } from './commonParent'
 import { findDependencies } from './findDependencies'
 
 /**
@@ -22,6 +23,8 @@ export const packLambda = async ({
 
 	const zipfile = new yazl.ZipFile()
 
+	const parentDir = commonParent(lambdaFiles)
+
 	for (const file of lambdaFiles) {
 		const compiled = (
 			await swc.transformFile(file, {
@@ -31,7 +34,15 @@ export const packLambda = async ({
 			})
 		).code
 		debug?.(`compiled`, compiled)
-		const jsFileName = `${parse(file).name}.js`
+		const p = parse(file)
+		const jsFileName = [
+			p.dir.replace(parentDir.slice(0, parentDir.length - 1), ''),
+			`${p.name}.js`,
+		]
+			.join('/')
+			// Replace leading slash
+			.replace(/^\//, '')
+
 		zipfile.addBuffer(Buffer.from(compiled, 'utf-8'), jsFileName)
 		progress?.(`added`, jsFileName)
 	}

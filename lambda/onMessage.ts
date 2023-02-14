@@ -11,6 +11,7 @@ import type {
 	APIGatewayProxyWebsocketEventV2,
 } from 'aws-lambda'
 import { notifyClients } from './notifyClients.js'
+import { wirepasPublish } from './wirepasPublish.js'
 const { TableName } = fromEnv({ TableName: 'CONNECTIONS_TABLE_NAME' })(
 	process.env,
 )
@@ -19,10 +20,12 @@ const db = new DynamoDBClient({})
 const iot = new IoTClient({})
 const iotData = new IoTDataPlaneClient({})
 
-const { connectionsTableName, websocketManagementAPIURL } = fromEnv({
-	connectionsTableName: 'CONNECTIONS_TABLE_NAME',
-	websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
-})(process.env)
+const { connectionsTableName, websocketManagementAPIURL, gatewayMqttEndpoint } =
+	fromEnv({
+		connectionsTableName: 'CONNECTIONS_TABLE_NAME',
+		websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
+		gatewayMqttEndpoint: 'GATEWAY_MQTT_ENDPOINT',
+	})(process.env)
 
 export const apiGwManagementClient = new ApiGatewayManagementApi({
 	endpoint: websocketManagementAPIURL,
@@ -31,6 +34,10 @@ const notifier = notifyClients({
 	db,
 	connectionsTableName,
 	apiGwManagementClient,
+})
+
+const publishToMesh = wirepasPublish({
+	gatewayMqttEndpoint,
 })
 
 export const handler = async (
@@ -92,6 +99,7 @@ export const handler = async (
 					}),
 				)
 				if (res.attributes?.code === code) {
+					const deviceAlias = res.attributes.name
 					switch (res.thingTypeName) {
 						case 'rgb-light':
 							await iotData.send(
@@ -100,10 +108,9 @@ export const handler = async (
 									payload: new TextEncoder().encode(ledColor.join(',')),
 								}),
 							)
-
 							await notifier({
 								deviceId,
-								deviceAlias: res.attributes.name,
+								deviceAlias,
 								lightbulb: {
 									type: 'rgb',
 									color: ledColor,
@@ -111,22 +118,30 @@ export const handler = async (
 							})
 							break
 						case 'mesh-node':
-							await notifier({
-								deviceId,
-								deviceAlias: res.attributes.name,
-								meshNodeEvent: {
-									message: {
-										led: { [0]: isOn(ledColor) ? 1 : 0 },
+							await (async () => {
+								const node = parseInt(deviceId.split(':')[0] ?? '0', 10)
+								const gateway = deviceId.split(':')[1] ?? ''
+								await publishToMesh({
+									gateway,
+									sink: node,
+									ledState: isOn(ledColor),
+								})
+								await notifier({
+									deviceId,
+									deviceAlias,
+									meshNodeEvent: {
+										message: {
+											led: { [0]: isOn(ledColor) ? 1 : 0 },
+										},
+										meta: {
+											node,
+											gateway,
+											rxTime: new Date(),
+											travelTimeMs: 0,
+										},
 									},
-									meta: {
-										node: deviceId.split(':')[0] ?? '',
-										gateway: deviceId.split(':')[1] ?? '',
-										hops: 0,
-										rxTime: new Date(),
-										travelTimeMs: 0,
-									},
-								},
-							})
+								})
+							})()
 							break
 						default:
 							console.error(`Thing has unsupported type`, res.thingTypeName)
