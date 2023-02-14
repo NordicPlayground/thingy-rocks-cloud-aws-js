@@ -5,7 +5,8 @@ import mqtt from 'mqtt'
 import path from 'node:path'
 import protobuf from 'protobufjs'
 import { notifyClients } from '../lambda/notifyClients.js'
-import { decodePayload } from './decodePayload'
+import { decodePayload } from './decodePayload.js'
+import { debug, error, log } from './log.js'
 
 const {
 	connectionsTableName,
@@ -59,18 +60,22 @@ const GenericMessage = root.lookupType(
 )
 
 const parsedEndpoint = new URL(bridgeEndpoint)
-console.log(`Connecting to`, parsedEndpoint.hostname)
+log(`Connecting to`, parsedEndpoint.hostname)
 
 const client = mqtt.connect(bridgeEndpoint)
 
+const topics = ['gw-event/#']
+
 client.on('connect', () => {
-	console.log(`Connected.`)
-	client.subscribe('gw-event/#', (err, grants) => {
-		if (err !== null) {
-			throw err
-		}
-		for (const { topic } of grants) console.log(`Subscribed to`, topic)
-	})
+	log(`Connected.`)
+	for (const topic of topics) {
+		client.subscribe(topic, (err, grants) => {
+			if (err !== null) {
+				throw err
+			}
+			for (const { topic } of grants) log(`Subscribed to`, topic)
+		})
+	}
 })
 
 client.on('message', function (topic, message) {
@@ -91,6 +96,8 @@ client.on('message', function (topic, message) {
 		// Only handle messages on the 1/1 endpoint
 		if (sourceEndpoint !== 1 || destinationEndpoint !== 1) return
 
+		debug(packetReceivedEvent)
+
 		const rxTime = new Date(parseInt(BigInt(rxTimeMsEpoch).toString()))
 		const decodedPayload = decodePayload(payload)
 		if (decodedPayload !== null) {
@@ -106,7 +113,7 @@ client.on('message', function (topic, message) {
 					message: decodedPayload,
 				},
 			}).catch((err) => {
-				console.error(`[notifier]`, err)
+				error(`[notifier]`, err)
 			})
 		}
 	}
