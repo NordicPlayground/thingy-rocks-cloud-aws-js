@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto'
 import mqtt from 'mqtt'
-import { SendPacketReq } from '../wirepas-5g-mesh-gateway/protobuf/ts/data_message.js'
+import { GenericMessage } from '../wirepas-5g-mesh-gateway/protobuf/ts/generic_message.js'
 
 /**
  * Publish a message to the Wirepas 5G Mesh Gateway
@@ -39,18 +39,22 @@ export const wirepasPublish =
 			})
 		})
 
-		const req: SendPacketReq = {
-			qos: 1,
-			sourceEndpoint: 1,
-			destinationAddress: node,
-			destinationEndpoint: 1,
-			payload: Buffer.from([
-				129, // LED state set message
-				0, // LED identifier (Decimal value 0 is the first user available LED on the node)
-				ledState ? 1 : 0, // LED state (Decimal value 0 => switch off, 1 => switch on)
-			]),
-			header: {
-				reqId: BigInt('0x' + randomBytes(8).toString('hex')),
+		const req: GenericMessage = {
+			wirepas: {
+				sendPacketReq: {
+					qos: 1,
+					sourceEndpoint: 1,
+					destinationAddress: node,
+					destinationEndpoint: 1,
+					payload: Buffer.from([
+						129, // LED state set message
+						0, // LED identifier (Decimal value 0 is the first user available LED on the node)
+						ledState ? 1 : 0, // LED state (Decimal value 0 => switch off, 1 => switch on)
+					]),
+					header: {
+						reqId: BigInt('0x' + randomBytes(8).toString('hex')),
+					},
+				},
 			},
 		}
 
@@ -66,7 +70,7 @@ export const wirepasPublish =
 		await new Promise((resolve, reject) => {
 			client.publish(
 				topic,
-				Buffer.from(SendPacketReq.toBinary(req)),
+				Buffer.from(GenericMessage.toBinary(req)),
 				(err, res) => {
 					if (err !== undefined) return reject(err)
 					return resolve(res)
