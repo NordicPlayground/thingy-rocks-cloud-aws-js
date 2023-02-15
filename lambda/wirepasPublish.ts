@@ -42,14 +42,19 @@ export const wirepasPublish =
 		const req: GenericMessage = {
 			wirepas: {
 				sendPacketReq: {
-					qos: 1,
+					qos: 2, // send the downlink messages (i.e from backend to nodes) with MQTT QoS 2 so that they are delivered only once to the gateway.
 					sourceEndpoint: 1,
 					destinationAddress: node,
 					destinationEndpoint: 1,
 					payload: Buffer.from([
-						129, // LED state set message
-						0, // LED identifier (Decimal value 0 is the first user available LED on the node)
-						ledState ? 1 : 0, // LED state (Decimal value 0 => switch off, 1 => switch on)
+						// LED state set message
+						129,
+						// LED identifier (Decimal value 0 is the first user available LED on the node)
+						// FIXME: change to 5 later
+						// For now keep the LED ID as “0” (current boards do not manage this but for the demo it will be “5”.
+						0,
+						// LED state (Decimal value 0 => switch off, 1 => switch on)
+						ledState ? 1 : 0,
 					]),
 					header: {
 						reqId: BigInt('0x' + randomBytes(8).toString('hex')),
