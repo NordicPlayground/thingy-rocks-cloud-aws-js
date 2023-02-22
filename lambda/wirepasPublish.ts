@@ -4,7 +4,7 @@ import { GenericMessage } from '../wirepas-5g-mesh-gateway/protobuf/ts/generic_m
 
 // https://github.com/wirepas/wm-sdk/tree/v1.4.0/source/example_apps/evaluation_app
 enum ExampleAppMessages {
-	LED_STATE_SET = 192,
+	LED_STATE_SET = 129,
 	LED_STATE_GET = 130,
 }
 
