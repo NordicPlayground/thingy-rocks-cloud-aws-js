@@ -141,9 +141,7 @@ export const handler = async (
 									},
 								})
 								// Wait two seconds before querying the LED state
-								await new Promise((resolve) =>
-									setTimeout(resolve, 2 * 60 * 1000),
-								)
+								await new Promise((resolve) => setTimeout(resolve, 2 * 1000))
 								await publishToMesh({ gateway, req: getLedState({ node }) })
 							})()
 							break
