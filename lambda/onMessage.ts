@@ -11,7 +11,7 @@ import type {
 	APIGatewayProxyWebsocketEventV2,
 } from 'aws-lambda'
 import { notifyClients } from './notifyClients.js'
-import { wirepasPublish } from './wirepasPublish.js'
+import { getLedState, turnOnLed, wirepasPublish } from './wirepasPublish.js'
 const { TableName } = fromEnv({ TableName: 'CONNECTIONS_TABLE_NAME' })(
 	process.env,
 )
@@ -123,8 +123,7 @@ export const handler = async (
 								const gateway = deviceId.split(':')[1] ?? ''
 								await publishToMesh({
 									gateway,
-									node,
-									ledState: isOn(ledColor),
+									req: turnOnLed({ node, ledState: isOn(ledColor) }),
 								})
 								await notifier({
 									deviceId,
@@ -141,6 +140,11 @@ export const handler = async (
 										},
 									},
 								})
+								// Wait two seconds before querying the LED state
+								await new Promise((resolve) =>
+									setTimeout(resolve, 2 * 60 * 1000),
+								)
+								await publishToMesh({ gateway, req: getLedState({ node }) })
 							})()
 							break
 						default:

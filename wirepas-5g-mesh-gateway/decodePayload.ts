@@ -9,16 +9,17 @@ export const decodePayload = (
 ): Wirepas5GMeshNodePayload | null => {
 	const scannableMessage = new ScannableArray(payload)
 	switch (scannableMessage.getChar()) {
+		// Periodic message with a counter value
 		case 0:
-			// Periodic message with a counter value
 			scannableMessage.next()
 			return counterMessage(scannableMessage)
+		// Button pressed
 		case 1:
-			// Button pressed
 			scannableMessage.next()
 			return { button: scannableMessage.getChar() as number }
+		// LED state
+		case 3:
 		case 129:
-			// LED state
 			scannableMessage.next()
 			return {
 				led: {
