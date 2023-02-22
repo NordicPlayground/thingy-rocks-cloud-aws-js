@@ -111,7 +111,7 @@ export class WebsocketAPI extends Construct {
 			handler: lambdaSources.onMessage.handler,
 			architecture: Lambda.Architecture.ARM_64,
 			runtime: Lambda.Runtime.NODEJS_18_X,
-			timeout: Duration.seconds(5),
+			timeout: Duration.seconds(60),
 			memorySize: 1792,
 			code: Lambda.Code.fromAsset(lambdaSources.onMessage.lambdaZipFile),
 			description: 'Receives messages from clients',
