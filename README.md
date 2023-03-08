@@ -24,6 +24,14 @@ Install the dependencies:
 npm ci
 ```
 
+### Configure
+
+Set the Wirepas 5G Mesh Gateway endpoint:
+
+```bash
+aws ssm put-parameter --name thingy-rocks-backend-Wirepas5GMeshGatewayEndpoint --type String --value $GATEWAY_MQTT_ENDPOINT
+```
+
 ### Deploy
 
 ```bash
@@ -50,12 +58,6 @@ For interacting with these nodes,
    Node.
 
 The thing type is check when an state update is received from the UI.
-
-Set the Wirepas 5G Mesh Gateway endpoint:
-
-```bash
-aws ssm put-parameter --name thingy-rocks-backend-Wirepas5GMeshGatewayEndpoint --type String --value $GATEWAY_MQTT_ENDPOINT
-```
 
 ## Authentication
 

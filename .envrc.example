@@ -4,8 +4,8 @@ export AWS_ACCESS_KEY_ID= ...           # Your AWS Access Key ID
 export AWS_SECRET_ACCESS_KEY=...        # Your AWS Secret Acces Key
 
 # Gateway settings
-export GATEWAY_MQTT_ENDPOINT=...                # e.g. mqtts://<user>:<password>@wirepas.com:8883
-export GATEWAY_AWS_ACCESS_KEY_ID=...            # Value of thingy-rocks-backend.wirepasGatewayUserAccessKeyId
-export GATEWAY_AWS_SECRET_ACCESS_KEY=...        # Value of thingy-rocks-backend.wirepasGatewayUserSecretAccessKey
-export GATEWAY_CONNECTIONS_TABLE_NAME=...       # Value of thingy-rocks-backend.connectionsTableName
-export GATEWAY_WEBSOCKET_MANAGEMENT_API_URL=... # Value of thingy-rocks-backend.WebSocketManagementApiURL
+export GATEWAY_MQTT_ENDPOINT=...                 # e.g. mqtts://<user>:<password>@wirepas.com:8883
+export GATEWAY_AWS_ACCESS_KEY_ID=...             # Value of thingy-rocks-backend.wirepasGatewayUserAccessKeyId
+export GATEWAY_AWS_SECRET_ACCESS_KEY=...         # Value of thingy-rocks-backend.wirepasGatewayUserSecretAccessKey
+export GATEWAY_CONNECTIONS_TABLE_NAME=...        # Value of thingy-rocks-backend.connectionsTableName
+export GATEWAY_WEBSOCKET_MANAGEMENT_API_URL=...  # Value of thingy-rocks-backend.WebSocketManagementApiURL
