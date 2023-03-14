@@ -77,28 +77,35 @@ export type LightbulbEvent = {
 	}
 }
 
-type Event =
+export type Event =
 	| DeviceEvent
 	| CellGeoLocationEvent
 	| Wirepas5GMeshNodeEvent
 	| LightbulbEvent
 
 export const notifyClients =
-	({
-		db,
-		connectionsTableName,
-		apiGwManagementClient,
-	}: {
-		db: DynamoDBClient
-		connectionsTableName: string
-		apiGwManagementClient: ApiGatewayManagementApiClient
-	}) =>
+	(
+		{
+			db,
+			connectionsTableName,
+			apiGwManagementClient,
+		}: {
+			db: DynamoDBClient
+			connectionsTableName: string
+			apiGwManagementClient: ApiGatewayManagementApiClient
+		},
+		dropMessage = false,
+	) =>
 	async (event: Event): Promise<void> => {
 		console.log(
 			JSON.stringify({
 				event,
 			}),
 		)
+		if (dropMessage) {
+			console.debug(`Dropped message`)
+			return
+		}
 		const connectionIds: string[] = await getActiveConnections(
 			db,
 			connectionsTableName,

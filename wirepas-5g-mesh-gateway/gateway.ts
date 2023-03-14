@@ -2,10 +2,20 @@ import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import mqtt from 'mqtt'
-import { notifyClients } from '../lambda/notifyClients.js'
+import { Event, notifyClients } from '../lambda/notifyClients.js'
 import { decodePayload } from './decodePayload.js'
-import { error, log } from './log.js'
+import { debug, error, log } from './log.js'
 import { GenericMessage } from './protobuf/ts/generic_message.js'
+
+const receiveOnly = process.env.RECEIVE_ONLY !== undefined
+const counterMessageFlushInterval = parseInt(
+	process.env.COUNTER_MESSAGE_FLUSH_INTERVAL_SECONDS ?? '60',
+	10,
+)
+const counterMessageFlushPace = parseInt(
+	process.env.COUNTER_MESSAGE_FLUSH_PACE_MS ?? '150',
+	10,
+)
 
 const {
 	connectionsTableName,
@@ -38,11 +48,14 @@ const apiGwManagementClient = new ApiGatewayManagementApi({
 	endpoint: websocketManagementAPIURL,
 })
 
-const notifier = notifyClients({
-	db,
-	connectionsTableName,
-	apiGwManagementClient,
-})
+const notifier = notifyClients(
+	{
+		db,
+		connectionsTableName,
+		apiGwManagementClient,
+	},
+	receiveOnly,
+)
 
 const parsedEndpoint = new URL(gatewayEndpoint)
 log(`Connecting to`, parsedEndpoint.hostname)
@@ -62,6 +75,9 @@ client.on('connect', () => {
 		})
 	}
 })
+
+// Buffer counter messages and send them only once every minute, combined
+let counterMessages: Record<string, Event> = {}
 
 client.on('message', (_, message) => {
 	const packetReceivedEvent =
@@ -87,7 +103,7 @@ client.on('message', (_, message) => {
 		const rxTime = new Date(parseInt(BigInt(rxTimeMsEpoch).toString()))
 		const decodedPayload = decodePayload(payload)
 		if (decodedPayload !== null) {
-			notifier({
+			const event: Event = {
 				meshNodeEvent: {
 					meta: {
 						node: sourceAddress,
@@ -98,9 +114,31 @@ client.on('message', (_, message) => {
 					},
 					message: decodedPayload,
 				},
-			}).catch((err) => {
-				error(`[notifier]`, err)
-			})
+			}
+			if ('counter' in decodedPayload) {
+				counterMessages[`${sourceAddress}:${gwId}`] = event
+			} else {
+				notifier(event).catch((err) => {
+					error(`[notifier]`, err)
+				})
+			}
 		}
 	}
 })
+
+// Regularly send buffered messages
+setInterval(async () => {
+	const eventsToSend = Object.values(counterMessages)
+	counterMessages = {}
+	for (const event of eventsToSend) {
+		notifier(event).catch((err) => {
+			error(`[notifier]`, err)
+		})
+		// Pace messages
+		await new Promise((resolve) => setTimeout(resolve, counterMessageFlushPace))
+	}
+	counterMessages = {}
+}, counterMessageFlushInterval * 1000)
+debug(
+	`Flushing counter messages every ${counterMessageFlushInterval} seconds with ${counterMessageFlushPace} ms pacing`,
+)
