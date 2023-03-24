@@ -14,11 +14,11 @@ import { withDeviceAlias } from './withDeviceAlias.js'
 const {
 	connectionsTableName,
 	websocketManagementAPIURL,
-	wiFiSiteSurveyGeolocationApiUrl,
+	networkGeolocationApiUrl,
 } = fromEnv({
 	connectionsTableName: 'CONNECTIONS_TABLE_NAME',
 	websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
-	wiFiSiteSurveyGeolocationApiUrl: 'WIFISITESURVEY_API_URL',
+	networkGeolocationApiUrl: 'NETWORK_SURVEY_GEOLOCATION_API_URL',
 })(process.env)
 
 const db = new DynamoDBClient({})
@@ -35,7 +35,7 @@ const notifier = withDeviceAlias(iot)(
 )
 
 export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
-	console.log(JSON.stringify({ event, wiFiSiteSurveyGeolocationApiUrl }))
+	console.log(JSON.stringify({ event, networkGeolocationApiUrl }))
 
 	const connectionIds: string[] = await getActiveConnections(
 		db,
@@ -68,7 +68,7 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 			)
 			await notifier({
 				deviceId,
-				location: { lat, lng, accuracy, source: 'wifi' },
+				location: { lat, lng, accuracy, source: 'network' },
 			})
 			return
 		}
@@ -81,7 +81,7 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 		}
 
 		console.log(`Resolving survey ${surveyId} from device ${deviceId}...`)
-		const res = await fetch(`${wiFiSiteSurveyGeolocationApiUrl}${surveyId}`)
+		const res = await fetch(`${networkGeolocationApiUrl}${surveyId}`)
 
 		const textBody = await res.text()
 		let body: Record<string, any> | undefined = undefined
@@ -98,7 +98,7 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 			case 200:
 				await notifier({
 					deviceId,
-					location: { ...((body ?? {}) as GeoLocation), source: 'wifi' },
+					location: { ...((body ?? {}) as GeoLocation), source: 'network' },
 				})
 				break
 			default:

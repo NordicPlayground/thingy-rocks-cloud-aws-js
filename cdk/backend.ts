@@ -45,9 +45,8 @@ new BackendApp({
 		onCellGeoLocationResolved: await pack('onCellGeoLocationResolved'),
 		resolveCellLocation: await pack('resolveCellLocation'),
 		publishSummaries: await pack('publishSummaries'),
-		onNewNcellmeasReport: await pack('onNewNcellmeasReport'),
-		onNcellmeasReportResolved: await pack('onNcellmeasReportResolved'),
-		onNewWiFiSiteSurveyReport: await pack('onNewWiFiSiteSurveyReport'),
+		onNewNetworkSurvey: await pack('onNewNetworkSurvey'),
+		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
 		lightbulbPing: await pack('lightbulbPing'),
 	},
 	layer: await packLayer({

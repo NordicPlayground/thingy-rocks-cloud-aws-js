@@ -25,10 +25,10 @@ const notifier = withDeviceAlias(iot)(
 	}),
 )
 
-const validateNcellmeasGeoLocation = validateWithTypeBox(
+const validateNetworkSurveyGeoLocation = validateWithTypeBox(
 	Type.Object({
 		deviceId: Type.String({ minLength: 1 }),
-		ncellmeasgeo: Type.Object({
+		networksurveygeo: Type.Object({
 			lat: Type.Number({ minimum: 1 }),
 			lng: Type.Number({ minimum: 1 }),
 			accuracy: Type.Integer({ minimum: 1 }),
@@ -38,10 +38,10 @@ const validateNcellmeasGeoLocation = validateWithTypeBox(
 )
 
 export const handler = async (event: {
-	source: string //'aws.states'
+	source: string
 	detail: {
 		status: 'SUCCEEDED' | 'FAILED' // 'SUCCEEDED'
-		output: string //'{"reportId":"6dc3c5a2-7147-474f-a6d0-d86ea36935af","deviceId":"351358811128484","timestamp":"2022-12-09T13:08:53.500Z","report":{"area":30401,"adv":82,"nmr":[{"rsrp":-107,"cell":195,"rsrq":-12,"earfcn":300},{"rsrp":-67,"cell":468,"rsrq":-6,"earfcn":1450}],"mnc":1,"rsrq":-9,"rsrp":-78,"mcc":242,"cell":21679616,"earfcn":6400,"ts":1670591327535},"nw":"LTE-M","ncellmeasgeo":{"lat":63.419001,"lng":10.437035,"accuracy":500,"located":true,"source":"nrfcloud"},"persisted":true}'
+		output: string
 	}
 }): Promise<void> => {
 	const {
@@ -53,7 +53,7 @@ export const handler = async (event: {
 	if (status !== 'SUCCEEDED') throw new Error(`Unexpected status: ${status}!`)
 	const result = JSON.parse(output)
 
-	const maybeValid = validateNcellmeasGeoLocation(result)
+	const maybeValid = validateNetworkSurveyGeoLocation(result)
 	if ('errors' in maybeValid) {
 		console.error(JSON.stringify(maybeValid.errors))
 		throw new Error(`Unexpected result: ${result}`)
@@ -61,7 +61,7 @@ export const handler = async (event: {
 
 	const {
 		deviceId,
-		ncellmeasgeo: { lat, lng, accuracy },
+		networksurveygeo: { lat, lng, accuracy },
 	} = maybeValid.value
 
 	await notifier({
@@ -70,7 +70,7 @@ export const handler = async (event: {
 			lat,
 			lng,
 			accuracy,
-			source: 'multi-cell',
+			source: 'network',
 		},
 	})
 }

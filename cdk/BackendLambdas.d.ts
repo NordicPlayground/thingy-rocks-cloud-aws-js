@@ -8,8 +8,7 @@ type BackendLambdas = {
 	onCellGeoLocationResolved: PackedLambda
 	resolveCellLocation: PackedLambda
 	publishSummaries: PackedLambda
-	onNewNcellmeasReport: PackedLambda
-	onNcellmeasReportResolved: PackedLambda
-	onNewWiFiSiteSurveyReport: PackedLambda
+	onNewNetworkSurvey: PackedLambda
+	onNetworkSurveyLocated: PackedLambda
 	lightbulbPing: PackedLambda
 }

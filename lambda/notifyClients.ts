@@ -13,7 +13,7 @@ export type GeoLocation = {
 	lat: number
 	lng: number
 	accuracy: number
-	source: 'single-cell' | 'multi-cell' | 'wifi' | 'gnss'
+	source: 'network' | 'gnss'
 }
 
 export enum Network {
@@ -161,10 +161,11 @@ const getEventContext = (event: Event): string | null => {
 	if ('lightbulb' in event) return 'https://thingy.rocks/lightbulb'
 	return null
 }
-export async function getActiveConnections(
+
+export const getActiveConnections = async (
 	db: DynamoDBClient,
 	connectionsTableName: string,
-): Promise<string[]> {
+): Promise<string[]> => {
 	const res = await db.send(
 		new ScanCommand({
 			TableName: connectionsTableName,

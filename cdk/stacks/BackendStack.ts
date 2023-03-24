@@ -1,9 +1,9 @@
 import {
 	App,
-	aws_dynamodb as DynamoDB,
-	aws_lambda as Lambda,
 	CfnOutput,
+	aws_dynamodb as DynamoDB,
 	Fn,
+	aws_lambda as Lambda,
 	Stack,
 } from 'aws-cdk-lib'
 import type { BackendLambdas } from '../BackendLambdas.js'
@@ -13,8 +13,7 @@ import { LightbulbThings } from '../resources/LightbulbThings.js'
 import { Map } from '../resources/Map.js'
 import { PublishSummaries } from '../resources/PublishSummaries.js'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
-import { ResolveNcellmeasGeoLocation } from '../resources/ResolveNcellmeasGeoLocation.js'
-import { ResolveWiFiSiteSurveyGeoLocation } from '../resources/ResolveWiFiSiteSurveyGeoLocation.js'
+import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
 import { Wirepas5GMeshGateway } from '../resources/Wirepas5GMeshGateway.js'
@@ -56,39 +55,22 @@ export class BackendStack extends Stack {
 			cellGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-cellGeo`,
 		})
 
-		new ResolveNcellmeasGeoLocation(this, {
+		new ResolveNetworkSurveyGeoLocation(this, {
 			lambdaSources,
 			baseLayer,
-			neighborCellGeolocationApiUrl: Fn.importValue(
-				`${assetTrackerStackName}:neighborCellGeolocationApiUrl`,
-			),
-			websocketAPI: api,
-			reportsTable: DynamoDB.Table.fromTableAttributes(this, 'reportsTable', {
-				tableArn: Fn.importValue(
-					`${assetTrackerStackName}:ncellmeasStorageTableArn`,
-				),
-				tableStreamArn: Fn.importValue(
-					`${assetTrackerStackName}:ncellmeasStorageTableStreamArn`,
-				),
-			}),
-			ncellmeasGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-ncellmeasGeo`,
-		})
-
-		new ResolveWiFiSiteSurveyGeoLocation(this, {
-			lambdaSources,
-			baseLayer,
-			wiFiSiteSurveyGeolocationApiUrl: Fn.importValue(
-				`${assetTrackerStackName}:wifiSiteSurveyGeolocationApiUrl`,
+			networkSurveyGeolocationApiUrl: Fn.importValue(
+				`${assetTrackerStackName}:networkSurveyGeolocationApiUrl`,
 			),
 			websocketAPI: api,
 			surveysTable: DynamoDB.Table.fromTableAttributes(this, 'surveysTable', {
 				tableArn: Fn.importValue(
-					`${assetTrackerStackName}:wifiSiteSurveyStorageTableArn`,
+					`${assetTrackerStackName}:networkSurveyStorageTableArn`,
 				),
 				tableStreamArn: Fn.importValue(
-					`${assetTrackerStackName}:wifiSiteSurveyStorageTableStreamArn`,
+					`${assetTrackerStackName}:networkSurveyStorageTableStreamArn`,
 				),
 			}),
+			networkSurveyGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-networkSurveyGeo`,
 		})
 
 		const firmwareCI = new FirmwareCI(this)
