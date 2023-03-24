@@ -5,9 +5,9 @@ import { unmarshall } from '@aws-sdk/util-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import type { DynamoDBStreamEvent } from 'aws-lambda'
 import {
-	GeoLocation,
 	getActiveConnections,
 	notifyClients,
+	type GeoLocation,
 } from './notifyClients.js'
 import { withDeviceAlias } from './withDeviceAlias.js'
 

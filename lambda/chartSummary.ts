@@ -1,7 +1,7 @@
 import {
 	QueryCommand,
-	QueryResponse,
 	TimestreamQueryClient,
+	type QueryResponse,
 } from '@aws-sdk/client-timestream-query'
 import { parseResult } from '@nordicsemiconductor/timestream-helpers'
 

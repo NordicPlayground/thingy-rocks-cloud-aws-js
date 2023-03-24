@@ -2,7 +2,7 @@ import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import mqtt from 'mqtt'
-import { Event, notifyClients } from '../lambda/notifyClients.js'
+import { notifyClients, type Event } from '../lambda/notifyClients.js'
 import { decodePayload } from './decodePayload.js'
 import { debug, error, log } from './log.js'
 import { GenericMessage } from './protobuf/ts/generic_message.js'
