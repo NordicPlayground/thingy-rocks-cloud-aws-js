@@ -8,7 +8,6 @@ import {
 } from 'aws-cdk-lib'
 import type { BackendLambdas } from '../BackendLambdas.js'
 import type { PackedLayer } from '../packLayer.js'
-import { FirmwareCI } from '../resources/FirmwareCI.js'
 import { LightbulbThings } from '../resources/LightbulbThings.js'
 import { Map } from '../resources/Map.js'
 import { PublishSummaries } from '../resources/PublishSummaries.js'
@@ -73,8 +72,6 @@ export class BackendStack extends Stack {
 			networkSurveyGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-networkSurveyGeo`,
 		})
 
-		const firmwareCI = new FirmwareCI(this)
-
 		const userAuthentication = new UserAuthentication(
 			this,
 			'userAuthentication',
@@ -119,16 +116,6 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'connectionsTableName', {
 			exportName: `${this.stackName}:connectionsTableName`,
 			value: api.connectionsTable.tableName,
-		})
-
-		new CfnOutput(this, 'firmwareCIUserAccessKeyId', {
-			value: firmwareCI.accessKey.ref,
-			exportName: `${this.stackName}:firmwareCIUserAccessKeyId`,
-		})
-
-		new CfnOutput(this, 'firmwareCIUserSecretAccessKey', {
-			value: firmwareCI.accessKey.attrSecretAccessKey,
-			exportName: `${this.stackName}:firmwareCIUserSecretAccessKey`,
 		})
 
 		new CfnOutput(this, 'mapName', {
