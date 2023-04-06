@@ -1,12 +1,12 @@
 import {
 	aws_apigatewayv2 as ApiGateway,
+	Duration,
 	aws_dynamodb as DynamoDB,
 	aws_iam as IAM,
 	aws_iot as IoT,
 	aws_lambda as Lambda,
-	aws_ssm as SSM,
-	Duration,
 	RemovalPolicy,
+	aws_ssm as SSM,
 	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'

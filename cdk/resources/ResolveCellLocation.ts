@@ -1,10 +1,10 @@
 import {
-	aws_events as Events,
+	Duration,
 	aws_events_targets as EventTargets,
+	aws_events as Events,
 	aws_iam as IAM,
 	aws_iot as IoT,
 	aws_lambda as Lambda,
-	Duration,
 	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'

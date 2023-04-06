@@ -1,9 +1,9 @@
 import {
+	Duration,
 	aws_events as Events,
 	aws_events_targets as EventsTargets,
 	aws_iam as IAM,
 	aws_lambda as Lambda,
-	Duration,
 	Stack,
 } from 'aws-cdk-lib'
 import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
