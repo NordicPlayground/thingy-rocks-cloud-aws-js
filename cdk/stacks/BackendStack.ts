@@ -51,7 +51,7 @@ export class BackendStack extends Stack {
 				`${assetTrackerStackName}:geolocationApiUrl`,
 			),
 			websocketAPI: api,
-			cellGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-cellGeo`,
+			cellGeoStateMachineARN: `arn:aws:states:${this.region}:${this.account}:stateMachine:${assetTrackerStackName}-cellGeo`,
 		})
 
 		new ResolveNetworkSurveyGeoLocation(this, {
@@ -69,7 +69,7 @@ export class BackendStack extends Stack {
 					`${assetTrackerStackName}:networkSurveyStorageTableStreamArn`,
 				),
 			}),
-			networkSurveyGeoStateMachineARN: `arn:aws:states:${parent.region}:${parent.account}:stateMachine:${assetTrackerStackName}-networkSurveyGeo`,
+			networkSurveyGeoStateMachineARN: `arn:aws:states:${this.region}:${this.account}:stateMachine:${assetTrackerStackName}-networkSurveyGeo`,
 		})
 
 		const userAuthentication = new UserAuthentication(
