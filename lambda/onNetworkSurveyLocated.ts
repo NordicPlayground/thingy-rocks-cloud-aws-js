@@ -1,16 +1,19 @@
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb'
 import { IoTClient } from '@aws-sdk/client-iot'
+import { unmarshall } from '@aws-sdk/util-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { Type } from '@sinclair/typebox'
 import { notifyClients } from './notifyClients.js'
 import { validateWithTypeBox } from './validateWithTypeBox.js'
 import { withDeviceAlias } from './withDeviceAlias.js'
 
-const { connectionsTableName, websocketManagementAPIURL } = fromEnv({
-	connectionsTableName: 'CONNECTIONS_TABLE_NAME',
-	websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
-})(process.env)
+const { connectionsTableName, websocketManagementAPIURL, surveysTableName } =
+	fromEnv({
+		connectionsTableName: 'CONNECTIONS_TABLE_NAME',
+		websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
+		surveysTableName: 'NETWORK_SURVEY_TABLE_NAME',
+	})(process.env)
 
 const db = new DynamoDBClient({})
 export const apiGwManagementClient = new ApiGatewayManagementApi({
@@ -25,15 +28,13 @@ const notifier = withDeviceAlias(iot)(
 	}),
 )
 
-const validateNetworkSurveyGeoLocation = validateWithTypeBox(
+const validateNetworkSurveyWithGeoLocation = validateWithTypeBox(
 	Type.Object({
 		deviceId: Type.String({ minLength: 1 }),
-		networksurveygeo: Type.Object({
-			lat: Type.Number({ minimum: 1 }),
-			lng: Type.Number({ minimum: 1 }),
-			accuracy: Type.Integer({ minimum: 1 }),
-			located: Type.Literal(true),
-		}),
+		lat: Type.Number({ minimum: 1 }),
+		lng: Type.Number({ minimum: 1 }),
+		accuracy: Type.Number({ minimum: 1 }),
+		unresolved: Type.Literal(false),
 	}),
 )
 
@@ -41,28 +42,40 @@ export const handler = async (event: {
 	source: string
 	detail: {
 		status: 'SUCCEEDED' | 'FAILED' // 'SUCCEEDED'
-		output: string
+		name: string // surveyId
+		input: string
 	}
 }): Promise<void> => {
 	const {
 		source,
-		detail: { status, output },
+		detail: { input, status },
 	} = event
 	console.log(JSON.stringify({ event }))
 	if (source !== 'aws.states') throw new Error(`Unexpected source: ${source}!`)
 	if (status !== 'SUCCEEDED') throw new Error(`Unexpected status: ${status}!`)
-	const result = JSON.parse(output)
+	const surveyId = JSON.parse(input).surveyId
 
-	const maybeValid = validateNetworkSurveyGeoLocation(result)
+	const { Item } = await db.send(
+		new GetItemCommand({
+			TableName: surveysTableName,
+			Key: {
+				surveyId: {
+					S: surveyId,
+				},
+			},
+		}),
+	)
+	if (Item === undefined) throw new Error(`Survey not found: ${name}!`)
+
+	const survey = unmarshall(Item)
+
+	const maybeValid = validateNetworkSurveyWithGeoLocation(survey)
 	if ('errors' in maybeValid) {
 		console.error(JSON.stringify(maybeValid.errors))
-		throw new Error(`Unexpected result: ${result}`)
+		throw new Error(`Unexpected result: ${JSON.stringify(survey)}`)
 	}
 
-	const {
-		deviceId,
-		networksurveygeo: { lat, lng, accuracy },
-	} = maybeValid.value
+	const { deviceId, lat, lng, accuracy } = maybeValid.value
 
 	await notifier({
 		deviceId,

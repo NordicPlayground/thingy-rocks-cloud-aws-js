@@ -34,7 +34,7 @@ const validateCellGeoLocation = validateWithTypeBox(
 		cellgeo: Type.Object({
 			lat: Type.Number({ minimum: 1 }),
 			lng: Type.Number({ minimum: 1 }),
-			accuracy: Type.Integer({ minimum: 1 }),
+			accuracy: Type.Number({ minimum: 1 }),
 			located: Type.Literal(true),
 		}),
 	}),

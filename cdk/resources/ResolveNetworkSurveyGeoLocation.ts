@@ -10,7 +10,7 @@ import {
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend'
-import { LambdaLogGroup } from './LambdaLogGroup'
+import { LambdaLogGroup } from './LambdaLogGroup.js'
 import type { WebsocketAPI } from './WebsocketAPI'
 
 /**
@@ -105,6 +105,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 					VERSION: this.node.tryGetContext('version'),
 					CONNECTIONS_TABLE_NAME: websocketAPI.connectionsTable.tableName,
 					WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
+					NETWORK_SURVEY_TABLE_NAME: surveysTable.tableName,
 				},
 				initialPolicy: [
 					new IAM.PolicyStatement({
@@ -120,6 +121,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 			},
 		)
 		websocketAPI.connectionsTable.grantFullAccess(onNetworkSurveyLocated)
+		surveysTable.grantReadData(onNetworkSurveyLocated)
 
 		new LambdaLogGroup(
 			this,
