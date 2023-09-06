@@ -12,7 +12,6 @@ const packagesInLayer: string[] = [
 	'ajv',
 	'@nordicsemiconductor/timestream-helpers',
 	'mqtt',
-	'@protobuf-ts/runtime',
 ]
 const pack = async (
 	id: string,

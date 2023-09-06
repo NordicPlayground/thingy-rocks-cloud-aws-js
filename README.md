@@ -24,14 +24,6 @@ Install the dependencies:
 npm ci
 ```
 
-### Configure
-
-Set the Wirepas 5G Mesh Gateway endpoint:
-
-```bash
-aws ssm put-parameter --name thingy-rocks-backend-Wirepas5GMeshGatewayEndpoint --type String --value $GATEWAY_MQTT_ENDPOINT
-```
-
 ### Deploy
 
 ```bash
@@ -48,39 +40,9 @@ it work:
 1. Assign the thing type `rgb-light` to the thing which should act as a light
    bulb.
 
-## Support for managing Wirepas 5G Mesh nodes
-
-For interacting with these nodes,
-
-1. Create a thing type `mesh-node` (they cannot be created using
-   CloudFormation).
-1. Assign the thing type `mesh-node` to the thing which should act as a 5G Mesh
-   Node.
-
-The thing type is check when an state update is received from the UI.
-
 ## Authentication
 
-For changing the state of light bulbs and 5G Mesh Nodes, create a Thing
-attribute named `code` and provide a secret there. This is compared to the code
-presented in received update messages. Only if the code matches will a message
-with the new RGB value be sent to the light bulb, or the LED state changed using
-the
-[Wirepas Gateway](https://developer.wirepas.com/support/solutions/articles/77000489804-wirepas-software-and-apis-overview#Wirepas-Gateway-to-Cloud-API).
-
-## Running the Wirepas 5G Mesh Gateway
-
-Configure the gateway settings using the `.envrc` (see
-[the example](./envrc.example)).
-
-Run:
-
-```bash
-npx tsx wirepas-5g-mesh-gateway/gateway.ts
-```
-
-Run as a service using systemd:
-
-```bash
-systemd-run -E GATEWAY_MQTT_ENDPOINT=${GATEWAY_MQTT_ENDPOINT} -E GATEWAY_AWS_ACCESS_KEY_ID=${GATEWAY_AWS_ACCESS_KEY_ID} -E GATEWAY_AWS_SECRET_ACCESS_KEY=${GATEWAY_AWS_SECRET_ACCESS_KEY} -E GATEWAY_CONNECTIONS_TABLE_NAME=${GATEWAY_CONNECTIONS_TABLE_NAME} -E GATEWAY_WEBSOCKET_MANAGEMENT_API_URL=${GATEWAY_WEBSOCKET_MANAGEMENT_API_URL} --working-directory ${PWD} npx tsx wirepas-5g-mesh-gateway/gateway.ts
-```
+For changing the state of light bulbs, create a Thing attribute named `code` and
+provide a secret there. This is compared to the code presented in received
+update messages. Only if the code matches will a message with the new RGB value
+be sent to the light bulb.

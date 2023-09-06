@@ -11,7 +11,6 @@ import type {
 	APIGatewayProxyWebsocketEventV2,
 } from 'aws-lambda'
 import { notifyClients } from './notifyClients.js'
-import { getLedState, turnOnLed, wirepasPublish } from './wirepasPublish.js'
 const { TableName } = fromEnv({ TableName: 'CONNECTIONS_TABLE_NAME' })(
 	process.env,
 )
@@ -20,12 +19,10 @@ const db = new DynamoDBClient({})
 const iot = new IoTClient({})
 const iotData = new IoTDataPlaneClient({})
 
-const { connectionsTableName, websocketManagementAPIURL, gatewayMqttEndpoint } =
-	fromEnv({
-		connectionsTableName: 'CONNECTIONS_TABLE_NAME',
-		websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
-		gatewayMqttEndpoint: 'GATEWAY_MQTT_ENDPOINT',
-	})(process.env)
+const { connectionsTableName, websocketManagementAPIURL } = fromEnv({
+	connectionsTableName: 'CONNECTIONS_TABLE_NAME',
+	websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
+})(process.env)
 
 export const apiGwManagementClient = new ApiGatewayManagementApi({
 	endpoint: websocketManagementAPIURL,
@@ -34,10 +31,6 @@ const notifier = notifyClients({
 	db,
 	connectionsTableName,
 	apiGwManagementClient,
-})
-
-const publishToMesh = wirepasPublish({
-	gatewayMqttEndpoint,
 })
 
 export const handler = async (
@@ -117,34 +110,6 @@ export const handler = async (
 								},
 							})
 							break
-						case 'mesh-node':
-							await (async () => {
-								const node = parseInt(deviceId.split(':')[0] ?? '0', 10)
-								const gateway = deviceId.split(':')[1] ?? ''
-								await publishToMesh({
-									gateway,
-									req: turnOnLed({ node, ledState: isOn(ledColor) }),
-								})
-								await notifier({
-									deviceId,
-									deviceAlias,
-									meshNodeEvent: {
-										message: {
-											led: { [0]: isOn(ledColor) ? 1 : 0 },
-										},
-										meta: {
-											node,
-											gateway,
-											rxTime: new Date(),
-											travelTimeMs: 0,
-										},
-									},
-								})
-								// Wait two seconds before querying the LED state
-								await new Promise((resolve) => setTimeout(resolve, 2 * 1000))
-								await publishToMesh({ gateway, req: getLedState({ node }) })
-							})()
-							break
 						default:
 							console.error(`Thing has unsupported type`, res.thingTypeName)
 					}
@@ -160,6 +125,3 @@ export const handler = async (
 		body: `Got your message, ${event.requestContext.connectionId}!`,
 	}
 }
-
-const isOn = (rgb: [number, number, number]): boolean =>
-	rgb.reduce((sum, c) => sum + c, 0) > 0

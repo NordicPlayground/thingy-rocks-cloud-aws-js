@@ -15,7 +15,6 @@ import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
 import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
-import { Wirepas5GMeshGateway } from '../resources/Wirepas5GMeshGateway.js'
 import { STACK_NAME } from './stackName.js'
 
 export class BackendStack extends Stack {
@@ -93,8 +92,6 @@ export class BackendStack extends Stack {
 			),
 		})
 
-		const wirepasGateway = new Wirepas5GMeshGateway(this, { websocketAPI: api })
-
 		new LightbulbThings(this, {
 			lambdaSources,
 			baseLayer,
@@ -126,16 +123,6 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'identityPoolId', {
 			value: userAuthentication.identityPool.ref,
 			exportName: `${this.stackName}:identityPoolId`,
-		})
-
-		new CfnOutput(this, 'wirepasGatewayUserAccessKeyId', {
-			value: wirepasGateway.accessKey.ref,
-			exportName: `${this.stackName}:wirepasGatewayUserAccessKeyId`,
-		})
-
-		new CfnOutput(this, 'wirepasGatewayUserSecretAccessKey', {
-			value: wirepasGateway.accessKey.attrSecretAccessKey,
-			exportName: `${this.stackName}:wirepasGatewayUserSecretAccessKey`,
 		})
 	}
 }
