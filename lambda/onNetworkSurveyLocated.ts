@@ -4,7 +4,7 @@ import { IoTClient } from '@aws-sdk/client-iot'
 import { unmarshall } from '@aws-sdk/util-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { Type } from '@sinclair/typebox'
-import { notifyClients } from './notifyClients.js'
+import { LocationSource, notifyClients } from './notifyClients.js'
 import { validateWithTypeBox } from './validateWithTypeBox.js'
 import { withDeviceAlias } from './withDeviceAlias.js'
 
@@ -31,10 +31,23 @@ const notifier = withDeviceAlias(iot)(
 const validateNetworkSurveyWithGeoLocation = validateWithTypeBox(
 	Type.Object({
 		deviceId: Type.String({ minLength: 1 }),
-		lat: Type.Number({ minimum: 1 }),
-		lng: Type.Number({ minimum: 1 }),
-		accuracy: Type.Number({ minimum: 1 }),
+		lat: Type.Number({
+			minimum: -90,
+			maximum: 90,
+			description: 'Global grid line, north to south. Vertical.',
+		}),
+		lng: Type.Number({
+			minimum: -180,
+			maximum: 180,
+			description: 'Global grid line, east to west. Horizontal.',
+		}),
+		accuracy: Type.Number({
+			minimum: 0,
+			description:
+				'Radius of the uncertainty circle around the location in meters. Also known as Horizontal Positioning Error (HPE).',
+		}),
 		unresolved: Type.Literal(false),
+		source: Type.Enum(LocationSource),
 	}),
 )
 
@@ -47,11 +60,12 @@ export const handler = async (event: {
 	}
 }): Promise<void> => {
 	const {
-		source,
+		source: eventSource,
 		detail: { input, status },
 	} = event
 	console.log(JSON.stringify({ event }))
-	if (source !== 'aws.states') throw new Error(`Unexpected source: ${source}!`)
+	if (eventSource !== 'aws.states')
+		throw new Error(`Unexpected source: ${eventSource}!`)
 	if (status !== 'SUCCEEDED') throw new Error(`Unexpected status: ${status}!`)
 	const surveyId = JSON.parse(input).surveyId
 
@@ -75,7 +89,7 @@ export const handler = async (event: {
 		throw new Error(`Unexpected result: ${JSON.stringify(survey)}`)
 	}
 
-	const { deviceId, lat, lng, accuracy } = maybeValid.value
+	const { deviceId, lat, lng, accuracy, source } = maybeValid.value
 
 	await notifier({
 		deviceId,
@@ -83,7 +97,7 @@ export const handler = async (event: {
 			lat,
 			lng,
 			accuracy,
-			source: 'network',
+			source,
 		},
 	})
 }

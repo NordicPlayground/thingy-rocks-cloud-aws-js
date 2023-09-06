@@ -52,8 +52,16 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 		if (NewImage === undefined) continue
 		const survey = unmarshall(NewImage as Record<string, AttributeValue>)
 		console.log({ survey })
-		const { surveyId, unresolved, deviceId, lat, lng, accuracy, inProgress } =
-			survey
+		const {
+			surveyId,
+			unresolved,
+			deviceId,
+			lat,
+			lng,
+			accuracy,
+			inProgress,
+			source,
+		} = survey
 
 		if (inProgress === true) continue
 
@@ -64,11 +72,12 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 					lat,
 					lng,
 					accuracy,
+					source,
 				},
 			)
 			await notifier({
 				deviceId,
-				location: { lat, lng, accuracy, source: 'network' },
+				location: { lat, lng, accuracy, source },
 			})
 			return
 		}
@@ -98,7 +107,7 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 			case 200:
 				await notifier({
 					deviceId,
-					location: { ...((body ?? {}) as GeoLocation), source: 'network' },
+					location: { ...((body ?? {}) as GeoLocation), source },
 				})
 				break
 			default:

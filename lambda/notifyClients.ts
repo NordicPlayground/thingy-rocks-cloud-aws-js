@@ -9,11 +9,17 @@ import {
 } from '@aws-sdk/client-dynamodb'
 import type { Summary } from './chartSummary'
 
+export enum LocationSource {
+	MCELL = 'MCELL',
+	SCELL = 'SCELL',
+	WIFI = 'WIFI',
+}
+
 export type GeoLocation = {
 	lat: number
 	lng: number
 	accuracy: number
-	source: 'network' | 'gnss'
+	source: LocationSource
 }
 
 export enum Network {
@@ -48,7 +54,7 @@ export type DeviceEvent = {
 export type CellGeoLocationEvent = {
 	cellGeoLocation: {
 		cell: Cell
-		geoLocation: Omit<GeoLocation, 'source'>
+		geoLocation: GeoLocation
 	}
 }
 
