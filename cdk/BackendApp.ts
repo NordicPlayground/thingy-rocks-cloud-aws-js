@@ -13,7 +13,11 @@ export class BackendApp extends App {
 		layer: PackedLayer
 		assetTrackerStackName: string
 	}) {
-		super()
+		super({
+			context: {
+				version: Date.now().toString(),
+			},
+		})
 		new BackendStack(this, { lambdaSources, layer, assetTrackerStackName })
 	}
 }
