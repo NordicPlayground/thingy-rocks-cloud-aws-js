@@ -11,7 +11,6 @@ const packagesInLayer: string[] = [
 	'@sinclair/typebox',
 	'ajv',
 	'@nordicsemiconductor/timestream-helpers',
-	'mqtt',
 ]
 const pack = async (
 	id: string,
