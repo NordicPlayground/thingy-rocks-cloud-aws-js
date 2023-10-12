@@ -56,6 +56,10 @@ export type Summary = {
 		d: number,
 	][]
 	solGain?: Readings
+	// Fuel gauge readings
+	fgSoC?: Readings
+	fgTTE?: Readings
+	fgTTF?: Readings
 	base: Date
 }
 
@@ -94,7 +98,7 @@ export const createChartSummary = async ({
 	historicaldataDatabaseName: string
 	historicaldataTableName: string
 }): Promise<Summaries> => {
-	const [bat, temp, solBat, solGain] = await Promise.all([
+	const [bat, temp, solBat, solGain, fgSoC, fgTTE, fgTTF] = await Promise.all([
 		timestream.send(
 			new QueryCommand({
 				QueryString: summaryQuery({
@@ -135,6 +139,36 @@ export const createChartSummary = async ({
 				}),
 			}),
 		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'fg.SoC',
+					hours: 1,
+				}),
+			}),
+		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'fg.TTE',
+					hours: 1,
+				}),
+			}),
+		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'fg.TTF',
+					hours: 1,
+				}),
+			}),
+		),
 	])
 	const now = new Date()
 	const summaries: Summaries = {}
@@ -142,6 +176,9 @@ export const createChartSummary = async ({
 	groupResult(summaries, 'temp', temp, now)
 	groupResult(summaries, 'solBat', solBat, now)
 	groupResult(summaries, 'solGain', solGain, now)
+	groupResult(summaries, 'fgSoC', fgSoC, now)
+	groupResult(summaries, 'fgTTE', fgTTE, now)
+	groupResult(summaries, 'fgTTF', fgTTF, now)
 
 	// Get battery values from 8 hours ago
 	const batLevels = (
@@ -168,17 +205,20 @@ export const createChartSummary = async ({
 					}
 				}),
 		)
-	).reduce((batLevels, { deviceId, historyBat }) => {
-		if (historyBat === undefined) return batLevels
-		const { v, ts } = historyBat
-		return {
-			...batLevels,
-			[deviceId]: <Reading>[
-				v,
-				Math.max(0, Math.floor((now.getTime() - ts.getTime()) / 1000)),
-			],
-		}
-	}, {} as Record<string, Reading>)
+	).reduce(
+		(batLevels, { deviceId, historyBat }) => {
+			if (historyBat === undefined) return batLevels
+			const { v, ts } = historyBat
+			return {
+				...batLevels,
+				[deviceId]: <Reading>[
+					v,
+					Math.max(0, Math.floor((now.getTime() - ts.getTime()) / 1000)),
+				],
+			}
+		},
+		{} as Record<string, Reading>,
+	)
 	for (const [deviceId, reading] of Object.entries(batLevels)) {
 		;(summaries[deviceId] as Summary).guides = [['bat', ...reading]]
 	}
