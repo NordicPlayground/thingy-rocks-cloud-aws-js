@@ -58,6 +58,7 @@ export type Summary = {
 	solGain?: Readings
 	// Fuel gauge readings
 	fgSoC?: Readings
+	fgI?: Readings
 	fgTTE?: Readings
 	fgTTF?: Readings
 	base: Date
@@ -98,78 +99,89 @@ export const createChartSummary = async ({
 	historicaldataDatabaseName: string
 	historicaldataTableName: string
 }): Promise<Summaries> => {
-	const [bat, temp, solBat, solGain, fgSoC, fgTTE, fgTTF] = await Promise.all([
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'bat',
-					hours: 1,
+	const [bat, temp, solBat, solGain, fgSoC, fgI, fgTTE, fgTTF] =
+		await Promise.all([
+			timestream.send(
+				new QueryCommand({
+					QueryString: summaryQuery({
+						db: historicaldataDatabaseName,
+						table: historicaldataTableName,
+						measureName: 'bat',
+						hours: 1,
+					}),
 				}),
-			}),
-		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'env.temp',
-					hours: 1,
+			),
+			timestream.send(
+				new QueryCommand({
+					QueryString: summaryQuery({
+						db: historicaldataDatabaseName,
+						table: historicaldataTableName,
+						measureName: 'env.temp',
+						hours: 1,
+					}),
 				}),
-			}),
-		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'sol.bat',
-					hours: 1,
+			),
+			timestream.send(
+				new QueryCommand({
+					QueryString: summaryQuery({
+						db: historicaldataDatabaseName,
+						table: historicaldataTableName,
+						measureName: 'sol.bat',
+						hours: 1,
+					}),
 				}),
-			}),
-		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'sol.gain',
-					hours: 1,
+			),
+			timestream.send(
+				new QueryCommand({
+					QueryString: summaryQuery({
+						db: historicaldataDatabaseName,
+						table: historicaldataTableName,
+						measureName: 'sol.gain',
+						hours: 1,
+					}),
 				}),
-			}),
-		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'fg.SoC',
-					hours: 1,
+			),
+			timestream.send(
+				new QueryCommand({
+					QueryString: summaryQuery({
+						db: historicaldataDatabaseName,
+						table: historicaldataTableName,
+						measureName: 'fg.SoC',
+						hours: 1,
+					}),
 				}),
-			}),
-		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'fg.TTE',
-					hours: 1,
+			),
+			timestream.send(
+				new QueryCommand({
+					QueryString: summaryQuery({
+						db: historicaldataDatabaseName,
+						table: historicaldataTableName,
+						measureName: 'fg.I',
+						hours: 1,
+					}),
 				}),
-			}),
-		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'fg.TTF',
-					hours: 1,
+			),
+			timestream.send(
+				new QueryCommand({
+					QueryString: summaryQuery({
+						db: historicaldataDatabaseName,
+						table: historicaldataTableName,
+						measureName: 'fg.TTE',
+						hours: 1,
+					}),
 				}),
-			}),
-		),
-	])
+			),
+			timestream.send(
+				new QueryCommand({
+					QueryString: summaryQuery({
+						db: historicaldataDatabaseName,
+						table: historicaldataTableName,
+						measureName: 'fg.TTF',
+						hours: 1,
+					}),
+				}),
+			),
+		])
 	const now = new Date()
 	const summaries: Summaries = {}
 	groupResult(summaries, 'bat', bat, now, (v) => v / 1000)
@@ -177,6 +189,7 @@ export const createChartSummary = async ({
 	groupResult(summaries, 'solBat', solBat, now)
 	groupResult(summaries, 'solGain', solGain, now)
 	groupResult(summaries, 'fgSoC', fgSoC, now)
+	groupResult(summaries, 'fgI', fgI, now)
 	groupResult(summaries, 'fgTTE', fgTTE, now)
 	groupResult(summaries, 'fgTTF', fgTTF, now)
 
