@@ -10,5 +10,4 @@ type BackendLambdas = {
 	publishSummaries: PackedLambda
 	onNewNetworkSurvey: PackedLambda
 	onNetworkSurveyLocated: PackedLambda
-	lightbulbPing: PackedLambda
 }

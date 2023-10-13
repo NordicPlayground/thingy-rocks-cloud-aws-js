@@ -5,11 +5,11 @@ import {
 	aws_lambda as Lambda,
 	Duration,
 	Stack,
+	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
-import { LambdaLogGroup } from '../resources/LambdaLogGroup.js'
 import type { WebsocketAPI } from './WebsocketAPI.js'
 
 /**
@@ -78,9 +78,8 @@ export class PublishSummaries extends Construct {
 					resources: ['*'],
 				}),
 			],
+			logRetention: Logs.RetentionDays.ONE_WEEK,
 		})
-
-		new LambdaLogGroup(this, 'Logs', lambda)
 
 		websocketAPI.connectionsTable.grantFullAccess(lambda)
 

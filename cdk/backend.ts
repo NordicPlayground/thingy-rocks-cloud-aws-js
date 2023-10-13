@@ -45,7 +45,6 @@ new BackendApp({
 		publishSummaries: await pack('publishSummaries'),
 		onNewNetworkSurvey: await pack('onNewNetworkSurvey'),
 		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
-		lightbulbPing: await pack('lightbulbPing'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

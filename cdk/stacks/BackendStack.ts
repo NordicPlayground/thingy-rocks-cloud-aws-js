@@ -8,7 +8,6 @@ import {
 } from 'aws-cdk-lib'
 import type { BackendLambdas } from '../BackendLambdas.js'
 import type { PackedLayer } from '../packLayer.js'
-import { LightbulbThings } from '../resources/LightbulbThings.js'
 import { Map } from '../resources/Map.js'
 import { PublishSummaries } from '../resources/PublishSummaries.js'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
@@ -90,12 +89,6 @@ export class BackendStack extends Stack {
 			historicaldataTableArn: Fn.importValue(
 				`${assetTrackerStackName}:historicaldataTableArn`,
 			),
-		})
-
-		new LightbulbThings(this, {
-			lambdaSources,
-			baseLayer,
-			websocketAPI: api,
 		})
 
 		// Outputs

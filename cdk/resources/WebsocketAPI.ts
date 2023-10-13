@@ -7,10 +7,10 @@ import {
 	aws_lambda as Lambda,
 	RemovalPolicy,
 	Stack,
+	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
-import { LambdaLogGroup } from '../resources/LambdaLogGroup.js'
 
 export class WebsocketAPI extends Construct {
 	public readonly websocketURI: string
@@ -82,10 +82,10 @@ export class WebsocketAPI extends Construct {
 			},
 			initialPolicy: [],
 			layers: [baseLayer],
+			logRetention: Logs.RetentionDays.ONE_WEEK,
 		})
 		this.connectionsTable.grantWriteData(onConnect)
 
-		new LambdaLogGroup(this, 'onConnectLogs', onConnect)
 		const connectIntegration = new ApiGateway.CfnIntegration(
 			this,
 			'connectIntegration',
@@ -117,27 +117,12 @@ export class WebsocketAPI extends Construct {
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
 				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
-				WEBSOCKET_MANAGEMENT_API_URL: this.websocketManagementAPIURL,
 			},
-			initialPolicy: [
-				new IAM.PolicyStatement({
-					actions: ['iot:DescribeThing'],
-					resources: ['*'],
-				}),
-				new IAM.PolicyStatement({
-					actions: ['iot:Publish'],
-					resources: ['arn:aws:iot:*:*:topic/*/light-bulb/*'],
-				}),
-				new IAM.PolicyStatement({
-					actions: ['execute-api:ManageConnections'],
-					resources: [this.websocketAPIArn],
-				}),
-			],
 			layers: [baseLayer],
+			logRetention: Logs.RetentionDays.ONE_WEEK,
 		})
 		this.connectionsTable.grantReadWriteData(onMessage)
 
-		new LambdaLogGroup(this, 'onMessageLogs', onMessage)
 		const sendMessageIntegration = new ApiGateway.CfnIntegration(
 			this,
 			'sendMessageIntegration',
@@ -172,10 +157,10 @@ export class WebsocketAPI extends Construct {
 			},
 			initialPolicy: [],
 			layers: [baseLayer],
+			logRetention: Logs.RetentionDays.ONE_WEEK,
 		})
 		this.connectionsTable.grantWriteData(onDisconnect)
 
-		new LambdaLogGroup(this, 'onDisconnectLogs', onDisconnect)
 		const disconnectIntegration = new ApiGateway.CfnIntegration(
 			this,
 			'disconnectIntegration',
@@ -244,16 +229,11 @@ export class WebsocketAPI extends Construct {
 					}),
 				],
 				layers: [baseLayer],
+				logRetention: Logs.RetentionDays.ONE_WEEK,
 			},
 		)
 
 		this.connectionsTable.grantReadWriteData(publishToWebsocketClients)
-
-		new LambdaLogGroup(
-			this,
-			'publishToWebsocketClientsLogs',
-			publishToWebsocketClients,
-		)
 
 		const publishToWebsocketClientsRuleRole = new IAM.Role(
 			this,

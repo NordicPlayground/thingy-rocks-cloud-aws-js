@@ -58,14 +58,7 @@ export type CellGeoLocationEvent = {
 	}
 }
 
-export type LightbulbEvent = {
-	lightbulb: {
-		type: 'rgb'
-		color?: [number, number, number]
-	}
-}
-
-export type Event = DeviceEvent | CellGeoLocationEvent | LightbulbEvent
+export type Event = DeviceEvent | CellGeoLocationEvent
 
 export const notifyClients =
 	(
@@ -140,7 +133,6 @@ const getEventContext = (event: Event): string | null => {
 	if ('history' in event) return 'https://thingy.rocks/device-history'
 	if ('cellGeoLocation' in event)
 		return 'https://thingy.rocks/cell-geo-location'
-	if ('lightbulb' in event) return 'https://thingy.rocks/lightbulb'
 	return null
 }
 

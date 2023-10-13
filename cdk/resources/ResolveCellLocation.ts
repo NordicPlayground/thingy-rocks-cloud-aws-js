@@ -6,10 +6,10 @@ import {
 	aws_iot as IoT,
 	aws_lambda as Lambda,
 	Stack,
+	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
-import { LambdaLogGroup } from '../resources/LambdaLogGroup.js'
 import type { WebsocketAPI } from './WebsocketAPI.js'
 
 export class ResolveCellLocation extends Construct {
@@ -66,10 +66,9 @@ export class ResolveCellLocation extends Construct {
 						resources: ['*'],
 					}),
 				],
+				logRetention: Logs.RetentionDays.ONE_WEEK,
 			},
 		)
-
-		new LambdaLogGroup(this, 'resolveCellLocationLogs', resolveCellLocation)
 
 		websocketAPI.connectionsTable.grantFullAccess(resolveCellLocation)
 
@@ -167,15 +166,10 @@ export class ResolveCellLocation extends Construct {
 					}),
 				],
 				layers: [baseLayer],
+				logRetention: Logs.RetentionDays.ONE_WEEK,
 			},
 		)
 		websocketAPI.connectionsTable.grantFullAccess(onCellGeoLocationResolved)
-
-		new LambdaLogGroup(
-			this,
-			'onCellGeoLocationResolvedLogGroup',
-			onCellGeoLocationResolved,
-		)
 
 		const publishCellGeolocationSuccessEventsRule = new Events.Rule(
 			this,

@@ -30,16 +30,6 @@ npm ci
 npx cdk deploy
 ```
 
-## Support for the MQTT Sample
-
-Because the sample is not using the shadow, some manual work is needed to make
-it work:
-
-1. Create a thing type `rgb-light` (they cannot be created using
-   CloudFormation).
-1. Assign the thing type `rgb-light` to the thing which should act as a light
-   bulb.
-
 ## Authentication
 
 For changing the state of light bulbs, create a Thing attribute named `code` and

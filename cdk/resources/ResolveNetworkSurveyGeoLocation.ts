@@ -7,10 +7,10 @@ import {
 	aws_lambda as Lambda,
 	aws_lambda_event_sources as LambdaEvents,
 	Stack,
+	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend'
-import { LambdaLogGroup } from './LambdaLogGroup.js'
 import type { WebsocketAPI } from './WebsocketAPI'
 
 /**
@@ -71,9 +71,8 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 					resources: ['*'],
 				}),
 			],
+			logRetention: Logs.RetentionDays.ONE_WEEK,
 		})
-
-		new LambdaLogGroup(this, 'onNewNetworkSurveyLogs', onNewNetworkSurvey)
 
 		websocketAPI.connectionsTable.grantFullAccess(onNewNetworkSurvey)
 
@@ -118,16 +117,11 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 					}),
 				],
 				layers: [baseLayer],
+				logRetention: Logs.RetentionDays.ONE_WEEK,
 			},
 		)
 		websocketAPI.connectionsTable.grantFullAccess(onNetworkSurveyLocated)
 		surveysTable.grantReadData(onNetworkSurveyLocated)
-
-		new LambdaLogGroup(
-			this,
-			'onNetworkSurveyLocatedLogGroup',
-			onNetworkSurveyLocated,
-		)
 
 		const publishNetworkSurveyGeolocationSuccessEventsRule = new Events.Rule(
 			this,
