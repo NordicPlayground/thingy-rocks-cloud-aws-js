@@ -1,21 +1,19 @@
 import { Type } from '@sinclair/typebox'
-import { validateWithTypeBox } from './validateWithTypeBox'
+import { validateWithTypeBox } from './validateWithTypeBox.js'
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 
-describe('validateWithTypeBox', () => {
-	it('Should check input is valid', async () => {
+void describe('validateWithTypeBox', () => {
+	void it('Should check input is valid', async () => {
 		const maybeValid = validateWithTypeBox(Type.Number())(42)
-		if ('value' in maybeValid) {
-			expect(maybeValid.value).toEqual(42)
-		} else {
-			throw new Error(`It should be valid!`)
-		}
+		assert.equal(
+			'value' in maybeValid && maybeValid.value,
+			42,
+			`It should be valid!`,
+		)
 	})
-	it("Should check as 'invalid' values less than 0", (done) => {
+	void it("Should check as 'invalid' values less than 0", () => {
 		const maybeValid = validateWithTypeBox(Type.Number({ minimum: 0 }))(-42)
-		if ('errors' in maybeValid) {
-			done()
-		} else {
-			throw new Error(`It should not be valid!`)
-		}
+		assert.equal('errors' in maybeValid, true, `It should not be valid!`)
 	})
 })

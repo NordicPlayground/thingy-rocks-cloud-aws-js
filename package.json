@@ -4,7 +4,7 @@
   "description": "Cloud backend for the thingy.rocks AWS IoT dashboard developed using AWS CDK in TypeScript.",
   "type": "module",
   "scripts": {
-    "test": "jest",
+    "test": "npx tsx --test ./**/*.spec.ts",
     "prepare": "husky install && check-node-version --package"
   },
   "repository": {
@@ -31,25 +31,28 @@
     "@aws-sdk/client-iot-data-plane": "3.431.0",
     "@aws-sdk/client-timestream-query": "3.431.0",
     "@aws-sdk/util-dynamodb": "3.431.0",
+    "@commitlint/config-conventional": "17.8.0",
     "@nordicsemiconductor/asset-tracker-cloud-code-style": "12.0.98",
     "@nordicsemiconductor/eslint-config-asset-tracker-cloud-typescript": "16.0.23",
     "@swc/cli": "0.1.62",
     "@swc/core": "1.3.93",
-    "@swc/jest": "0.2.29",
     "@types/aws-lambda": "8.10.125",
     "@types/glob": "8.1.0",
-    "@types/jest": "29.5.6",
     "@types/node": "20.8.7",
     "@types/yazl": "2.4.4",
+    "@typescript-eslint/eslint-plugin": "6.8.0",
     "aws-cdk": "2.102.0",
     "aws-cdk-lib": "2.102.0",
     "cdk": "2.102.0",
     "chalk": "5.3.0",
     "check-node-version": "4.2.1",
     "constructs": "10.3.0",
+    "eslint-config-prettier": "9.0.0",
+    "eslint-plugin-import": "2.28.1",
+    "eslint-plugin-prefer-arrow": "1.2.3",
+    "eslint-plugin-unicorn": "48.0.1",
     "glob": "10.3.10",
     "husky": "8.0.3",
-    "jest": "29.7.0",
     "prettier": "3.0.3",
     "tessera": "0.15.3",
     "tilelive-aws": "3.2.0",
@@ -87,13 +90,5 @@
     "@nordicsemiconductor/timestream-helpers": "6.0.1",
     "@sinclair/typebox": "0.31.18",
     "ajv": "8.12.0"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.(t|j)sx?$": [
-        "@swc/jest"
-      ]
-    },
-    "testRegex": ".+\\.spec\\.ts$"
   }
 }
