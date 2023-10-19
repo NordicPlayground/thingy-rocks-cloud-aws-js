@@ -29,10 +29,3 @@ npm ci
 ```bash
 npx cdk deploy
 ```
-
-## Authentication
-
-For changing the state of light bulbs, create a Thing attribute named `code` and
-provide a secret there. This is compared to the code presented in received
-update messages. Only if the code matches will a message with the new RGB value
-be sent to the light bulb.

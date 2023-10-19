@@ -45,6 +45,7 @@ new BackendApp({
 		publishSummaries: await pack('publishSummaries'),
 		onNewNetworkSurvey: await pack('onNewNetworkSurvey'),
 		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
+		parseSinkMessages: await pack('parseSinkMessages'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

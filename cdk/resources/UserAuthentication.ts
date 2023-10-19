@@ -21,17 +21,11 @@ export class UserAuthentication extends Construct {
 			autoVerify: {
 				email: true,
 			},
-			selfSignUpEnabled: true,
+			selfSignUpEnabled: false,
 			passwordPolicy: {
 				requireSymbols: false,
 			},
 			accountRecovery: Cognito.AccountRecovery.EMAIL_ONLY,
-			userVerification: {
-				emailBody:
-					'The verification code to your new nRF Asset Tracker account is {####}',
-				emailStyle: Cognito.VerificationEmailStyle.CODE,
-				emailSubject: 'Verify your new nRF Asset Tracker account',
-			},
 			removalPolicy: RemovalPolicy.DESTROY,
 		})
 

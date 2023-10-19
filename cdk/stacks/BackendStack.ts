@@ -15,6 +15,7 @@ import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurv
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
 import { STACK_NAME } from './stackName.js'
+import { NRPlusGateway } from '../resources/NRPlusGateway.js'
 
 export class BackendStack extends Stack {
 	public constructor(
@@ -89,6 +90,10 @@ export class BackendStack extends Stack {
 			historicaldataTableArn: Fn.importValue(
 				`${assetTrackerStackName}:historicaldataTableArn`,
 			),
+		})
+
+		new NRPlusGateway(this, {
+			lambdaSources,
 		})
 
 		// Outputs
