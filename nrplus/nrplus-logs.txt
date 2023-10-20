@@ -1,0 +1,36 @@
+  receiver id: 38
+  MCS 0, TX pwr: -12 dBm
+PDC received (time 358881336898): snr 88, RSSI -60, len 83
+Received data:
+  Type:                 Data SDU
+  Power control:
+    Expected RX RSSI level (dBm): -60
+  Seq nbr:              366
+  Network ID:           22
+  Transmitter long ID:  40
+  Receiver long ID:     38
+  SDU last seen seq nbr: 1
+  SDU data length:       40
+  SDU data:              {\"data\":\"Yes, hello\",\"modem_temp\":\"33\"}
+  IE type:               none
+PCC received (time 359572555405): status: \"valid - PDC can be received\", snr 83, stf_start_time 359572537298
+  phy header: short nw id 22, transmitter id 39
+  receiver id: 38
+  MCS 0, TX pwr: -12 dBm
+PDC received (time 364412319378): snr 96, RSSI -60, len 83
+Received data:
+  Type:                 Data SDU
+  Power control:
+    Expected RX RSSI level (dBm): -60
+  Seq nbr:              382
+  Network ID:           22
+  Transmitter long ID:  40
+  Receiver long ID:     38
+  SDU last seen seq nbr: 1
+  SDU data length:       40
+  SDU data:              {\"data\":\"Yes, hello\",\"modem_temp\":\"33\"}
+  IE type:               none
+PCC received (time 365111832209): status: \"valid - PDC can be received\", snr 61, stf_start_time 365111814178
+  phy header: short nw id 22, transmitter id 39
+  receiver id: 38
+  MCS 0, TX pwr: -12 dBm

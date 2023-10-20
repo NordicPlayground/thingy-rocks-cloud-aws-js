@@ -1,11 +1,12 @@
-import { Construct } from 'constructs'
-import Iot from 'aws-cdk-lib/aws-iot'
+import { Duration, Stack } from 'aws-cdk-lib'
 import IAM from 'aws-cdk-lib/aws-iam'
+import Iot from 'aws-cdk-lib/aws-iot'
+import Kinesis, { StreamMode } from 'aws-cdk-lib/aws-kinesis'
+import Lambda, { StartingPosition } from 'aws-cdk-lib/aws-lambda'
+import { KinesisEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
 import Logs from 'aws-cdk-lib/aws-logs'
-import Lambda from 'aws-cdk-lib/aws-lambda'
-import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib'
+import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend'
-import DynamoDB from 'aws-cdk-lib/aws-dynamodb'
 
 export class NRPlusGateway extends Construct {
 	constructor(
@@ -19,6 +20,14 @@ export class NRPlusGateway extends Construct {
 		},
 	) {
 		super(parent, 'nrplus-gateway')
+
+		const stream = new Kinesis.Stream(this, 'kinesis-stream', {
+			shardCount: 1,
+			// streamMode must be set to PROVISIONED  when specifying shardCount
+			streamMode: StreamMode.PROVISIONED,
+			// Minimum 1 day
+			retentionPeriod: Duration.days(1),
+		})
 
 		const topicRuleRole = new IAM.Role(this, 'topicRule', {
 			assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com'),
@@ -37,19 +46,28 @@ export class NRPlusGateway extends Construct {
 				}),
 			},
 		})
+		stream.grantWrite(topicRuleRole)
 
-		const table = new DynamoDB.Table(this, 'table', {
-			billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
-			partitionKey: {
-				name: 'id',
-				type: DynamoDB.AttributeType.STRING,
+		new Iot.CfnTopicRule(this, 'sinkRule', {
+			topicRulePayload: {
+				sql: `SELECT * FROM '+/nrplus-sink'`,
+				awsIotSqlVersion: '2016-03-23',
+				actions: [
+					{
+						kinesis: {
+							streamName: stream.streamName,
+							partitionKey: '${topic()}',
+							roleArn: topicRuleRole.roleArn,
+						},
+					},
+				],
+				errorAction: {
+					republish: {
+						roleArn: topicRuleRole.roleArn,
+						topic: 'errors',
+					},
+				},
 			},
-			pointInTimeRecovery: true,
-			removalPolicy:
-				this.node.tryGetContext('isTest') === true
-					? RemovalPolicy.DESTROY
-					: RemovalPolicy.RETAIN,
-			timeToLiveAttribute: 'ttl',
 		})
 
 		const parseSinkMessages = new Lambda.Function(this, 'lambda', {
@@ -64,46 +82,19 @@ export class NRPlusGateway extends Construct {
 			description: 'Parse sink messages',
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
-				TABLE_NAME: table.tableName,
 			},
 			initialPolicy: [],
 			logRetention: Logs.RetentionDays.ONE_WEEK,
-			// Only have one lambda at any given time processing messages
 			reservedConcurrentExecutions: 1,
 		})
 
-		table.grantFullAccess(parseSinkMessages)
-
-		const rule = new Iot.CfnTopicRule(this, 'sinkRule', {
-			topicRulePayload: {
-				sql: [
-					`SELECT`,
-					// Lambda rule actions don't support binary payload input
-					`encode(*, 'base64') AS message,`,
-					`parse_time("yyyy-MM-dd'T'HH:mm:ss.S'Z'",`,
-					`timestamp()) as timestamp`,
-					`FROM '+/nrplus-sink'`,
-				].join(' '),
-				awsIotSqlVersion: '2016-03-23',
-				actions: [
-					{
-						lambda: {
-							functionArn: parseSinkMessages.functionArn,
-						},
-					},
-				],
-				errorAction: {
-					republish: {
-						roleArn: topicRuleRole.roleArn,
-						topic: 'errors',
-					},
-				},
-			},
-		})
-
-		parseSinkMessages.addPermission('storeUpdatesRule', {
-			principal: new IAM.ServicePrincipal('iot.amazonaws.com'),
-			sourceArn: rule.attrArn,
-		})
+		parseSinkMessages.addEventSource(
+			new KinesisEventSource(stream, {
+				startingPosition: StartingPosition.TRIM_HORIZON,
+				batchSize: 100,
+				maxBatchingWindow: Duration.seconds(1),
+				parallelizationFactor: 1,
+			}),
+		)
 	}
 }

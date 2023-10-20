@@ -1,18 +1,29 @@
-const buffer: string[] = []
+import type { KinesisStreamEvent } from 'aws-lambda'
+import { parser } from '../nrplus/messageStreamParser.js'
 
-export const handler = async ({
-	timestamp,
-	message,
-}: {
-	message: string // base64 encoded payload "VEVTVDQ=",
-	timestamp: string // e.g. "2023-10-19T15:19:35.5Z"
-}): Promise<void> => {
-	const decoded = Buffer.from(message, 'base64').toString('utf-8')
-	console.log(
-		JSON.stringify({
-			timestamp,
-			message: decoded,
-		}),
-	)
-	buffer.push(decoded)
+const parserInstance = parser()
+parserInstance.onMessage((deviceId, message) => {
+	console.log(JSON.stringify({ deviceId, message }))
+})
+
+export const handler = async (event: KinesisStreamEvent): Promise<void> => {
+	const buffer: Record<string, string[]> = {}
+	for (const {
+		kinesis: { data, partitionKey },
+	} of event.Records) {
+		const message = Buffer.from(data, 'base64').toString('utf-8').trim()
+		const clientId = partitionKey.split('/')[0] as string // <client id>/nrplus-sink
+		if (buffer[clientId] === undefined) {
+			buffer[clientId] = [message]
+		} else {
+			buffer[clientId]?.push(message)
+		}
+	}
+
+	for (const [clientId, lines] of Object.entries(buffer)) {
+		for (const line of lines.sort(ascending))
+			parserInstance.addLine(clientId, line)
+	}
 }
+
+const ascending = (a: string, b: string) => a.localeCompare(b)
