@@ -10,40 +10,88 @@ The content of the PDUs in here are just fMAC specific.
 */
 
 type PDCInfo = {
-	time: string //e.g. '358881336898'
-	snr: string //e.g. '88'
-	RSSI: string //e.g. '-60'
-	len: string //e.g. '83'
-	type: string //e.g. 'Data SDU'
-	expectedRXRSSI: string //e.g. '-60'
-	seqNbr: string //e.g. '366'
-	networkId: string //e.g. '22'
-	transmitterId: string //e.g. '40'
-	receiverId: string //e.g. '38'
-	sduLastSeenSeqNbr: string //e.g. '1'
-	sduDataLength: string //e.g. '40'
-	sduData: string //e.g. '{\\"data\\":\\"Yes, hello\\",\\"modem_temp\\":\\"33\\"}'
-	ieType: string //e.g. 'none'
+	time: string // e.g. '358881336898'
+	snr: string // e.g. '88'
+	RSSI: string // e.g. '-60'
+	len: string // e.g. '83'
+	type: string // e.g. 'Data SDU'
+	expectedRXRSSI: string // e.g. '-60'
+	seqNbr: string // e.g. '366'
+	networkId: string // e.g. '22'
+	transmitterId: string // e.g. '40'
+	receiverId: string // e.g. '38'
+	sduLastSeenSeqNbr: string // e.g. '1'
+	sduDataLength: string // e.g. '40'
+	sduData: string // e.g. '{\\"data\\":\\"Yes, hello\\",\\"modem_temp\\":\\"33\\"}'
+	ieType: string // e.g. 'none'
 }
 
-type MessageListener = (deviceId: string, message: PDCInfo) => void
+const PDCLines = [
+	/^PDC received \(time (?<time>[0-9]+)\): snr (?<snr>[0-9]+), RSSI (?<RSSI>[-0-9]+), len (?<len>[0-9]+)/,
+	/^Received data:/,
+	/^ +Type: +(?<type>.+)/,
+	/^ +Power control:/,
+	/^ +Expected RX RSSI level \(dBm\): +(?<expectedRXRSSI>[-0-9]+)/,
+	/^ +Seq nbr: +(?<seqNbr>[0-9]+)/,
+	/^ +Network ID: +(?<networkId>[0-9]+)/,
+	/^ +Transmitter long ID: +(?<transmitterId>[0-9]+)/,
+	/^ +Receiver long ID: +(?<receiverId>[0-9]+)/,
+	/^ +SDU last seen seq nbr: +(?<sduLastSeenSeqNbr>[0-9]+)/,
+	/^ +SDU data length: +(?<sduDataLength>[0-9]+)/,
+	/^ +SDU data: +(?<sduData>.+)/,
+	/^ +IE type: +(?<ieType>.+)/,
+] as const
+
+type PCCInfo = {
+	time: string // e.g. '365111832209'
+	status: string // e.g. 'valid - PDC can be received'
+	snr: string // e.g. '61'
+	stf_start_time: string // e.g. '365111814178'
+	networkId: string // e.g. '22'
+	transmitterId: string // e.g. '39'
+	receiverId: string // e.g. '38'
+	MCS: string // e.g. '0'
+	txPowerDBm: string // e.g. '-12'
+}
+
+/*
+
+PCC received (time 359572555405): status: \"valid - PDC can be received\", snr 83, stf_start_time 359572537298
+  phy header: short nw id 22, transmitter id 39
+  receiver id: 38
+  MCS 0, TX pwr: -12 dBm
+
+*/
+
+const PCCLines = [
+	/^PCC received \(time (?<time>[0-9]+)\): status: \\"(?<status>[^"]+)\\", snr (?<snr>[0-9]+), stf_start_time (?<stfStartTime>[0-9]+)/,
+	/^ +phy header: short nw id (?<networkId>[0-9]+), transmitter id (?<transmitterId>[0-9]+)/,
+	/^ +receiver id: (?<receiverId>[0-9]+)/,
+	/^ +MCS (?<mcs>[0-9]+), TX pwr: (?<txPowerDBm>-[0-9]+) dBm/,
+] as const
+
+type MessageListener = (deviceId: string, message: PDCInfo | PCCInfo) => void
 
 const StreamParser = () => {
 	let index = 0
 	let lastResult = 0
 	const lines: string[] = []
 
-	const readLines = (regExps: RegExp[]): Record<string, unknown> | null => {
+	const readLines = (
+		regExps: Readonly<RegExp[]>,
+	): Record<string, unknown> | null => {
 		const result: RegExpExecArray['groups'][] = []
+		const startIndex = index
 		for (const regExp of regExps) {
 			const match = regExp.exec(lines[index] ?? '')
 			if (match === null) {
-				//console.warn(`Not matched`, lines[index], index, regExp)
+				index = startIndex
 				return null
 			}
 			result.push(match.groups)
 			index++
 		}
+		index--
 		return result.reduce(
 			(obj, groups) => ({ ...obj, ...groups }),
 			{} as Record<string, unknown>,
@@ -53,24 +101,17 @@ const StreamParser = () => {
 	const parseLines = () => {
 		let result: unknown | null = null
 		while (index++ < lines.length - 1) {
-			const pdcData = readLines([
-				/^PDC received \(time (?<time>[0-9]+)\): snr (?<snr>[0-9]+), RSSI (?<RSSI>[-0-9]+), len (?<len>[0-9]+)/,
-				/^Received data:/,
-				/^ +Type: +(?<type>.+)/,
-				/^ +Power control:/,
-				/^ +Expected RX RSSI level \(dBm\): +(?<expectedRXRSSI>[-0-9]+)/,
-				/^ +Seq nbr: +(?<seqNbr>[0-9]+)/,
-				/^ +Network ID: +(?<networkId>[0-9]+)/,
-				/^ +Transmitter long ID: +(?<transmitterId>[0-9]+)/,
-				/^ +Receiver long ID: +(?<receiverId>[0-9]+)/,
-				/^ +SDU last seen seq nbr: +(?<sduLastSeenSeqNbr>[0-9]+)/,
-				/^ +SDU data length: +(?<sduDataLength>[0-9]+)/,
-				/^ +SDU data: +(?<sduData>.+)/,
-				/^ +IE type: +(?<ieType>.+)/,
-			])
+			const pdcData = readLines(PDCLines)
 			if (pdcData !== null) {
 				lastResult = index
 				result = pdcData
+				continue
+			}
+			const pccData = readLines(PCCLines)
+			if (pccData !== null) {
+				lastResult = index
+				result = pccData
+				continue
 			}
 		}
 		index = lastResult

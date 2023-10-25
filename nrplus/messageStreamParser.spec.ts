@@ -39,6 +39,21 @@ void describe('messageStreamParser', () => {
 		assert.deepEqual(onMessageCallback.mock.calls[1]?.arguments, [
 			'nrplus-gw-jagu',
 			{
+				time: '359572555405',
+				status: 'valid - PDC can be received',
+				snr: '83',
+				stfStartTime: '359572537298',
+				networkId: '22',
+				transmitterId: '39',
+				receiverId: '38',
+				mcs: '0',
+				txPowerDBm: '-12',
+			},
+		])
+
+		assert.deepEqual(onMessageCallback.mock.calls[2]?.arguments, [
+			'nrplus-gw-jagu',
+			{
 				time: '364412319378',
 				snr: '96',
 				RSSI: '-60',
@@ -53,6 +68,21 @@ void describe('messageStreamParser', () => {
 				sduDataLength: '40',
 				sduData: '{\\"data\\":\\"Yes, hello\\",\\"modem_temp\\":\\"33\\"}',
 				ieType: 'none',
+			},
+		])
+
+		assert.deepEqual(onMessageCallback.mock.calls[3]?.arguments, [
+			'nrplus-gw-jagu',
+			{
+				time: '365111832209',
+				status: 'valid - PDC can be received',
+				snr: '61',
+				stfStartTime: '365111814178',
+				networkId: '22',
+				transmitterId: '39',
+				receiverId: '38',
+				mcs: '0',
+				txPowerDBm: '-12',
 			},
 		])
 	})
