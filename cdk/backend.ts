@@ -14,7 +14,7 @@ const packagesInLayer: string[] = [
 ]
 const pack = async (
 	id: string,
-	handler = `${id}.handler`,
+	handlerFunction = 'handler',
 ): Promise<PackedLambda> => {
 	try {
 		await mkdir(path.join(process.cwd(), 'dist', 'lambdas'), {
@@ -24,13 +24,13 @@ const pack = async (
 		// Directory exists
 	}
 	const zipFile = path.join(process.cwd(), 'dist', 'lambdas', `${id}.zip`)
-	await packLambda({
+	const { handler } = await packLambda({
 		sourceFile: path.join(process.cwd(), 'lambda', `${id}.ts`),
 		zipFile,
 	})
 	return {
 		lambdaZipFile: zipFile,
-		handler,
+		handler: handler.replace('.js', `.${handlerFunction}`),
 	}
 }
 
