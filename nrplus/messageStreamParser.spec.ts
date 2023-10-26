@@ -31,7 +31,7 @@ void describe('messageStreamParser', () => {
 				receiverId: '38',
 				sduLastSeenSeqNbr: '1',
 				sduDataLength: '40',
-				sduData: '{\\"data\\":\\"Yes, hello\\",\\"modem_temp\\":\\"33\\"}',
+				sduData: '{"data":"Yes, hello","modem_temp":"33"}',
 				ieType: 'none',
 			},
 		])
@@ -66,7 +66,7 @@ void describe('messageStreamParser', () => {
 				receiverId: '38',
 				sduLastSeenSeqNbr: '1',
 				sduDataLength: '40',
-				sduData: '{\\"data\\":\\"Yes, hello\\",\\"modem_temp\\":\\"33\\"}',
+				sduData: '{"data":"Yes, hello","modem_temp":"33"}',
 				ieType: 'none',
 			},
 		])

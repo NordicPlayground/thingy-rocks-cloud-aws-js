@@ -22,24 +22,24 @@ type PDCInfo = {
 	receiverId: string // e.g. '38'
 	sduLastSeenSeqNbr: string // e.g. '1'
 	sduDataLength: string // e.g. '40'
-	sduData: string // e.g. '{\\"data\\":\\"Yes, hello\\",\\"modem_temp\\":\\"33\\"}'
+	sduData: string // e.g. '{"data":"Yes, hello","modem_temp":"33"}'
 	ieType: string // e.g. 'none'
 }
 
 const PDCLines = [
 	/^PDC received \(time (?<time>[0-9]+)\): snr (?<snr>[0-9]+), RSSI (?<RSSI>[-0-9]+), len (?<len>[0-9]+)/,
 	/^Received data:/,
-	/^ +Type: +(?<type>.+)/,
-	/^ +Power control:/,
-	/^ +Expected RX RSSI level \(dBm\): +(?<expectedRXRSSI>[-0-9]+)/,
-	/^ +Seq nbr: +(?<seqNbr>[0-9]+)/,
-	/^ +Network ID: +(?<networkId>[0-9]+)/,
-	/^ +Transmitter long ID: +(?<transmitterId>[0-9]+)/,
-	/^ +Receiver long ID: +(?<receiverId>[0-9]+)/,
-	/^ +SDU last seen seq nbr: +(?<sduLastSeenSeqNbr>[0-9]+)/,
-	/^ +SDU data length: +(?<sduDataLength>[0-9]+)/,
-	/^ +SDU data: +(?<sduData>.+)/,
-	/^ +IE type: +(?<ieType>.+)/,
+	/^\s+Type:\s+(?<type>.+)/,
+	/^\s+Power control:/,
+	/^\s+Expected RX RSSI level \(dBm\):\s+(?<expectedRXRSSI>[-0-9]+)/,
+	/^\s+Seq nbr:\s+(?<seqNbr>[0-9]+)/,
+	/^\s+Network ID:\s+(?<networkId>[0-9]+)/,
+	/^\s+Transmitter long ID:\s+(?<transmitterId>[0-9]+)/,
+	/^\s+Receiver long ID:\s+(?<receiverId>[0-9]+)/,
+	/^\s+SDU last seen seq nbr:\s+(?<sduLastSeenSeqNbr>[0-9]+)/,
+	/^\s+SDU data length:\s+(?<sduDataLength>[0-9]+)/,
+	/^\s+SDU data:\s+(?<sduData>.+)/,
+	/^\s+IE type:\s+(?<ieType>.+)/,
 ] as const
 
 type PCCInfo = {
@@ -64,10 +64,10 @@ PCC received (time 359572555405): status: \"valid - PDC can be received\", snr 8
 */
 
 const PCCLines = [
-	/^PCC received \(time (?<time>[0-9]+)\): status: \\"(?<status>[^"]+)\\", snr (?<snr>[0-9]+), stf_start_time (?<stfStartTime>[0-9]+)/,
-	/^ +phy header: short nw id (?<networkId>[0-9]+), transmitter id (?<transmitterId>[0-9]+)/,
-	/^ +receiver id: (?<receiverId>[0-9]+)/,
-	/^ +MCS (?<mcs>[0-9]+), TX pwr: (?<txPowerDBm>-[0-9]+) dBm/,
+	/^PCC received \(time (?<time>[0-9]+)\): status: "(?<status>[^"]+)", snr (?<snr>[0-9]+), stf_start_time (?<stfStartTime>[0-9]+)/,
+	/^\s+phy header: short nw id (?<networkId>[0-9]+), transmitter id (?<transmitterId>[0-9]+)/,
+	/^\s+receiver id: (?<receiverId>[0-9]+)/,
+	/^\s+MCS (?<mcs>[0-9]+), TX pwr: (?<txPowerDBm>-[0-9]+) dBm/,
 ] as const
 
 type MessageListener = (deviceId: string, message: PDCInfo | PCCInfo) => void

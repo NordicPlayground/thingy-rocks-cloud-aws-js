@@ -22,7 +22,11 @@ export const handler = async (event: KinesisStreamEvent): Promise<void> => {
 
 	for (const [clientId, lines] of Object.entries(buffer)) {
 		for (const line of lines.sort(ascending))
-			parserInstance.addLine(clientId, line)
+			parserInstance.addLine(
+				clientId,
+				// line is prefixed with counter + tab
+				line.split('\t', 2)[1] as string,
+			)
 	}
 }
 
