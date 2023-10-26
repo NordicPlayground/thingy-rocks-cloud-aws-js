@@ -1,7 +1,8 @@
 import type { KinesisStreamEvent } from 'aws-lambda'
 import { parser } from '../nrplus/messageStreamParser.js'
+import { PCCLines, PDCLines } from '../nrplus/messages.js'
 
-const parserInstance = parser()
+const parserInstance = parser([PCCLines, PDCLines])
 parserInstance.onMessage((deviceId, message) => {
 	console.log(JSON.stringify({ deviceId, message }))
 })

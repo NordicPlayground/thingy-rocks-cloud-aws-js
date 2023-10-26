@@ -1,7 +1,8 @@
-import { describe, it, mock } from 'node:test'
+import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { parser } from './messageStreamParser.js'
+import { PCCLines, PDCLines } from './messages.js'
 
 void describe('messageStreamParser', () => {
 	void it('should parse sink messages', async () => {
@@ -9,15 +10,17 @@ void describe('messageStreamParser', () => {
 			'\n',
 		)
 
-		const onMessageCallback = mock.fn(() => undefined)
-		const p = parser()
-		p.onMessage(onMessageCallback)
+		const messages: Record<string, Record<string, unknown>[]> = {}
+		const p = parser([PDCLines, PCCLines])
+		p.onMessage(
+			(deviceId, message) =>
+				(messages[deviceId] = [...(messages[deviceId] ?? []), message]),
+		)
 		for (const line of lines) {
 			p.addLine('nrplus-gw-jagu', line)
 		}
 
-		assert.deepEqual(onMessageCallback.mock.calls[0]?.arguments, [
-			'nrplus-gw-jagu',
+		assert.deepEqual(messages['nrplus-gw-jagu'], [
 			{
 				time: '358881336898',
 				snr: '88',
@@ -34,10 +37,6 @@ void describe('messageStreamParser', () => {
 				sduData: '{"data":"Yes, hello","modem_temp":"33"}',
 				ieType: 'none',
 			},
-		])
-
-		assert.deepEqual(onMessageCallback.mock.calls[1]?.arguments, [
-			'nrplus-gw-jagu',
 			{
 				time: '359572555405',
 				status: 'valid - PDC can be received',
@@ -49,10 +48,6 @@ void describe('messageStreamParser', () => {
 				mcs: '0',
 				txPowerDBm: '-12',
 			},
-		])
-
-		assert.deepEqual(onMessageCallback.mock.calls[2]?.arguments, [
-			'nrplus-gw-jagu',
 			{
 				time: '364412319378',
 				snr: '96',
@@ -69,10 +64,6 @@ void describe('messageStreamParser', () => {
 				sduData: '{"data":"Yes, hello","modem_temp":"33"}',
 				ieType: 'none',
 			},
-		])
-
-		assert.deepEqual(onMessageCallback.mock.calls[3]?.arguments, [
-			'nrplus-gw-jagu',
 			{
 				time: '365111832209',
 				status: 'valid - PDC can be received',
