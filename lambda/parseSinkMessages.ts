@@ -38,19 +38,29 @@ parserInstance.onMessage((deviceId, message) => {
 	console.log(JSON.stringify({ deviceId, message }))
 	if (isPCCInfo(message)) {
 		void updateNodeData(deviceId, message.transmitterId, {
-			pccStatus: message.status,
+			pccStatus: {
+				status: message.status,
+				ts: Date.now(),
+			},
 		})
 	} else if (isPDCInfo(message)) {
 		const buttonPressed = buttonPressRegExp.exec(message.sduData)
 		if (buttonPressed !== null) {
 			void updateNodeData(deviceId, message.transmitterId, {
-				btn: parseInt(buttonPressed[1] ?? '1', 10),
+				btn: {
+					n: parseInt(buttonPressed[1] ?? '1', 10),
+					ts: Date.now(),
+				},
 			})
 		} else {
 			try {
-				const { m_tmp } = JSON.parse(message.sduData)
+				const { m_tmp, tmp } = JSON.parse(message.sduData)
 				void updateNodeData(deviceId, message.transmitterId, {
-					temp: parseInt(m_tmp, 10),
+					env: {
+						modemTemp: parseInt(m_tmp, 10),
+						temp: parseInt(tmp, 10),
+						ts: Date.now(),
+					},
 				})
 			} catch {
 				console.error(`Failed to parse payload "${message.sduData}" as JSON.`)
