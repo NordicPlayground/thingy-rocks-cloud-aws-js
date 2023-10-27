@@ -10,6 +10,8 @@ The content of the PDUs in here are just fMAC specific.
 */
 
 /**
+ * PDC: Physical Data Channel
+ *
  * Describes any messages received from any node within the network.
  * The RSSI here only applies to the last link.
  * We can use these messages to build an inventory of all of the nodes in the
@@ -53,8 +55,7 @@ export const isPDCInfo = (
 ): message is PDCInfo => 'sduData' in message
 
 /**
- * Describes a direct connection between the sink an a leaf or a relay, so we
- * can use txPowerDBm to describe the link quality.
+ * PCC: Physical Control Channel
  */
 export type PCCInfo = {
 	time: string // e.g. '365111832209'
@@ -65,6 +66,7 @@ export type PCCInfo = {
 	transmitterId: string // e.g. '39'
 	receiverId: string // e.g. '38'
 	MCS: string // e.g. '0'
+	// This is the signal strength between this node and the relay, which is not necessarily the transmitterId
 	txPowerDBm: string // e.g. '-12'
 }
 

@@ -37,26 +37,9 @@ const parserInstance = parser([PCCLines, PDCLines])
 parserInstance.onMessage((deviceId, message) => {
 	console.log(JSON.stringify({ deviceId, message }))
 	if (isPCCInfo(message)) {
-		void iotData.send(
-			new UpdateThingShadowCommand({
-				thingName: deviceId,
-				payload: Buffer.from(
-					JSON.stringify({
-						state: {
-							reported: {
-								id: parseFloat(message.receiverId),
-								networkId: parseFloat(message.networkId),
-								nodes: {
-									[message.transmitterId]: {
-										txPowerDBm: parseFloat(message.txPowerDBm),
-									},
-								},
-							},
-						},
-					}),
-				),
-			}),
-		)
+		void updateNodeData(deviceId, message.transmitterId, {
+			pccStatus: message.status,
+		})
 	} else if (isPDCInfo(message)) {
 		const buttonPressed = buttonPressRegExp.exec(message.sduData)
 		if (buttonPressed !== null) {
