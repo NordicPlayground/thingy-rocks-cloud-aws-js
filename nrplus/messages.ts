@@ -9,6 +9,12 @@ PDC contains the actual MAC PDU/SDU.
 The content of the PDUs in here are just fMAC specific. 
 */
 
+/**
+ * Describes any messages received from any node within the network.
+ * The RSSI here only applies to the last link.
+ * We can use these messages to build an inventory of all of the nodes in the
+ * network, and what messages they are sending.
+ */
 export type PDCInfo = {
 	time: string // e.g. '358881336898'
 	snr: string // e.g. '88'
@@ -42,11 +48,19 @@ export const PDCLines: Readonly<Array<RegExp>> = [
 	/^\s+IE type:\s+(?<ieType>.+)/,
 ] as const
 
+export const isPDCInfo = (
+	message: Record<string, unknown>,
+): message is PDCInfo => 'sduData' in message
+
+/**
+ * Describes a direct connection between the sink an a leaf or a relay, so we
+ * can use txPowerDBm to describe the link quality.
+ */
 export type PCCInfo = {
 	time: string // e.g. '365111832209'
 	status: string // e.g. 'valid - PDC can be received'
 	snr: string // e.g. '61'
-	stf_start_time: string // e.g. '365111814178'
+	stfStartTime: string // e.g. '365111814178'
 	networkId: string // e.g. '22'
 	transmitterId: string // e.g. '39'
 	receiverId: string // e.g. '38'
@@ -60,3 +74,7 @@ export const PCCLines: Readonly<Array<RegExp>> = [
 	/^\s+receiver id: (?<receiverId>[0-9]+)/,
 	/^\s+MCS (?<mcs>[0-9]+), TX pwr: (?<txPowerDBm>-[0-9]+) dBm/,
 ] as const
+
+export const isPCCInfo = (
+	message: Record<string, unknown>,
+): message is PCCInfo => 'txPowerDBm' in message

@@ -83,7 +83,12 @@ export class NRPlusGateway extends Construct {
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
 			},
-			initialPolicy: [],
+			initialPolicy: [
+				new IAM.PolicyStatement({
+					actions: ['iot:UpdateThingShadow'],
+					resources: ['*'],
+				}),
+			],
 			logRetention: Logs.RetentionDays.ONE_WEEK,
 			reservedConcurrentExecutions: 1,
 		})
