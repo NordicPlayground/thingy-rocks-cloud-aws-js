@@ -11,4 +11,5 @@ type BackendLambdas = {
 	onNewNetworkSurvey: PackedLambda
 	onNetworkSurveyLocated: PackedLambda
 	parseSinkMessages: PackedLambda
+	nrplusGatewayScan: PackedLambda
 }

@@ -46,6 +46,7 @@ new BackendApp({
 		onNewNetworkSurvey: await pack('onNewNetworkSurvey'),
 		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
 		parseSinkMessages: await pack('parseSinkMessages'),
+		nrplusGatewayScan: await pack('nrplusGatewayScan'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',
