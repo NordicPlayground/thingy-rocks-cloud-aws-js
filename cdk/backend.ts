@@ -38,7 +38,7 @@ new BackendApp({
 	lambdaSources: {
 		publishToWebsocketClients: await pack('publishToWebsocketClients'),
 		onConnect: await pack('onConnect'),
-		onMessage: await pack('onMessage', 'lambda/onMessage.handler'),
+		onMessage: await pack('onMessage'),
 		onDisconnect: await pack('onDisconnect'),
 		onCellGeoLocationResolved: await pack('onCellGeoLocationResolved'),
 		resolveCellLocation: await pack('resolveCellLocation'),

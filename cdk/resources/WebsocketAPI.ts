@@ -18,7 +18,7 @@ export class WebsocketAPI extends Construct {
 	public readonly websocketAPIArn: string
 	public readonly websocketManagementAPIURL: string
 	public constructor(
-		parent: Stack,
+		parent: Construct,
 		{
 			lambdaSources,
 			baseLayer,
@@ -63,9 +63,15 @@ export class WebsocketAPI extends Construct {
 			apiId: api.ref,
 		})
 
-		this.websocketURI = `wss://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.ref}`
-		this.websocketAPIArn = `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/POST/@connections/*`
-		this.websocketManagementAPIURL = `https://${api.ref}.execute-api.${parent.region}.amazonaws.com/${stage.stageName}`
+		this.websocketURI = `wss://${api.ref}.execute-api.${
+			Stack.of(parent).region
+		}.amazonaws.com/${stage.ref}`
+		this.websocketAPIArn = `arn:aws:execute-api:${Stack.of(parent).region}:${
+			Stack.of(parent).account
+		}:${api.ref}/${stage.stageName}/POST/@connections/*`
+		this.websocketManagementAPIURL = `https://${api.ref}.execute-api.${
+			Stack.of(parent).region
+		}.amazonaws.com/${stage.stageName}`
 
 		// Connect
 		const onConnect = new Lambda.Function(this, 'onConnect', {
@@ -93,7 +99,11 @@ export class WebsocketAPI extends Construct {
 				apiId: api.ref,
 				description: 'Connect integration',
 				integrationType: 'AWS_PROXY',
-				integrationUri: `arn:aws:apigateway:${parent.region}:lambda:path/2015-03-31/functions/${onConnect.functionArn}/invocations`,
+				integrationUri: `arn:aws:apigateway:${
+					Stack.of(parent).region
+				}:lambda:path/2015-03-31/functions/${
+					onConnect.functionArn
+				}/invocations`,
 			},
 		)
 		const connectRoute = new ApiGateway.CfnRoute(this, 'connectRoute', {
@@ -120,6 +130,24 @@ export class WebsocketAPI extends Construct {
 			},
 			layers: [baseLayer],
 			logRetention: Logs.RetentionDays.ONE_WEEK,
+			initialPolicy: [
+				new IAM.PolicyStatement({
+					actions: ['iot:Publish'],
+					resources: [
+						`arn:aws:iot:${Stack.of(parent).region}:${
+							Stack.of(parent).account
+						}:topic/*/nrplus-ctrl`,
+					],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['iot:DescribeThing'],
+					resources: [
+						`arn:aws:iot:${Stack.of(parent).region}:${
+							Stack.of(parent).account
+						}:thing/nrplus-gw-*`,
+					],
+				}),
+			],
 		})
 		this.connectionsTable.grantReadWriteData(onMessage)
 
@@ -130,7 +158,11 @@ export class WebsocketAPI extends Construct {
 				apiId: api.ref,
 				description: 'Send messages integration',
 				integrationType: 'AWS_PROXY',
-				integrationUri: `arn:aws:apigateway:${parent.region}:lambda:path/2015-03-31/functions/${onMessage.functionArn}/invocations`,
+				integrationUri: `arn:aws:apigateway:${
+					Stack.of(parent).region
+				}:lambda:path/2015-03-31/functions/${
+					onMessage.functionArn
+				}/invocations`,
 			},
 		)
 		const sendMessageRoute = new ApiGateway.CfnRoute(this, 'sendMessageRoute', {
@@ -168,7 +200,11 @@ export class WebsocketAPI extends Construct {
 				apiId: api.ref,
 				description: 'Disconnect integration',
 				integrationType: 'AWS_PROXY',
-				integrationUri: `arn:aws:apigateway:${parent.region}:lambda:path/2015-03-31/functions/${onDisconnect.functionArn}/invocations`,
+				integrationUri: `arn:aws:apigateway:${
+					Stack.of(parent).region
+				}:lambda:path/2015-03-31/functions/${
+					onDisconnect.functionArn
+				}/invocations`,
 			},
 		)
 		const disconnectRoute = new ApiGateway.CfnRoute(this, 'disconnectRoute', {
@@ -184,19 +220,25 @@ export class WebsocketAPI extends Construct {
 			principal: new IAM.ServicePrincipal(
 				'apigateway.amazonaws.com',
 			) as IAM.IPrincipal,
-			sourceArn: `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/sendmessage`,
+			sourceArn: `arn:aws:execute-api:${Stack.of(parent).region}:${
+				Stack.of(parent).account
+			}:${api.ref}/${stage.stageName}/sendmessage`,
 		})
 		onConnect.addPermission('invokeByAPI', {
 			principal: new IAM.ServicePrincipal(
 				'apigateway.amazonaws.com',
 			) as IAM.IPrincipal,
-			sourceArn: `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/$connect`,
+			sourceArn: `arn:aws:execute-api:${Stack.of(parent).region}:${
+				Stack.of(parent).account
+			}:${api.ref}/${stage.stageName}/$connect`,
 		})
 		onDisconnect.addPermission('invokeByAPI', {
 			principal: new IAM.ServicePrincipal(
 				'apigateway.amazonaws.com',
 			) as IAM.IPrincipal,
-			sourceArn: `arn:aws:execute-api:${parent.region}:${parent.account}:${api.ref}/${stage.stageName}/$disconnect`,
+			sourceArn: `arn:aws:execute-api:${Stack.of(parent).region}:${
+				Stack.of(parent).account
+			}:${api.ref}/${stage.stageName}/$disconnect`,
 		})
 
 		// Publish events
@@ -248,7 +290,9 @@ export class WebsocketAPI extends Construct {
 							new IAM.PolicyStatement({
 								actions: ['iot:Publish'],
 								resources: [
-									`arn:aws:iot:${parent.region}:${parent.account}:topic/errors`,
+									`arn:aws:iot:${Stack.of(parent).region}:${
+										Stack.of(parent).account
+									}:topic/errors`,
 								],
 							}),
 						],
