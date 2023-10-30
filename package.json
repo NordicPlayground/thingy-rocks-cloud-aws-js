@@ -25,12 +25,12 @@
   "author": "Nordic Semiconductor ASA | nordicsemi.no",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "@aws-sdk/client-apigatewaymanagementapi": "3.437.0",
-    "@aws-sdk/client-dynamodb": "3.437.0",
-    "@aws-sdk/client-iot": "3.437.0",
-    "@aws-sdk/client-iot-data-plane": "3.437.0",
-    "@aws-sdk/client-timestream-query": "3.437.0",
-    "@aws-sdk/util-dynamodb": "3.437.0",
+    "@aws-sdk/client-apigatewaymanagementapi": "3.438.0",
+    "@aws-sdk/client-dynamodb": "3.438.0",
+    "@aws-sdk/client-iot": "3.438.0",
+    "@aws-sdk/client-iot-data-plane": "3.438.0",
+    "@aws-sdk/client-timestream-query": "3.438.0",
+    "@aws-sdk/util-dynamodb": "3.438.0",
     "@commitlint/config-conventional": "18.1.0",
     "@nordicsemiconductor/asset-tracker-cloud-code-style": "12.0.103",
     "@nordicsemiconductor/eslint-config-asset-tracker-cloud-typescript": "16.0.23",
@@ -50,7 +50,7 @@
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-import": "2.29.0",
     "eslint-plugin-prefer-arrow": "1.2.3",
-    "eslint-plugin-unicorn": "48.0.1",
+    "eslint-plugin-unicorn": "49.0.0",
     "glob": "10.3.10",
     "husky": "8.0.3",
     "prettier": "3.0.3",
@@ -88,7 +88,7 @@
   "dependencies": {
     "@nordicsemiconductor/from-env": "2.0.0",
     "@nordicsemiconductor/timestream-helpers": "6.0.1",
-    "@sinclair/typebox": "0.31.20",
+    "@sinclair/typebox": "0.31.21",
     "ajv": "8.12.0"
   }
 }
