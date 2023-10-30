@@ -36,6 +36,8 @@ type Cell = {
 export type DeviceEvent = {
 	deviceId: string
 	deviceAlias?: string
+	// The fixed geo-location of the device,
+	deviceLocation?: string // e.g.: 63.42115901688979,10.437200141182338
 } & (
 	| {
 			reported: Record<string, any>
