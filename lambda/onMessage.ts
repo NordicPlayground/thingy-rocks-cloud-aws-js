@@ -105,7 +105,7 @@ export const handler = async (
 		await iotData.send(
 			new PublishCommand({
 				topic: `${deviceId}/nrplus-ctrl`,
-				payload: Buffer.from(nrplusCtrl, 'hex'),
+				payload: Buffer.from(nrplusCtrl, 'utf-8'),
 				qos: 1,
 			}),
 		)

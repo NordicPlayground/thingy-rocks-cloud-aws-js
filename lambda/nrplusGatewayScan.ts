@@ -26,7 +26,7 @@ export const handler = async (): Promise<void> => {
 			return iotData.send(
 				new PublishCommand({
 					topic,
-					payload: Buffer.from(payload, 'hex'),
+					payload: Buffer.from(payload, 'utf-8'),
 					qos: 1,
 				}),
 			)
