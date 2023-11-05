@@ -7,15 +7,23 @@ import type {
 } from 'aws-lambda'
 import { validateWithTypeBox } from './validateWithTypeBox.js'
 import {
+	GetThingShadowCommand,
 	IoTDataPlaneClient,
 	PublishCommand,
 } from '@aws-sdk/client-iot-data-plane'
-import { DescribeThingCommand, IoTClient } from '@aws-sdk/client-iot'
+import {
+	DescribeThingCommand,
+	IoTClient,
+	ListThingsCommand,
+} from '@aws-sdk/client-iot'
+import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
+import { sendEvent } from './notifyClients.js'
+import type { LwM2MObject } from '@hello.nrfcloud.com/proto-lwm2m'
+import { shadowToObjects } from '../lwm2m/shadowToObjects.js'
 
-const db = new DynamoDBClient({})
-
-const { TableName } = fromEnv({
+const { TableName, websocketManagementAPIURL } = fromEnv({
 	TableName: 'CONNECTIONS_TABLE_NAME',
+	websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
 })(process.env)
 
 const message = Type.Object({
@@ -30,6 +38,14 @@ const validateMessage = validateWithTypeBox(message)
 
 const iotData = new IoTDataPlaneClient({})
 const iot = new IoTClient({})
+const db = new DynamoDBClient({})
+
+const apiGwManagementClient = new ApiGatewayManagementApi({
+	endpoint: websocketManagementAPIURL,
+})
+
+const send = sendEvent(apiGwManagementClient)
+const decoder = new TextDecoder()
 
 export const handler = async (
 	event: APIGatewayProxyWebsocketEventV2,
@@ -77,6 +93,43 @@ export const handler = async (
 		return {
 			statusCode: 200,
 		}
+	}
+
+	if (message.data === 'LWM2M-shadows') {
+		// Publish LwM2M shadows
+		const { things } = await iot.send(
+			new ListThingsCommand({
+				maxResults: 250,
+				thingTypeName: '',
+			}),
+		)
+		const shadows = (
+			await Promise.all<{
+				deviceId: string
+				shadow: LwM2MObject[]
+			}>(
+				(things ?? []).map(async ({ thingName }) =>
+					iotData
+						.send(new GetThingShadowCommand({ thingName, shadowName: 'lwm2m' }))
+						.then(async ({ payload }) => ({
+							deviceId: thingName as string,
+							shadow: shadowToObjects(
+								JSON.parse(decoder.decode(payload)).state.reported,
+							),
+						}))
+						.catch(() => ({
+							deviceId: thingName as string,
+							shadow: [],
+						})),
+				),
+			)
+		).filter(({ shadow }) => shadow.length > 0)
+
+		await send(
+			event.requestContext.connectionId,
+			{ shadows },
+			new URL('https://thingy.rocks/lwm2m-shadows'),
+		).catch(console.error)
 	}
 
 	const maybeValidMessage = validateMessage(message)

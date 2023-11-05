@@ -127,6 +127,7 @@ export class WebsocketAPI extends Construct {
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
 				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
+				WEBSOCKET_MANAGEMENT_API_URL: this.websocketManagementAPIURL,
 			},
 			layers: [baseLayer],
 			logRetention: Logs.RetentionDays.ONE_WEEK,
@@ -146,6 +147,14 @@ export class WebsocketAPI extends Construct {
 							Stack.of(parent).account
 						}:thing/nrplus-gw-*`,
 					],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['execute-api:ManageConnections'],
+					resources: [this.websocketAPIArn],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['iot:GetThingShadow', 'iot:ListThings'],
+					resources: ['*'],
 				}),
 			],
 		})

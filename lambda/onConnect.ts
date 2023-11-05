@@ -4,9 +4,10 @@ import type {
 	APIGatewayProxyStructuredResultV2,
 	APIGatewayProxyWebsocketEventV2,
 } from 'aws-lambda'
-const { TableName } = fromEnv({ TableName: 'CONNECTIONS_TABLE_NAME' })(
-	process.env,
-)
+
+const { TableName } = fromEnv({
+	TableName: 'CONNECTIONS_TABLE_NAME',
+})(process.env)
 
 const db = new DynamoDBClient({})
 

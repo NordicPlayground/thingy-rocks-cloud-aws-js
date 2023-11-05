@@ -62,20 +62,20 @@ export type CellGeoLocationEvent = {
 
 export type Event = DeviceEvent | CellGeoLocationEvent
 
-export const notifyClients =
-	(
-		{
-			db,
-			connectionsTableName,
-			apiGwManagementClient,
-		}: {
-			db: DynamoDBClient
-			connectionsTableName: string
-			apiGwManagementClient: ApiGatewayManagementApiClient
-		},
-		dropMessage = false,
-	) =>
-	async (event: Event): Promise<void> => {
+export const notifyClients = (
+	{
+		db,
+		connectionsTableName,
+		apiGwManagementClient,
+	}: {
+		db: DynamoDBClient
+		connectionsTableName: string
+		apiGwManagementClient: ApiGatewayManagementApiClient
+	},
+	dropMessage = false,
+): ((event: Event) => Promise<void>) => {
+	const send = sendEvent(apiGwManagementClient)
+	return async (event: Event): Promise<void> => {
 		console.log(
 			JSON.stringify({
 				event,
@@ -95,19 +95,7 @@ export const notifyClients =
 				const context = getEventContext(event)
 				if (context === null)
 					throw new Error(`Unknown event: ${JSON.stringify(event)}`)
-				console.log(`Notifying client`, connectionId)
-
-				await apiGwManagementClient.send(
-					new PostToConnectionCommand({
-						ConnectionId: connectionId,
-						Data: Buffer.from(
-							JSON.stringify({
-								'@context': context,
-								...event,
-							}),
-						),
-					}),
-				)
+				await send(connectionId, event, context)
 			} catch (err) {
 				if ((err as Error).name === 'GoneException') {
 					console.log(`Client is gone`, connectionId)
@@ -127,14 +115,37 @@ export const notifyClients =
 			}
 		}
 	}
+}
 
-const getEventContext = (event: Event): string | null => {
-	if ('reported' in event) return 'https://thingy.rocks/device-shadow'
-	if ('message' in event) return 'https://thingy.rocks/device-message'
-	if ('location' in event) return 'https://thingy.rocks/device-location'
-	if ('history' in event) return 'https://thingy.rocks/device-history'
+export const sendEvent =
+	(client: ApiGatewayManagementApiClient) =>
+	async (
+		connectionId: string,
+		event: Record<string, unknown>,
+		context: URL,
+	): Promise<void> => {
+		console.log(`Notifying client`, connectionId)
+		await client.send(
+			new PostToConnectionCommand({
+				ConnectionId: connectionId,
+				Data: Buffer.from(
+					JSON.stringify({
+						'@context': context.toString(),
+						...event,
+					}),
+				),
+			}),
+		)
+	}
+
+const getEventContext = (event: Event): URL | null => {
+	if ('reported' in event) return new URL('https://thingy.rocks/device-shadow')
+	if ('message' in event) return new URL('https://thingy.rocks/device-message')
+	if ('location' in event)
+		return new URL('https://thingy.rocks/device-location')
+	if ('history' in event) return new URL('https://thingy.rocks/device-history')
 	if ('cellGeoLocation' in event)
-		return 'https://thingy.rocks/cell-geo-location'
+		return new URL('https://thingy.rocks/cell-geo-location')
 	return null
 }
 
