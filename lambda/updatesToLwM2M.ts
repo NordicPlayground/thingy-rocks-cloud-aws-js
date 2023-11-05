@@ -11,7 +11,7 @@ import { fromEnv } from '@nordicsemiconductor/from-env'
 import { transformShadowUpdateToLwM2M } from '../lwm2m/transformShadowUpdateToLwM2M.js'
 import { models, type LwM2MObject } from '@hello.nrfcloud.com/proto-lwm2m'
 import { ulid } from 'ulid'
-import { updatesToShadow } from '../lwm2m/objectsToShadow.js'
+import { objectsToShadow } from '../lwm2m/objectsToShadow.js'
 
 const { tableName } = fromEnv({
 	tableName: 'TABLE_NAME',
@@ -77,7 +77,7 @@ const updateShadow = async (
 			shadowName: 'lwm2m',
 			payload: JSON.stringify({
 				state: {
-					reported: updatesToShadow(objects),
+					reported: objectsToShadow(objects),
 				},
 			}),
 		}),
