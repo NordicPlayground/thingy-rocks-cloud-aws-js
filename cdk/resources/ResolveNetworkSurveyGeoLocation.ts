@@ -6,7 +6,6 @@ import {
 	aws_iam as IAM,
 	aws_lambda as Lambda,
 	aws_lambda_event_sources as LambdaEvents,
-	Stack,
 	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
@@ -18,7 +17,7 @@ import type { WebsocketAPI } from './WebsocketAPI'
  */
 export class ResolveNetworkSurveyGeoLocation extends Construct {
 	constructor(
-		parent: Stack,
+		parent: Construct,
 		{
 			lambdaSources,
 			baseLayer,

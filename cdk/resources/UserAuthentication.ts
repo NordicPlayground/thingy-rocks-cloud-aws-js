@@ -2,7 +2,6 @@ import {
 	aws_cognito as Cognito,
 	aws_iam as IAM,
 	RemovalPolicy,
-	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 
@@ -11,7 +10,7 @@ export class UserAuthentication extends Construct {
 	public readonly unauthenticatedUserRole: IAM.IRole
 	public readonly identityPool: Cognito.CfnIdentityPool
 	public readonly userPool: Cognito.UserPool
-	constructor(parent: Stack, id: string) {
+	constructor(parent: Construct, id: string) {
 		super(parent, id)
 
 		this.userPool = new Cognito.UserPool(this, 'userPool', {

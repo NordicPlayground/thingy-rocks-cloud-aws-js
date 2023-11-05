@@ -16,6 +16,7 @@ import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
 import { STACK_NAME } from './stackName.js'
 import { NRPlusGateway } from '../resources/NRPlusGateway.js'
+import { LwM2M } from '../resources/LwM2M.js'
 
 export class BackendStack extends Stack {
 	public constructor(
@@ -96,6 +97,11 @@ export class BackendStack extends Stack {
 			lambdaSources,
 		})
 
+		const lwm2m = new LwM2M(this, {
+			lambdaSources,
+			baseLayer,
+		})
+
 		// Outputs
 		new CfnOutput(this, 'WebSocketURI', {
 			exportName: `${this.stackName}:WebSocketURI`,
@@ -121,6 +127,11 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'identityPoolId', {
 			value: userAuthentication.identityPool.ref,
 			exportName: `${this.stackName}:identityPoolId`,
+		})
+
+		new CfnOutput(this, 'lwm2mTableName', {
+			value: lwm2m.table.tableName,
+			exportName: `${this.stackName}:lwm2mTableName`,
 		})
 	}
 }

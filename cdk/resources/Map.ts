@@ -7,7 +7,7 @@ export class Map extends Construct {
 	public readonly map: CfnMap
 
 	constructor(
-		parent: Stack,
+		parent: Construct,
 		id: string,
 		{
 			userAuthentication,
@@ -18,7 +18,7 @@ export class Map extends Construct {
 		super(parent, id)
 
 		this.map = new Location.CfnMap(this, 'mapDark', {
-			mapName: `${parent.stackName}-map`,
+			mapName: `${Stack.of(parent).stackName}-map`,
 			description:
 				'Map used to display on the dashboard (Esri Dark Gray Canvas)',
 			configuration: {

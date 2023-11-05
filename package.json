@@ -86,9 +86,12 @@
   },
   "prettier": "@nordicsemiconductor/asset-tracker-cloud-code-style/.prettierrc",
   "dependencies": {
+    "@hello.nrfcloud.com/proto-lwm2m": "1.4.2",
     "@nordicsemiconductor/from-env": "2.0.0",
     "@nordicsemiconductor/timestream-helpers": "6.0.1",
     "@sinclair/typebox": "0.31.22",
-    "ajv": "8.12.0"
+    "ajv": "8.12.0",
+    "jsonata": "2.0.3",
+    "ulid": "2.3.0"
   }
 }

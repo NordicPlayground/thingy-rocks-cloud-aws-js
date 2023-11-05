@@ -14,7 +14,7 @@ import type { WebsocketAPI } from './WebsocketAPI.js'
 
 export class ResolveCellLocation extends Construct {
 	public constructor(
-		parent: Stack,
+		parent: Construct,
 		{
 			lambdaSources,
 			baseLayer,
@@ -85,7 +85,9 @@ export class ResolveCellLocation extends Construct {
 							new IAM.PolicyStatement({
 								actions: ['iot:Publish'],
 								resources: [
-									`arn:aws:iot:${parent.region}:${parent.account}:topic/errors`,
+									`arn:aws:iot:${Stack.of(parent).region}:${
+										Stack.of(parent).account
+									}:topic/errors`,
 								],
 							}),
 						],

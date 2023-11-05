@@ -11,6 +11,9 @@ const packagesInLayer: string[] = [
 	'@sinclair/typebox',
 	'ajv',
 	'@nordicsemiconductor/timestream-helpers',
+	'@hello.nrfcloud.com/proto-lwm2m',
+	'jsonata',
+	'ulid',
 ]
 const pack = async (
 	id: string,
@@ -47,6 +50,7 @@ new BackendApp({
 		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
 		parseSinkMessages: await pack('parseSinkMessages'),
 		nrplusGatewayScan: await pack('nrplusGatewayScan'),
+		updatesToLwM2M: await pack('updatesToLwM2M'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

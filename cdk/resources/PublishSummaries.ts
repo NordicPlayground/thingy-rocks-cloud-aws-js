@@ -4,7 +4,6 @@ import {
 	aws_iam as IAM,
 	aws_lambda as Lambda,
 	Duration,
-	Stack,
 	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
@@ -17,7 +16,7 @@ import type { WebsocketAPI } from './WebsocketAPI.js'
  */
 export class PublishSummaries extends Construct {
 	public constructor(
-		parent: Stack,
+		parent: Construct,
 		{
 			lambdaSources,
 			baseLayer,
