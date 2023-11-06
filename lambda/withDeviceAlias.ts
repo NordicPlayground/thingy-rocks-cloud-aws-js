@@ -25,7 +25,7 @@ export const withDeviceAlias = <N extends ReturnType<typeof notifyClients>>(
 
 const deviceInfo: Record<string, { alias?: string; location?: string }> = {}
 
-const getDeviceInfo =
+export const getDeviceInfo =
 	(iot: IoTClient) =>
 	async (deviceId: string): Promise<{ alias?: string; location?: string }> => {
 		const info =

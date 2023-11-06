@@ -20,6 +20,7 @@ import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi
 import { sendEvent } from './notifyClients.js'
 import type { LwM2MObject } from '@hello.nrfcloud.com/proto-lwm2m'
 import { shadowToObjects } from '../lwm2m/shadowToObjects.js'
+import { getDeviceInfo } from './withDeviceAlias.js'
 
 const { TableName, websocketManagementAPIURL } = fromEnv({
 	TableName: 'CONNECTIONS_TABLE_NAME',
@@ -46,6 +47,8 @@ const apiGwManagementClient = new ApiGatewayManagementApi({
 
 const send = sendEvent(apiGwManagementClient)
 const decoder = new TextDecoder()
+
+const deviceInfo = getDeviceInfo(iot)
 
 export const handler = async (
 	event: APIGatewayProxyWebsocketEventV2,
@@ -106,24 +109,26 @@ export const handler = async (
 		const shadows = (
 			await Promise.all<{
 				deviceId: string
-				shadow: LwM2MObject[]
+				alias?: string
+				objects: LwM2MObject[]
 			}>(
 				(things ?? []).map(async ({ thingName }) =>
 					iotData
 						.send(new GetThingShadowCommand({ thingName, shadowName: 'lwm2m' }))
 						.then(async ({ payload }) => ({
 							deviceId: thingName as string,
-							shadow: shadowToObjects(
+							alias: (await deviceInfo(thingName as string)).alias,
+							objects: shadowToObjects(
 								JSON.parse(decoder.decode(payload)).state.reported,
 							),
 						}))
 						.catch(() => ({
 							deviceId: thingName as string,
-							shadow: [],
+							objects: [],
 						})),
 				),
 			)
-		).filter(({ shadow }) => shadow.length > 0)
+		).filter(({ objects }) => objects.length > 0)
 
 		await send(
 			event.requestContext.connectionId,

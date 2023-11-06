@@ -141,19 +141,15 @@ export class WebsocketAPI extends Construct {
 					],
 				}),
 				new IAM.PolicyStatement({
-					actions: ['iot:DescribeThing'],
-					resources: [
-						`arn:aws:iot:${Stack.of(parent).region}:${
-							Stack.of(parent).account
-						}:thing/nrplus-gw-*`,
-					],
-				}),
-				new IAM.PolicyStatement({
 					actions: ['execute-api:ManageConnections'],
 					resources: [this.websocketAPIArn],
 				}),
 				new IAM.PolicyStatement({
-					actions: ['iot:GetThingShadow', 'iot:ListThings'],
+					actions: [
+						'iot:GetThingShadow',
+						'iot:ListThings',
+						'iot:DescribeThing',
+					],
 					resources: ['*'],
 				}),
 			],
