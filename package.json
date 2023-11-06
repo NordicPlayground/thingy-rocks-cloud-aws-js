@@ -86,7 +86,7 @@
   },
   "prettier": "@nordicsemiconductor/asset-tracker-cloud-code-style/.prettierrc",
   "dependencies": {
-    "@hello.nrfcloud.com/proto-lwm2m": "1.4.2",
+    "@hello.nrfcloud.com/proto-lwm2m": "1.5.1",
     "@nordicsemiconductor/from-env": "2.0.0",
     "@nordicsemiconductor/timestream-helpers": "6.0.1",
     "@sinclair/typebox": "0.31.22",
