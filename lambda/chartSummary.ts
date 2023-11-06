@@ -43,19 +43,6 @@ type Readings = Reading[]
 export type Summary = {
 	bat?: Readings
 	temp?: Readings
-	solBat?: Readings
-	/**
-	 * Contains one or more significant readings to display as guides.
-	 *
-	 * Used for example to visualize that the battery level did not change for Thingys with Solar shield.
-	 */
-	guides?: [
-		type: 'bat' | 'temp' | 'solGain',
-		v: number,
-		// Delta to the base date in seconds
-		d: number,
-	][]
-	solGain?: Readings
 	// Fuel gauge readings, see https://github.com/NordicSemiconductor/asset-tracker-cloud-docs/blob/4713549af719a7e119324853aa117d752ac856e3/docs/cloud-protocol/Reported.ts#L111
 	fgSoC?: Readings
 	fgI?: Readings
@@ -100,153 +87,87 @@ export const createChartSummary = async ({
 	historicaldataDatabaseName: string
 	historicaldataTableName: string
 }): Promise<Summaries> => {
-	const [bat, temp, solBat, solGain, fgSoC, fgI, fgTTE, fgTTF, fgT] =
-		await Promise.all([
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'bat',
-						hours: 1,
-					}),
+	const [bat, temp, fgSoC, fgI, fgTTE, fgTTF, fgT] = await Promise.all([
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'bat',
+					hours: 1,
 				}),
-			),
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'env.temp',
-						hours: 1,
-					}),
+			}),
+		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'env.temp',
+					hours: 1,
 				}),
-			),
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'sol.bat',
-						hours: 1,
-					}),
+			}),
+		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'fg.SoC',
+					hours: 1,
 				}),
-			),
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'sol.gain',
-						hours: 1,
-					}),
+			}),
+		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'fg.I',
+					hours: 1,
 				}),
-			),
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'fg.SoC',
-						hours: 1,
-					}),
+			}),
+		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'fg.TTE',
+					hours: 1,
 				}),
-			),
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'fg.I',
-						hours: 1,
-					}),
+			}),
+		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'fg.TTF',
+					hours: 1,
 				}),
-			),
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'fg.TTE',
-						hours: 1,
-					}),
+			}),
+		),
+		timestream.send(
+			new QueryCommand({
+				QueryString: summaryQuery({
+					db: historicaldataDatabaseName,
+					table: historicaldataTableName,
+					measureName: 'fg.T',
+					hours: 1,
 				}),
-			),
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'fg.TTF',
-						hours: 1,
-					}),
-				}),
-			),
-			timestream.send(
-				new QueryCommand({
-					QueryString: summaryQuery({
-						db: historicaldataDatabaseName,
-						table: historicaldataTableName,
-						measureName: 'fg.T',
-						hours: 1,
-					}),
-				}),
-			),
-		])
+			}),
+		),
+	])
 	const now = new Date()
 	const summaries: Summaries = {}
 	groupResult(summaries, 'bat', bat, now, (v) => v / 1000)
 	groupResult(summaries, 'temp', temp, now)
-	groupResult(summaries, 'solBat', solBat, now)
-	groupResult(summaries, 'solGain', solGain, now)
 	groupResult(summaries, 'fgSoC', fgSoC, now)
 	groupResult(summaries, 'fgI', fgI, now)
 	groupResult(summaries, 'fgTTE', fgTTE, now)
 	groupResult(summaries, 'fgTTF', fgTTF, now)
 	groupResult(summaries, 'fgT', fgT, now)
-
-	// Get battery values from 8 hours ago
-	const batLevels = (
-		await Promise.all(
-			Object.entries(summaries)
-				.filter(([, summary]) => 'bat' in summary)
-				.map(async ([deviceId]) => {
-					const res = await timestream.send(
-						new QueryCommand({
-							QueryString: [
-								`SELECT measure_value::double / 1000 as v, time as ts`,
-								`FROM "${historicaldataDatabaseName}"."${historicaldataTableName}"`,
-								`WHERE measure_name = 'bat'`,
-								`AND time < date_add('hour', -8, now())`,
-								`AND deviceId = '${deviceId}'`,
-								`ORDER BY time DESC`,
-								`LIMIT 1`,
-							].join(' '),
-						}),
-					)
-					return {
-						deviceId,
-						historyBat: parseResult<{ v: number; ts: Date }>(res)[0],
-					}
-				}),
-		)
-	).reduce(
-		(batLevels, { deviceId, historyBat }) => {
-			if (historyBat === undefined) return batLevels
-			const { v, ts } = historyBat
-			return {
-				...batLevels,
-				[deviceId]: <Reading>[
-					v,
-					Math.max(0, Math.floor((now.getTime() - ts.getTime()) / 1000)),
-				],
-			}
-		},
-		{} as Record<string, Reading>,
-	)
-	for (const [deviceId, reading] of Object.entries(batLevels)) {
-		;(summaries[deviceId] as Summary).guides = [['bat', ...reading]]
-	}
 
 	return summaries
 }
