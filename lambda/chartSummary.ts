@@ -46,9 +46,6 @@ export type Summary = {
 	// Fuel gauge readings, see https://github.com/NordicSemiconductor/asset-tracker-cloud-docs/blob/4713549af719a7e119324853aa117d752ac856e3/docs/cloud-protocol/Reported.ts#L111
 	fgSoC?: Readings
 	fgI?: Readings
-	fgTTE?: Readings
-	fgTTF?: Readings
-	fgT?: Readings
 	base: Date
 }
 
@@ -87,7 +84,7 @@ export const createChartSummary = async ({
 	historicaldataDatabaseName: string
 	historicaldataTableName: string
 }): Promise<Summaries> => {
-	const [bat, temp, fgSoC, fgI, fgTTE, fgTTF, fgT] = await Promise.all([
+	const [bat, temp, fgSoC, fgI] = await Promise.all([
 		timestream.send(
 			new QueryCommand({
 				QueryString: summaryQuery({
@@ -128,36 +125,6 @@ export const createChartSummary = async ({
 				}),
 			}),
 		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'fg.TTE',
-					hours: 1,
-				}),
-			}),
-		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'fg.TTF',
-					hours: 1,
-				}),
-			}),
-		),
-		timestream.send(
-			new QueryCommand({
-				QueryString: summaryQuery({
-					db: historicaldataDatabaseName,
-					table: historicaldataTableName,
-					measureName: 'fg.T',
-					hours: 1,
-				}),
-			}),
-		),
 	])
 	const now = new Date()
 	const summaries: Summaries = {}
@@ -165,9 +132,6 @@ export const createChartSummary = async ({
 	groupResult(summaries, 'temp', temp, now)
 	groupResult(summaries, 'fgSoC', fgSoC, now)
 	groupResult(summaries, 'fgI', fgI, now)
-	groupResult(summaries, 'fgTTE', fgTTE, now)
-	groupResult(summaries, 'fgTTF', fgTTF, now)
-	groupResult(summaries, 'fgT', fgT, now)
 
 	return summaries
 }
