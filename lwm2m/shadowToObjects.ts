@@ -1,12 +1,12 @@
 import {
 	timestampResources,
-	type LwM2MObject,
+	type LwM2MObjectInstance,
 } from '@hello.nrfcloud.com/proto-lwm2m'
 import type { LwM2MShadow } from './objectsToShadow'
 
-export const shadowToObjects = (shadow: LwM2MShadow): LwM2MObject[] =>
+export const shadowToObjects = (shadow: LwM2MShadow): LwM2MObjectInstance[] =>
 	Object.entries(shadow)
-		.map(([ObjectIdAndVersion, Resources]) => {
+		.map(([ObjectIdAndVersion, Instances]) => {
 			const [ObjectIDString, ObjectVersion] = ObjectIdAndVersion.split(':') as [
 				string,
 				string,
@@ -14,19 +14,26 @@ export const shadowToObjects = (shadow: LwM2MShadow): LwM2MObject[] =>
 			const ObjectID = parseInt(ObjectIDString, 10)
 			const tsResource = timestampResources[ObjectID]
 			if (tsResource === undefined) return null
-			return {
-				ObjectID,
-				ObjectVersion,
-				Resources: Object.entries(Resources).reduce(
-					(Resources, [k, v]) => ({
-						...Resources,
-						[k]:
-							typeof v === 'number' && parseInt(k, 10) === tsResource
-								? new Date(v)
-								: v,
-					}),
-					{},
-				),
-			}
+			return Object.entries(Instances).map(([instanceId, Resources]) => {
+				const ObjectInstanceID = parseInt(instanceId, 10)
+				const objectInstance: LwM2MObjectInstance = {
+					ObjectID,
+					ObjectVersion,
+					Resources: Object.entries(Resources).reduce(
+						(Resources, [k, v]) => ({
+							...Resources,
+							[k]:
+								typeof v === 'number' && parseInt(k, 10) === tsResource
+									? new Date(v)
+									: v,
+						}),
+						{},
+					),
+				}
+				if (ObjectInstanceID > 0)
+					objectInstance.ObjectInstanceID = ObjectInstanceID
+				return objectInstance
+			})
 		})
-		.filter((o) => o !== null) as LwM2MObject[]
+		.flat()
+		.filter((o) => o !== null) as LwM2MObjectInstance[]

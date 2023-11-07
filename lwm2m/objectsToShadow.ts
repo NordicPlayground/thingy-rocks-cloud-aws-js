@@ -1,11 +1,13 @@
-import type { LwM2MObject } from '@hello.nrfcloud.com/proto-lwm2m'
+import type { LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-lwm2m'
 
 export type LwM2MShadow = Record<
 	string,
-	Record<string, string | number | boolean>
+	Record<number, Record<number, string | number | boolean>>
 >
 
-export const objectsToShadow = (objects: Array<LwM2MObject>): LwM2MShadow =>
+export const objectsToShadow = (
+	objects: Array<LwM2MObjectInstance>,
+): LwM2MShadow =>
 	objects
 		.sort((u1, u2) => {
 			const d1 = Object.values(u1.Resources).find(
@@ -21,14 +23,16 @@ export const objectsToShadow = (objects: Array<LwM2MObject>): LwM2MShadow =>
 			return {
 				...shadow,
 				[key]: {
-					...(shadow[key] ?? {}),
-					...Object.entries(update.Resources).reduce((resources, [k, v]) => {
-						if (v instanceof Date) return { ...resources, [k]: v.getTime() }
-						return {
-							...resources,
-							[k]: v,
-						}
-					}, {}),
+					[update.ObjectInstanceID ?? 0]: {
+						...(shadow[key] ?? {}),
+						...Object.entries(update.Resources).reduce((resources, [k, v]) => {
+							if (v instanceof Date) return { ...resources, [k]: v.getTime() }
+							return {
+								...resources,
+								[k]: v,
+							}
+						}, {}),
+					},
 				},
 			}
 		}, {})

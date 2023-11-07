@@ -9,7 +9,10 @@ import {
 } from '@aws-sdk/client-iot-data-plane'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { transformShadowUpdateToLwM2M } from '../lwm2m/transformShadowUpdateToLwM2M.js'
-import { models, type LwM2MObject } from '@hello.nrfcloud.com/proto-lwm2m'
+import {
+	models,
+	type LwM2MObjectInstance,
+} from '@hello.nrfcloud.com/proto-lwm2m'
 import { ulid } from 'ulid'
 import { objectsToShadow } from '../lwm2m/objectsToShadow.js'
 
@@ -25,7 +28,7 @@ const transformUpdate = transformShadowUpdateToLwM2M(
 
 const persist = async (
 	deviceId: string,
-	objects: LwM2MObject[],
+	objects: LwM2MObjectInstance[],
 ): Promise<void> => {
 	await db.send(
 		new BatchWriteItemCommand({
@@ -69,7 +72,7 @@ const convertValue = (v: string | number | boolean | Date): AttributeValue => {
 
 const updateShadow = async (
 	deviceId: string,
-	objects: LwM2MObject[],
+	objects: LwM2MObjectInstance[],
 ): Promise<void> => {
 	await iotData.send(
 		new UpdateThingShadowCommand({

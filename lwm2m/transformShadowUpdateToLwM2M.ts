@@ -1,7 +1,7 @@
 import jsonata from 'jsonata'
 import {
 	senMLtoLwM2M,
-	type LwM2MObject,
+	type LwM2MObjectInstance,
 	type Transformer,
 } from '@hello.nrfcloud.com/proto-lwm2m'
 
@@ -24,7 +24,7 @@ export const transformShadowUpdateToLwM2M = (
 		transform: jsonata(transform),
 	}))
 
-	return async (input: Update): Promise<Array<LwM2MObject>> =>
+	return async (input: Update): Promise<Array<LwM2MObjectInstance>> =>
 		Promise.all(
 			transformerFns.map(async ({ match, transform }) => {
 				// Check if the `matched` JSONata returns `true`.

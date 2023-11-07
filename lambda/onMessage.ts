@@ -18,7 +18,7 @@ import {
 } from '@aws-sdk/client-iot'
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { sendEvent } from './notifyClients.js'
-import type { LwM2MObject } from '@hello.nrfcloud.com/proto-lwm2m'
+import type { LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-lwm2m'
 import { shadowToObjects } from '../lwm2m/shadowToObjects.js'
 import { getDeviceInfo } from './withDeviceAlias.js'
 
@@ -110,7 +110,7 @@ export const handler = async (
 			await Promise.all<{
 				deviceId: string
 				alias?: string
-				objects: LwM2MObject[]
+				objects: LwM2MObjectInstance[]
 			}>(
 				(things ?? []).map(async ({ thingName }) =>
 					iotData
