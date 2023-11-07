@@ -4,6 +4,16 @@ import { fromEnv } from '@nordicsemiconductor/from-env'
 import { Type } from '@sinclair/typebox'
 import { LocationSource, Network, notifyClients } from './notifyClients.js'
 import { validateWithTypeBox } from './validateWithTypeBox.js'
+import { IoTClient, SearchIndexCommand } from '@aws-sdk/client-iot'
+import {
+	LwM2MObjectID,
+	type ConnectionInformation_14203,
+} from '@hello.nrfcloud.com/proto-lwm2m'
+import {
+	IoTDataPlaneClient,
+	UpdateThingShadowCommand,
+} from '@aws-sdk/client-iot-data-plane'
+import { objectsToShadow } from '../lwm2m/objectsToShadow.js'
 
 const { connectionsTableName, websocketManagementAPIURL } = fromEnv({
 	connectionsTableName: 'CONNECTIONS_TABLE_NAME',
@@ -24,6 +34,9 @@ enum Nw {
 	lteM = 'ltem',
 	nbIoT = 'nbiot',
 }
+
+const iot = new IoTClient({})
+const iotData = new IoTDataPlaneClient({})
 
 const validateCellGeoLocation = validateWithTypeBox(
 	Type.Object({
@@ -95,4 +108,68 @@ export const handler = async (event: {
 			geoLocation: { lat, lng, accuracy, source },
 		},
 	})
+
+	for (const { shadow, thingName } of (
+		await iot.send(
+			new SearchIndexCommand({
+				queryString: `connectivity.timestamp > ${
+					Date.now() - 24 * 60 * 60 * 1000
+				}`,
+			}),
+		)
+	).things ?? []) {
+		if (shadow === undefined) continue
+		if (shadow === null) continue
+		const connRes =
+			JSON.parse(shadow).name.lwm2m?.reported?.[
+				`${LwM2MObjectID.ConnectionInformation_14203}:1.0`
+			]?.['0']
+		if (connRes === undefined) continue
+		const connection: ConnectionInformation_14203 = {
+			ObjectID: LwM2MObjectID.ConnectionInformation_14203,
+			ObjectVersion: '1.0',
+			Resources: connRes,
+		}
+
+		const thingCell = {
+			nw: connection.Resources[0],
+			cell: connection.Resources['4'],
+			mccmnc: connection.Resources['5'],
+			area: connection.Resources['3'],
+		}
+
+		if (
+			thingCell.nw === nw &&
+			thingCell.cell === cell &&
+			thingCell.mccmnc === mccmnc &&
+			thingCell.area === area
+		) {
+			await iotData.send(
+				new UpdateThingShadowCommand({
+					thingName,
+					shadowName: 'lwm2m',
+					payload: JSON.stringify({
+						state: {
+							reported: objectsToShadow([
+								{
+									ObjectID: LwM2MObjectID.Geolocation_14201,
+									ObjectInstanceID: 2,
+									ObjectVersion: '1.0',
+									Resources: {
+										0: lat,
+										1: lng,
+										3: accuracy,
+										6: source,
+										99: Date.now(),
+									},
+								},
+							]),
+						},
+					}),
+				}),
+			)
+		} else {
+			console.debug(`No match`, thingCell)
+		}
+	}
 }

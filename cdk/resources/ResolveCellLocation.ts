@@ -166,6 +166,10 @@ export class ResolveCellLocation extends Construct {
 						actions: ['execute-api:ManageConnections'],
 						resources: [websocketAPI.websocketAPIArn],
 					}),
+					new IAM.PolicyStatement({
+						actions: ['iot:SearchIndex', 'iot:UpdateThingShadow'],
+						resources: ['*'],
+					}),
 				],
 				layers: [baseLayer],
 				logRetention: Logs.RetentionDays.ONE_WEEK,
