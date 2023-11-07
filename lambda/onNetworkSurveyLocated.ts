@@ -7,6 +7,12 @@ import { Type } from '@sinclair/typebox'
 import { LocationSource, notifyClients } from './notifyClients.js'
 import { validateWithTypeBox } from './validateWithTypeBox.js'
 import { withDeviceAlias } from './withDeviceAlias.js'
+import {
+	IoTDataPlaneClient,
+	UpdateThingShadowCommand,
+} from '@aws-sdk/client-iot-data-plane'
+import { objectsToShadow } from '../lwm2m/objectsToShadow.js'
+import { LwM2MObjectID } from '@hello.nrfcloud.com/proto-lwm2m'
 
 const { connectionsTableName, websocketManagementAPIURL, surveysTableName } =
 	fromEnv({
@@ -27,6 +33,8 @@ const notifier = withDeviceAlias(iot)(
 		apiGwManagementClient,
 	}),
 )
+
+const iotData = new IoTDataPlaneClient({})
 
 const validateNetworkSurveyWithGeoLocation = validateWithTypeBox(
 	Type.Object({
@@ -100,4 +108,29 @@ export const handler = async (event: {
 			source,
 		},
 	})
+
+	await iotData.send(
+		new UpdateThingShadowCommand({
+			thingName: deviceId,
+			shadowName: 'lwm2m',
+			payload: JSON.stringify({
+				state: {
+					reported: objectsToShadow([
+						{
+							ObjectID: LwM2MObjectID.Geolocation_14201,
+							ObjectInstanceID: 1,
+							ObjectVersion: '1.0',
+							Resources: {
+								0: lat,
+								1: lng,
+								3: accuracy,
+								6: source,
+								99: Date.now(),
+							},
+						},
+					]),
+				},
+			}),
+		}),
+	)
 }

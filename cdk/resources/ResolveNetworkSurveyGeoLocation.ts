@@ -65,10 +65,6 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 					actions: ['execute-api:ManageConnections'],
 					resources: [websocketAPI.websocketAPIArn],
 				}),
-				new IAM.PolicyStatement({
-					actions: ['iot:DescribeThing'],
-					resources: ['*'],
-				}),
 			],
 			logRetention: Logs.RetentionDays.ONE_WEEK,
 		})
@@ -111,7 +107,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 						resources: [websocketAPI.websocketAPIArn],
 					}),
 					new IAM.PolicyStatement({
-						actions: ['iot:DescribeThing'],
+						actions: ['iot:DescribeThing', 'iot:UpdateThingShadow'],
 						resources: ['*'],
 					}),
 				],
