@@ -35,7 +35,7 @@ export class LwM2M extends Construct {
 			memorySize: 1792,
 			code: Lambda.Code.fromAsset(lambdaSources.updatesToLwM2M.lambdaZipFile),
 			description:
-				'Invoked when devices report their cell locationStore shadow updates asset_tracker_v2 shadow format as LwM2M objects in a named shadow. Also store the updates in a table for historical data.',
+				'Invoked when devices report their cell locationStore shadow updates asset_tracker_v2 shadow format as LwM2M objects in a named shadow. ',
 			layers: [baseLayer],
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
