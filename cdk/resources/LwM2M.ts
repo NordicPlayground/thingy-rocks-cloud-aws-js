@@ -1,7 +1,5 @@
 import { Construct } from 'constructs'
 import {
-	aws_dynamodb as DynamoDB,
-	RemovalPolicy,
 	Duration,
 	aws_iam as IAM,
 	aws_iot as IoT,
@@ -15,7 +13,6 @@ import type { PackedLambda } from '../backend'
  * Contains resources that provide LwM2M based data for devices
  */
 export class LwM2M extends Construct {
-	public readonly table: DynamoDB.ITable
 	constructor(
 		parent: Construct,
 		{
@@ -30,16 +27,6 @@ export class LwM2M extends Construct {
 	) {
 		super(parent, 'LwM2M')
 
-		this.table = new DynamoDB.Table(this, 'table', {
-			billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
-			partitionKey: {
-				name: 'id',
-				type: DynamoDB.AttributeType.STRING,
-			},
-			timeToLiveAttribute: 'ttl',
-			removalPolicy: RemovalPolicy.DESTROY,
-		})
-
 		const fn = new Lambda.Function(this, 'updatesToLwM2M', {
 			handler: lambdaSources.updatesToLwM2M.handler,
 			architecture: Lambda.Architecture.ARM_64,
@@ -52,7 +39,6 @@ export class LwM2M extends Construct {
 			layers: [baseLayer],
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
-				TABLE_NAME: this.table.tableName,
 			},
 			initialPolicy: [
 				new IAM.PolicyStatement({
@@ -62,8 +48,6 @@ export class LwM2M extends Construct {
 			],
 			logRetention: Logs.RetentionDays.ONE_WEEK,
 		})
-
-		this.table.grantWriteData(fn)
 
 		const ruleRole = new IAM.Role(this, 'ruleRole', {
 			assumedBy: new IAM.ServicePrincipal(

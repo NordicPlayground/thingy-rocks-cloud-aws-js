@@ -97,7 +97,7 @@ export class BackendStack extends Stack {
 			lambdaSources,
 		})
 
-		const lwm2m = new LwM2M(this, {
+		new LwM2M(this, {
 			lambdaSources,
 			baseLayer,
 		})
@@ -127,11 +127,6 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'identityPoolId', {
 			value: userAuthentication.identityPool.ref,
 			exportName: `${this.stackName}:identityPoolId`,
-		})
-
-		new CfnOutput(this, 'lwm2mTableName', {
-			value: lwm2m.table.tableName,
-			exportName: `${this.stackName}:lwm2mTableName`,
 		})
 	}
 }
