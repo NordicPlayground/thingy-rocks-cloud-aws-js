@@ -149,6 +149,7 @@ export class WebsocketAPI extends Construct {
 						'iot:GetThingShadow',
 						'iot:ListThings',
 						'iot:DescribeThing',
+						'iot:SearchIndex',
 					],
 					resources: ['*'],
 				}),

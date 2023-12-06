@@ -7,14 +7,13 @@ import type {
 } from 'aws-lambda'
 import { validateWithTypeBox } from './validateWithTypeBox.js'
 import {
-	GetThingShadowCommand,
 	IoTDataPlaneClient,
 	PublishCommand,
 } from '@aws-sdk/client-iot-data-plane'
 import {
 	DescribeThingCommand,
 	IoTClient,
-	ListThingsCommand,
+	SearchIndexCommand,
 } from '@aws-sdk/client-iot'
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { sendEvent } from './notifyClients.js'
@@ -46,7 +45,6 @@ const apiGwManagementClient = new ApiGatewayManagementApi({
 })
 
 const send = sendEvent(apiGwManagementClient)
-const decoder = new TextDecoder()
 
 const deviceInfo = getDeviceInfo(iot)
 
@@ -101,9 +99,9 @@ export const handler = async (
 	if (message.data === 'LWM2M-shadows') {
 		// Publish LwM2M shadows
 		const { things } = await iot.send(
-			new ListThingsCommand({
-				maxResults: 250,
-				thingTypeName: '',
+			new SearchIndexCommand({
+				// Find all things which have an LwM2M shadow
+				queryString: 'shadow.name.lwm2m.hasDelta:*',
 			}),
 		)
 		const shadows = (
@@ -112,23 +110,48 @@ export const handler = async (
 				alias?: string
 				objects: LwM2MObjectInstance[]
 			}>(
-				(things ?? []).map(async ({ thingName }) =>
-					iotData
-						.send(new GetThingShadowCommand({ thingName, shadowName: 'lwm2m' }))
-						.then(async ({ payload }) => ({
+				(things ?? []).map(async ({ thingName, shadow }) => {
+					const alias = (await deviceInfo(thingName as string)).alias
+					const reported = JSON.parse(shadow ?? '{}').name.lwm2m.reported
+					if (reported === undefined)
+						return {
 							deviceId: thingName as string,
-							alias: (await deviceInfo(thingName as string)).alias,
-							objects: shadowToObjects(
-								JSON.parse(decoder.decode(payload)).state.reported,
-							),
-						}))
-						.catch(() => ({
-							deviceId: thingName as string,
+							alias,
 							objects: [],
-						})),
-				),
+						}
+
+					try {
+						return {
+							deviceId: thingName as string,
+							alias,
+							objects: shadowToObjects(reported),
+						}
+					} catch (err) {
+						console.error(`Failed to convert shadow for thing ${thingName}`)
+						console.log(
+							JSON.stringify({
+								thingName,
+								shadow: {
+									reported,
+								},
+							}),
+						)
+						console.error(err)
+						return {
+							deviceId: thingName as string,
+							alias,
+							objects: [],
+						}
+					}
+				}),
 			)
 		).filter(({ objects }) => objects.length > 0)
+
+		console.log(
+			JSON.stringify({
+				lwm2mShadows: shadows,
+			}),
+		)
 
 		await send(
 			event.requestContext.connectionId,

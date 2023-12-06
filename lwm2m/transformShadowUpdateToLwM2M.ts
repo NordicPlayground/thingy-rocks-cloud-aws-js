@@ -39,4 +39,10 @@ export const transformShadowUpdateToLwM2M = (
 			.then((result) => result.filter((item) => item !== null))
 			// Convert it to LwM2M
 			.then(senMLtoLwM2M)
+			// Handle errors
+			.catch((err) => {
+				console.error(err)
+				console.error(`Failed to transform ${JSON.stringify(input)}!`)
+				return []
+			})
 }
