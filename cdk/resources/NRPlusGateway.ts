@@ -132,6 +132,14 @@ export class NRPlusGateway extends Construct {
 						actions: ['iot:ListThings', 'iot:Publish'],
 						resources: ['*'],
 					}),
+					new IAM.PolicyStatement({
+						actions: ['ssm:GetParameter'],
+						resources: [
+							`arn:aws:ssm:${Stack.of(this).region}:${
+								Stack.of(this).account
+							}:parameter/thingy.rocks/nrplus/gatewayScanCommand`,
+						],
+					}),
 				],
 				logRetention: Logs.RetentionDays.ONE_DAY,
 			},
