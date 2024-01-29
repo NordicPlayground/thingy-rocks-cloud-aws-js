@@ -13,6 +13,8 @@ const packagesInLayer: string[] = [
 	'@nordicsemiconductor/timestream-helpers',
 	'@hello.nrfcloud.com/proto-lwm2m',
 	'jsonata',
+	'mqtt',
+	'@protobuf-ts/runtime',
 ]
 const pack = async (
 	id: string,
