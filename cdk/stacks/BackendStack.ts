@@ -103,7 +103,7 @@ export class BackendStack extends Stack {
 			baseLayer,
 		})
 
-		const wirepasGateway = new Wirepas5GMeshGateway(this, { websocketAPI: api })
+		const wirepasGateway = new Wirepas5GMeshGateway(this)
 
 		// Outputs
 		new CfnOutput(this, 'WebSocketURI', {

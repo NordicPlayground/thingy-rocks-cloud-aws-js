@@ -13,21 +13,26 @@ export const withDeviceAlias = <N extends ReturnType<typeof notifyClients>>(
 	return (notifier: N) =>
 		async (event: Parameters<N>[0]): Promise<void> => {
 			if (!('deviceId' in event)) return notifier(event)
-			const { alias: deviceAlias, location } = await info(event.deviceId)
-			if (deviceAlias === undefined) return notifier(event)
+			const { alias: deviceAlias, location, type } = await info(event.deviceId)
 			return notifier({
 				...event,
 				deviceAlias,
 				deviceLocation: location,
+				deviceType: type,
 			})
 		}
 }
 
-const deviceInfo: Record<string, { alias?: string; location?: string }> = {}
+const deviceInfo: Record<
+	string,
+	{ alias?: string; location?: string; type?: string }
+> = {}
 
 export const getDeviceInfo =
 	(iot: IoTClient) =>
-	async (deviceId: string): Promise<{ alias?: string; location?: string }> => {
+	async (
+		deviceId: string,
+	): Promise<{ alias?: string; location?: string; type?: string }> => {
 		const info =
 			deviceInfo[deviceId] ?? (await getDeviceAttributes(iot)(deviceId))
 		if (!(deviceId in deviceInfo)) deviceInfo[deviceId] = info
@@ -36,11 +41,13 @@ export const getDeviceInfo =
 	}
 
 const getDeviceAttributes = (iot: IoTClient) => async (deviceId: string) => {
-	const { name, location } =
-		(await iot.send(new DescribeThingCommand({ thingName: deviceId })))
-			?.attributes ?? {}
+	const { attributes, thingTypeName } = await iot.send(
+		new DescribeThingCommand({ thingName: deviceId }),
+	)
+	const { name, location } = attributes ?? {}
 	return {
 		alias: name,
 		location,
+		type: thingTypeName,
 	}
 }

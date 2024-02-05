@@ -38,6 +38,8 @@ export type DeviceEvent = {
 	deviceAlias?: string
 	// The fixed geo-location of the device,
 	deviceLocation?: string // e.g.: 63.42115901688979,10.437200141182338
+	// The thingy type
+	deviceType?: string
 } & (
 	| {
 			reported: Record<string, any>

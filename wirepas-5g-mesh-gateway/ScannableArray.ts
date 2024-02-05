@@ -6,17 +6,13 @@ export class ScannableArray {
 		this.array = array
 	}
 
-	getChar(): number | undefined {
-		return this.array.at(this.index)
-	}
-
-	getCharNext(): number {
+	getChar(): number {
 		const next = this.array.at(this.index++)
 		if (next === undefined) throw new Error(`Out of bounds!`)
 		return next
 	}
 
-	next(): void {
-		this.index++
+	hasNext(): boolean {
+		return this.array.at(this.index + 1) !== undefined
 	}
 }

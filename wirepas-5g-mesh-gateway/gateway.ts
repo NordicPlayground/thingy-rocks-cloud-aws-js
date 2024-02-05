@@ -1,10 +1,18 @@
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import mqtt from 'mqtt'
-import { decodePayload, type Wirepas5GMeshNodeEvent } from './decodePayload.js'
-import { log } from './log.js'
+import { debug, error, log } from './log.js'
 import { GenericMessage } from './protobuf/ts/generic_message.js'
-import { IoTDataPlaneClient } from '@aws-sdk/client-iot-data-plane'
-import { DescribeEndpointCommand, IoTClient } from '@aws-sdk/client-iot'
+import {
+	IoTDataPlaneClient,
+	UpdateThingShadowCommand,
+} from '@aws-sdk/client-iot-data-plane'
+import {
+	DescribeEndpointCommand,
+	IoTClient,
+	ListThingsCommand,
+	type ThingAttribute,
+} from '@aws-sdk/client-iot'
+import { merge } from 'lodash-es'
 
 const { region, accessKeyId, secretAccessKey, gatewayEndpoint } = fromEnv({
 	region: 'GATEWAY_REGION',
@@ -13,6 +21,11 @@ const { region, accessKeyId, secretAccessKey, gatewayEndpoint } = fromEnv({
 	secretAccessKey: 'GATEWAY_AWS_SECRET_ACCESS_KEY',
 })(process.env)
 
+const stateFlushInterval = parseInt(
+	process.env.STATE_FLUSH_INTERVAL_SECONDS ?? '60',
+	10,
+)
+
 const auth = {
 	region,
 	credentials: {
@@ -20,19 +33,36 @@ const auth = {
 		secretAccessKey,
 	},
 }
-const iotClient = async () =>
+const iotClient = new IoTClient(auth)
+const iotDataClient = await (async () =>
 	new IoTDataPlaneClient({
 		...auth,
-		endpoint: (
-			await new IoTClient(auth).send(
-				new DescribeEndpointCommand({
-					endpointType: 'iot:Data-ATS',
-				}),
-			)
-		).endpointAddress,
-	})
-// TODO: write updates to shadow
-void iotClient
+		endpoint: `https://${
+			(
+				await new IoTClient(auth).send(
+					new DescribeEndpointCommand({
+						endpointType: 'iot:Data-ATS',
+					}),
+				)
+			).endpointAddress
+		}`,
+	}))()
+
+// Find thing for gateway
+const thingTypeName = 'wirepas-5g-mesh-gateway'
+const { things: gateways } = await iotClient.send(
+	new ListThingsCommand({
+		thingTypeName,
+	}),
+)
+
+const existingGws = (gateways ?? []).reduce(
+	(list, gw) => ({ ...list, [gw.thingName as string]: gw }),
+	{} as Record<string, ThingAttribute>,
+)
+Object.keys(existingGws).forEach((gwId) =>
+	debug(`Known gateway things: ${gwId}`),
+)
 
 const parsedEndpoint = new URL(gatewayEndpoint)
 log(`Connecting to`, parsedEndpoint.hostname)
@@ -53,6 +83,8 @@ client.on('connect', () => {
 	}
 })
 
+let nodes: Record<string, Record<string, any>> = {}
+
 client.on('message', (_, message) => {
 	const packetReceivedEvent =
 		GenericMessage.fromBinary(message)?.wirepas?.packetReceivedEvent
@@ -60,37 +92,56 @@ client.on('message', (_, message) => {
 		const {
 			sourceAddress,
 			rxTimeMsEpoch,
-			sourceEndpoint,
-			destinationEndpoint,
 			payload,
 			travelTimeMs,
 			header: { gwId },
+			qos,
 			hopCount,
 		} = packetReceivedEvent
-
-		// Only handle messages on the 1/1 endpoint
-		if (sourceEndpoint !== 1 || destinationEndpoint !== 1) return
 
 		// Only handle messages with payload
 		if (payload === undefined) return
 
 		const rxTime = new Date(parseInt(BigInt(rxTimeMsEpoch).toString()))
-		const decodedPayload = decodePayload(payload)
-		if (decodedPayload !== null) {
-			const event: Wirepas5GMeshNodeEvent = {
-				meshNodeEvent: {
-					meta: {
-						node: sourceAddress,
-						gateway: gwId,
-						rxTime,
-						travelTimeMs,
-						...(hopCount !== undefined ? { hops: hopCount } : {}),
-					},
-					message: decodedPayload,
-				},
-			}
-			console.log(JSON.stringify({ event }))
-			// TODO: write to shadow
+		if (existingGws[gwId] === undefined) {
+			error(
+				`Unknown gateway: ${gwId}! Add a new IoT Thing with the name "${gwId}" and the thing type "${thingTypeName}".`,
+			)
+			return
 		}
+
+		nodes[gwId] = merge(
+			{
+				[sourceAddress]: {
+					travelTimeMs,
+					...(hopCount !== undefined ? { hops: hopCount } : {}),
+					rxTime,
+					qos,
+				},
+			},
+			nodes[gwId],
+		)
 	}
 })
+
+// Regularly send buffered updates
+setInterval(async () => {
+	await Promise.all(
+		Object.entries(nodes).map(async ([gwId, nodes]) =>
+			iotDataClient.send(
+				new UpdateThingShadowCommand({
+					thingName: gwId,
+					payload: JSON.stringify({
+						state: {
+							reported: {
+								nodes,
+							},
+						},
+					}),
+				}),
+			),
+		),
+	)
+	nodes = {}
+}, stateFlushInterval * 1000)
+debug(`Flushing state every ${stateFlushInterval} seconds`)

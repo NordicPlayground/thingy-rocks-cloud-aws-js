@@ -1,4 +1,6 @@
-const ts = () => `[${new Date().toISOString()}]`
+import chalk from 'chalk'
+
+const ts = () => chalk.gray(`[${new Date().toISOString()}]`)
 
 export const log = (...args: any[]): void => {
 	console.log(ts(), ...args)
