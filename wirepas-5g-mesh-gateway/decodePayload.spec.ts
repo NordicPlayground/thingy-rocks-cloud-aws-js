@@ -3,27 +3,7 @@ import { decodePayload } from './decodePayload.js'
 import assert from 'node:assert/strict'
 
 void describe('decodePayload()', () => {
-	void it('should decode the payload', () => {
-		/*
-
-        For this payload (92 bytes), it is on TLV format: you have the information ID (1 byte), the data length (1 byte) and the data (n bytes).
-
-        For example, data 01 corresponds to the counter (4 bytes long, data is 42 c2 00 00 or 49730).
-
-        The relevant data starts with 0F for the temperature (here, it is this part: 0f 04 0a d7 c3 41, which gives a temperature of 24.48°C (it is a float32)).
-
-        Also, we send data starting with 01 but with a different length (3 bytes) which corresponds to a key press.
-        Example: 01 00 02 (because there is only one button).
-
-        You may see payloads starting with 03 (3 bytes): it is when LED status/color changes.
-        In this case, color is the following:
-            
-        Byte 1: ID (0x03)
-        Byte 2: Color. 0x00: red, 0x01: blue, 0x02: green
-        Byte 3: State. 0x00: off, 0x01: on.
-        We send this payload when requested (response to get LED status (starts with 0x82)) or when setting LED (message 0x81), as an acknowledgement (to confirm color/status has changed).
-            
-        */
+	void it('should decode a regular payload', () => {
 		const payload = Buffer.from(
 			[
 				// [0x01: COUNTER]         [0x04]   [size_t counter]
@@ -74,22 +54,25 @@ void describe('decodePayload()', () => {
 
 		const decoded = decodePayload(payload)
 
-		assert.deepEqual(decoded, [
-			{ counter: 49730 },
-			{
-				// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-				temperature: 24.479999542236328,
-			},
-			{
-				// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-				humidity: 17.695999145507812,
-			},
-			{
-				raw_pressure: 100325,
-			},
-			{
-				raw_gas: 81300,
-			},
-		])
+		assert.deepEqual(decoded, {
+			counter: 49730,
+			timestamp: 251355997789000,
+			// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+			temperature: 24.479999542236328,
+			// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+			humidity: 17.695999145507812,
+			raw_pressure: 100325,
+			raw_gas: 81300,
+		})
 	})
+
+	void it('should decode a button press', () =>
+		assert.deepEqual(decodePayload(Buffer.from('010002', 'hex')), {
+			button: 2,
+		}))
+
+	void it('should decode a LED state change', () =>
+		assert.deepEqual(decodePayload(Buffer.from('030101', 'hex')), {
+			led: { b: true },
+		}))
 })

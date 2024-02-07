@@ -1,12 +1,19 @@
 import { ScannableArray } from './ScannableArray.js'
-export type Wirepas5GMeshNodePayload =
-	| { counter: number }
-	| { timestamp: number }
-	| { temperature: number }
-	| { button: number }
-	| { humidity: number }
-	| { raw_pressure: number }
-	| { raw_gas: number }
+export type Wirepas5GMeshNodePayload = {
+	counter?: number
+	// Uptime in nanoseconds
+	timestamp?: number // e.g. 251355997789000 / 1000 / 1000 / 1000 / 60 / 60 / 24 = 2.909 days
+	temperature?: number
+	button?: number
+	humidity?: number
+	raw_pressure?: number
+	raw_gas?: number
+	led?: {
+		r?: boolean
+		g?: boolean
+		b?: boolean
+	}
+}
 
 enum MessageType {
 	COUNTER = 0x01, //          [0x04]   [size_t counter]
@@ -31,12 +38,78 @@ enum MessageType {
 	GAS_RAW = 0x14, //          [0x04]   [float raw_gas]
 }
 
+enum LED_COLOR {
+	RED = 0,
+	BLUE = 1,
+	GREEN = 2,
+}
+
+/*
+
+For this payload (92 bytes), it is on TLV format: you have the information ID (1 byte), the data length (1 byte) and the data (n bytes).
+
+For example, data 01 corresponds to the counter (4 bytes long, data is 42 c2 00 00 or 49730).
+
+The relevant data starts with 0F for the temperature (here, it is this part: 0f 04 0a d7 c3 41, which gives a temperature of 24.48°C (it is a float32)).
+
+## Button special case
+
+Also, we send data starting with 01 but with a different length (3 bytes) which corresponds to a key press.
+
+Example: 01 00 02 (because there is only one button).
+
+## LED special case
+
+You may see payloads starting with 03 (3 bytes): it is when LED status/color changes.
+In this case, color is the following:
+	
+Byte 1: ID (0x03)
+Byte 2: Color. 0x00: red, 0x01: blue, 0x02: green
+Byte 3: State. 0x00: off, 0x01: on.
+
+*/
 export const decodePayload = (
 	payload: Uint8Array,
-): Wirepas5GMeshNodePayload[] => {
-	const messages: Wirepas5GMeshNodePayload[] = []
+): Wirepas5GMeshNodePayload => {
 	const msg = new ScannableArray(payload)
 
+	let message: Wirepas5GMeshNodePayload = {}
+
+	// Button special case
+	if (payload.length === 3 && msg.peek() === 1) {
+		msg.next() // skip type
+		msg.next() // skip len
+		return { button: msg.peek() }
+	}
+
+	// LED special case
+	if (payload.length === 3 && msg.peek() === 3) {
+		msg.next() // skip type
+		const color = msg.getChar()
+		const state = msg.getChar()
+		switch (color) {
+			case LED_COLOR.BLUE:
+				return {
+					led: {
+						b: state === 1 ? true : false,
+					},
+				}
+			case LED_COLOR.GREEN:
+				return {
+					led: {
+						g: state === 1 ? true : false,
+					},
+				}
+			default:
+				return {
+					led: {
+						r: state === 1 ? true : false,
+					},
+				}
+		}
+	}
+
+	// Regular message
 	while (msg.hasNext()) {
 		const type = msg.getChar()
 		const len = msg.getChar()
@@ -46,11 +119,10 @@ export const decodePayload = (
 		switch (type) {
 			// Periodic message with a counter value
 			case MessageType.COUNTER:
-				messages.push({ counter: readUint(msg, len) })
+				message = { ...message, counter: readUint(msg, len) }
 				continue
 			case MessageType.TIMESTAMP:
-				// messages.push({ timestamp: readUint(msg, len) })
-				skip()
+				message = { ...message, timestamp: readUint(msg, len) }
 				continue
 			// Skip
 			case MessageType.IAQ:
@@ -70,16 +142,16 @@ export const decodePayload = (
 				skip()
 				continue
 			case MessageType.TEMPERATURE:
-				messages.push({ temperature: readFloat(msg, len) })
+				message = { ...message, temperature: readFloat(msg, len) }
 				continue
 			case MessageType.HUMIDITY:
-				messages.push({ humidity: readFloat(msg, len) })
+				message = { ...message, humidity: readFloat(msg, len) }
 				continue
 			case MessageType.PRESS_RAW:
-				messages.push({ raw_pressure: readFloat(msg, len) })
+				message = { ...message, raw_pressure: readFloat(msg, len) }
 				continue
 			case MessageType.GAS_RAW:
-				messages.push({ raw_gas: readFloat(msg, len) })
+				message = { ...message, raw_gas: readFloat(msg, len) }
 				continue
 			default:
 				console.error(`Unknown message type`, type)
@@ -88,7 +160,7 @@ export const decodePayload = (
 		}
 	}
 
-	return messages
+	return message
 }
 
 const readUint = (message: ScannableArray, numBytes: number): number => {
