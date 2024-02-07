@@ -55,20 +55,14 @@ void describe('decodePayload()', () => {
 		const decoded = decodePayload(payload)
 
 		assert.deepEqual(decoded, {
-			counter: 49730,
-			timestamp: 251355997789000,
 			// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-			temperature: 24.479999542236328,
-			// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-			humidity: 17.695999145507812,
-			raw_pressure: 100325,
-			raw_gas: 81300,
+			temp: 24.479999542236328,
 		})
 	})
 
 	void it('should decode a button press', () =>
 		assert.deepEqual(decodePayload(Buffer.from('010002', 'hex')), {
-			button: 2,
+			btn: 2,
 		}))
 
 	void it('should decode a LED state change', () =>

@@ -13,6 +13,7 @@ import {
 	type ThingAttribute,
 } from '@aws-sdk/client-iot'
 import { merge } from 'lodash-es'
+import { decodePayload } from './decodePayload.js'
 
 const { region, accessKeyId, secretAccessKey, gatewayEndpoint } = fromEnv({
 	region: 'GATEWAY_REGION',
@@ -113,10 +114,24 @@ client.on('message', (_, message) => {
 		nodes[gwId] = merge(
 			{
 				[sourceAddress]: {
-					travelTimeMs,
+					lat: travelTimeMs,
 					...(hopCount !== undefined ? { hops: hopCount } : {}),
-					rxTime,
+					ts: rxTime,
 					qos,
+					payload: ((payload) => {
+						try {
+							return decodePayload(payload, (type, pos) => {
+								debug(`Unknown message type`, type)
+								debug(Buffer.from(payload).toString('hex'))
+								debug('  '.repeat(Math.max(0, pos - 1)) + ' ^')
+							})
+						} catch {
+							debug(
+								`Failed to decode payload: ${Buffer.from(payload).toString('hex')}`,
+							)
+						}
+						return {}
+					})(payload),
 				},
 			},
 			nodes[gwId],
@@ -127,8 +142,13 @@ client.on('message', (_, message) => {
 // Regularly send buffered updates
 setInterval(async () => {
 	await Promise.all(
-		Object.entries(nodes).map(async ([gwId, nodes]) =>
-			iotDataClient.send(
+		Object.entries(nodes).map(async ([gwId, nodes]) => {
+			Object.entries(nodes).forEach(([nodeId, data]) => {
+				debug()
+				debug(gwId, nodeId, JSON.stringify(data))
+			})
+
+			return iotDataClient.send(
 				new UpdateThingShadowCommand({
 					thingName: gwId,
 					payload: JSON.stringify({
@@ -139,8 +159,8 @@ setInterval(async () => {
 						},
 					}),
 				}),
-			),
-		),
+			)
+		}),
 	)
 	nodes = {}
 }, stateFlushInterval * 1000)

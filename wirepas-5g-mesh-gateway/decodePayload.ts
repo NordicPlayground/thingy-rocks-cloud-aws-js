@@ -1,13 +1,7 @@
 import { ScannableArray } from './ScannableArray.js'
 export type Wirepas5GMeshNodePayload = {
-	counter?: number
-	// Uptime in nanoseconds
-	timestamp?: number // e.g. 251355997789000 / 1000 / 1000 / 1000 / 60 / 60 / 24 = 2.909 days
-	temperature?: number
-	button?: number
-	humidity?: number
-	raw_pressure?: number
-	raw_gas?: number
+	temp?: number
+	btn?: number
 	led?: {
 		r?: boolean
 		g?: boolean
@@ -17,6 +11,7 @@ export type Wirepas5GMeshNodePayload = {
 
 enum MessageType {
 	COUNTER = 0x01, //          [0x04]   [size_t counter]
+	// Uptime in nanoseconds, e.g. 251355997789000 / 1000 / 1000 / 1000 / 60 / 60 / 24 = 2.909 days
 	TIMESTAMP = 0x02, //        [0x08]   [int64_t timestamp]
 	IAQ = 0x03, //              [0x02]   [uint16_t iaq]
 	IAQ_ACC = 0x04, //          [0x01]   [uint8_t iaq_acc]
@@ -70,6 +65,7 @@ Byte 3: State. 0x00: off, 0x01: on.
 */
 export const decodePayload = (
 	payload: Uint8Array,
+	onUnknown?: (type: number, pos: number) => void,
 ): Wirepas5GMeshNodePayload => {
 	const msg = new ScannableArray(payload)
 
@@ -79,14 +75,14 @@ export const decodePayload = (
 	if (payload.length === 3 && msg.peek() === 1) {
 		msg.next() // skip type
 		msg.next() // skip len
-		return { button: msg.peek() }
+		return { btn: readUint(msg, 1) }
 	}
 
 	// LED special case
 	if (payload.length === 3 && msg.peek() === 3) {
 		msg.next() // skip type
-		const color = msg.getChar()
-		const state = msg.getChar()
+		const color = readUint(msg, 1)
+		const state = readUint(msg, 1)
 		switch (color) {
 			case LED_COLOR.BLUE:
 				return {
@@ -117,14 +113,9 @@ export const decodePayload = (
 			for (let i = 0; i < len; i++) msg.getChar()
 		}
 		switch (type) {
-			// Periodic message with a counter value
-			case MessageType.COUNTER:
-				message = { ...message, counter: readUint(msg, len) }
-				continue
-			case MessageType.TIMESTAMP:
-				message = { ...message, timestamp: readUint(msg, len) }
-				continue
 			// Skip
+			case MessageType.COUNTER:
+			case MessageType.TIMESTAMP:
 			case MessageType.IAQ:
 			case MessageType.IAQ_ACC:
 			case MessageType.SIAQ:
@@ -139,22 +130,16 @@ export const decodePayload = (
 			case MessageType.CO2_ACC:
 			case MessageType.TEMP_RAW:
 			case MessageType.HUM_RAW:
+			case MessageType.HUMIDITY:
+			case MessageType.PRESS_RAW:
+			case MessageType.GAS_RAW:
 				skip()
 				continue
 			case MessageType.TEMPERATURE:
-				message = { ...message, temperature: readFloat(msg, len) }
-				continue
-			case MessageType.HUMIDITY:
-				message = { ...message, humidity: readFloat(msg, len) }
-				continue
-			case MessageType.PRESS_RAW:
-				message = { ...message, raw_pressure: readFloat(msg, len) }
-				continue
-			case MessageType.GAS_RAW:
-				message = { ...message, raw_gas: readFloat(msg, len) }
+				message = { ...message, temp: readFloat(msg, len) }
 				continue
 			default:
-				console.error(`Unknown message type`, type)
+				onUnknown?.(type, msg.pos() - 1)
 				skip()
 				break
 		}

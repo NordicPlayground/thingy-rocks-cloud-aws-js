@@ -34,4 +34,8 @@ export class ScannableArray {
 	hasNext(): boolean {
 		return this.array.at(this.index + 1) !== undefined
 	}
+
+	pos(): number {
+		return this.index
+	}
 }
