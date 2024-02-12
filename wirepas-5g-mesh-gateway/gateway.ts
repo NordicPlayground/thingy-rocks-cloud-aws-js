@@ -1,5 +1,6 @@
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import mqtt from 'mqtt'
+import { mqtt as awsMqtt } from 'aws-iot-device-sdk-v2'
 import { debug, error, log } from './log.js'
 import { GenericMessage } from './protobuf/ts/generic_message.js'
 import {
@@ -14,6 +15,10 @@ import {
 } from '@aws-sdk/client-iot'
 import { merge } from 'lodash-es'
 import { decodePayload } from './decodePayload.js'
+import { cloudToGateway } from './cloudToGateway.js'
+import { LED_COLOR, setLEDColor, wirepasPublish } from './publish.js'
+import chalk from 'chalk'
+import pThrottle from 'p-throttle'
 
 const { region, accessKeyId, secretAccessKey, gatewayEndpoint } = fromEnv({
 	region: 'GATEWAY_REGION',
@@ -164,3 +169,47 @@ setInterval(async () => {
 	nodes = {}
 }, stateFlushInterval * 1000)
 debug(`Flushing state every ${stateFlushInterval} seconds`)
+
+// Handle configuration changes
+const C2G = chalk.blue.dim('C2G')
+const sendToGateway = wirepasPublish({
+	client,
+	debug: (...args) => debug(C2G, ...args),
+})
+const gwThingConnections: Record<string, awsMqtt.MqttClientConnection> = {}
+const throttle = pThrottle({
+	limit: 1,
+	interval: 250,
+})
+const updateColor = throttle(
+	async (gwId: string, node: number, color: LED_COLOR, ledState: boolean) =>
+		sendToGateway({
+			gateway: gwId,
+			req: setLEDColor({
+				node,
+				color,
+				ledState,
+			}),
+		}),
+)
+for (const gwId of Object.keys(existingGws)) {
+	gwThingConnections[gwId] = await cloudToGateway(iotDataClient, {
+		debug: (...args) => debug(C2G, ...args),
+		error: (...args) => error(C2G, ...args),
+	})(gwId, async (desired) => {
+		for (const [nodeId, { payload }] of Object.entries(desired.nodes)) {
+			const node = parseInt(nodeId, 10)
+			if ('led' in payload && payload.led !== undefined) {
+				const { r, g, b } = payload.led
+				const updates = []
+				if (r !== undefined)
+					updates.push(updateColor(gwId, node, LED_COLOR.RED, r))
+				if (g !== undefined)
+					updates.push(updateColor(gwId, node, LED_COLOR.GREEN, g))
+				if (b !== undefined)
+					updates.push(updateColor(gwId, node, LED_COLOR.BLUE, b))
+				await Promise.all(updates)
+			}
+		}
+	})
+}

@@ -152,6 +152,7 @@ export class WebsocketAPI extends Construct {
 				new IAM.PolicyStatement({
 					actions: [
 						'iot:GetThingShadow',
+						'iot:UpdateThingShadow',
 						'iot:ListThings',
 						'iot:DescribeThing',
 						'iot:SearchIndex',

@@ -7,3 +7,4 @@ npm-debug.log
 .swc/
 cdk.out/
 dist/
+certificates/

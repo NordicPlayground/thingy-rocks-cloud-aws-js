@@ -15,6 +15,10 @@ import {
 	IoTClient,
 	SearchIndexCommand,
 } from '@aws-sdk/client-iot'
+import {
+	UpdateThingShadowCommand,
+	type UpdateThingShadowCommandInput,
+} from '@aws-sdk/client-iot-data-plane'
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { sendEvent } from './notifyClients.js'
 import type { LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-lwm2m'
@@ -26,13 +30,40 @@ const { TableName, websocketManagementAPIURL } = fromEnv({
 	websocketManagementAPIURL: 'WEBSOCKET_MANAGEMENT_API_URL',
 })(process.env)
 
+const deviceControl = Type.Object({
+	deviceId: Type.String({ minLength: 1 }),
+	code: Type.String({ minLength: 1 }),
+})
+
 const message = Type.Object({
 	message: Type.Literal('sendmessage'),
-	data: Type.Object({
-		deviceId: Type.String({ minLength: 1 }),
-		code: Type.String({ minLength: 1 }),
-		nrplusCtrl: Type.String({ minLength: 1 }),
-	}),
+	data: Type.Union([
+		Type.Intersect([
+			deviceControl,
+			Type.Object({
+				nrplusCtrl: Type.String({ minLength: 1 }),
+			}),
+		]),
+		Type.Intersect([
+			deviceControl,
+			Type.Object({
+				wirepasCtrl: Type.Object({
+					nodes: Type.Record(
+						Type.String({ minLength: 1 }),
+						Type.Object({
+							payload: Type.Object({
+								led: Type.Object({
+									r: Type.Boolean(),
+									g: Type.Boolean(),
+									b: Type.Boolean(),
+								}),
+							}),
+						}),
+					),
+				}),
+			}),
+		]),
+	]),
 })
 const validateMessage = validateWithTypeBox(message)
 
@@ -169,7 +200,8 @@ export const handler = async (
 			statusCode: 400,
 		}
 	} else {
-		const { deviceId, code, nrplusCtrl } = maybeValidMessage.value.data
+		const msg = maybeValidMessage.value.data
+		const { deviceId, code } = msg
 		const attributes = (
 			await iot.send(new DescribeThingCommand({ thingName: deviceId }))
 		).attributes
@@ -183,14 +215,28 @@ export const handler = async (
 				body: `Code ${code} not valid for device ${deviceId}!`,
 			}
 		}
-		await iotData.send(
-			new PublishCommand({
-				topic: `${deviceId}/nrplus-ctrl`,
-				payload: Buffer.from(nrplusCtrl, 'utf-8'),
-				qos: 1,
-			}),
-		)
-		console.log(`>`, `${deviceId}/nrplus-ctrl`, nrplusCtrl)
+		if ('nrplusCtrl' in msg) {
+			await iotData.send(
+				new PublishCommand({
+					topic: `${deviceId}/nrplus-ctrl`,
+					payload: Buffer.from(msg.nrplusCtrl, 'utf-8'),
+					qos: 1,
+				}),
+			)
+			console.log(`>`, `${deviceId}/nrplus-ctrl`, msg.nrplusCtrl)
+		}
+		if ('wirepasCtrl' in msg) {
+			const update: UpdateThingShadowCommandInput = {
+				thingName: deviceId,
+				payload: JSON.stringify({
+					state: {
+						desired: msg.wirepasCtrl,
+					},
+				}),
+			}
+			await iotData.send(new UpdateThingShadowCommand(update))
+			console.log(JSON.stringify({ update }))
+		}
 		return {
 			statusCode: 202,
 		}
