@@ -144,7 +144,6 @@ setInterval(async () => {
 	await Promise.all(
 		Object.entries(nodes).map(async ([gwId, nodes]) => {
 			Object.entries(nodes).forEach(([nodeId, data]) => {
-				debug()
 				debug(gwId, nodeId, JSON.stringify(data))
 			})
 

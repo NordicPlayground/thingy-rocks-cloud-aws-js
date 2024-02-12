@@ -69,4 +69,15 @@ void describe('decodePayload()', () => {
 		assert.deepEqual(decodePayload(Buffer.from('030101', 'hex')), {
 			led: { b: true },
 		}))
+
+	void it('should ignore messages starting with bf', () =>
+		assert.deepEqual(
+			decodePayload(
+				Buffer.from(
+					'bf1840820118191845890119c31c000019022918fa190a9e0000184186011a0a175ab41a0a175ab418ff00001842820000182e8218ff0018180001140502040607030818ff181a01181b011830011831241201ff',
+					'hex',
+				),
+			),
+			{},
+		))
 })

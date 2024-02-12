@@ -62,6 +62,10 @@ Byte 1: ID (0x03)
 Byte 2: Color. 0x00: red, 0x01: blue, 0x02: green
 Byte 3: State. 0x00: off, 0x01: on.
 
+## Diagnostic messages
+
+Concerning the message starting with BF, it does not come from the Thingy: these are diagnostic messages giving information about the network. You can safely ignore them too.
+
 */
 export const decodePayload = (
 	payload: Uint8Array,
@@ -70,6 +74,11 @@ export const decodePayload = (
 	const msg = new ScannableArray(payload)
 
 	let message: Wirepas5GMeshNodePayload = {}
+
+	// Diagnostic special case
+	if (msg.peek() === parseInt('BF', 16)) {
+		return {}
+	}
 
 	// Button special case
 	if (payload.length === 3 && msg.peek() === 1) {
