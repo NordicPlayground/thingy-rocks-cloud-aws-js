@@ -60,10 +60,18 @@ void describe('decodePayload()', () => {
 		})
 	})
 
-	void it('should decode a button press', () =>
-		assert.deepEqual(decodePayload(Buffer.from('010002', 'hex')), {
-			btn: 2,
-		}))
+	void it('should decode a button press', () => {
+		const now = Date.now()
+		assert.deepEqual(
+			decodePayload(Buffer.from('010002', 'hex'), undefined, () => now),
+			{
+				btn: {
+					v: 2,
+					ts: now,
+				},
+			},
+		)
+	})
 
 	void it('should decode a LED state change', () =>
 		assert.deepEqual(decodePayload(Buffer.from('030101', 'hex')), {

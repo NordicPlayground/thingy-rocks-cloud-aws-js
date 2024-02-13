@@ -1,7 +1,12 @@
 import { ScannableArray } from './ScannableArray.js'
 export type Wirepas5GMeshNodePayload = {
 	temp?: number
-	btn?: number
+	btn?: {
+		// The ID of the pressed button
+		v: number
+		// The local timestamp
+		ts: number
+	}
 	led?: {
 		r?: boolean
 		g?: boolean
@@ -70,6 +75,7 @@ Concerning the message starting with BF, it does not come from the Thingy: these
 export const decodePayload = (
 	payload: Uint8Array,
 	onUnknown?: (type: number, pos: number) => void,
+	now = () => Date.now(),
 ): Wirepas5GMeshNodePayload => {
 	const msg = new ScannableArray(payload)
 
@@ -84,7 +90,12 @@ export const decodePayload = (
 	if (payload.length === 3 && msg.peek() === 1) {
 		msg.next() // skip type
 		msg.next() // skip len
-		return { btn: readUint(msg, 1) }
+		return {
+			btn: {
+				v: readUint(msg, 1),
+				ts: now(),
+			},
+		}
 	}
 
 	// LED special case
