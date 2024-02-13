@@ -16,9 +16,20 @@ import {
 import { merge } from 'lodash-es'
 import { decodePayload } from './decodePayload.js'
 import { cloudToGateway } from './cloudToGateway.js'
-import { LED_COLOR, setLEDColor, wirepasPublish } from './publish.js'
+import {
+	LED_COLOR,
+	LED_STATE,
+	getLedState,
+	setLEDColor,
+	wirepasPublish,
+} from './publish.js'
 import chalk from 'chalk'
 import pThrottle from 'p-throttle'
+
+const throttle = pThrottle({
+	limit: 1,
+	interval: 250,
+})
 
 const { region, accessKeyId, secretAccessKey, gatewayEndpoint } = fromEnv({
 	region: 'GATEWAY_REGION',
@@ -90,6 +101,18 @@ client.on('connect', () => {
 })
 
 let nodes: Record<string, Record<string, any>> = {}
+const ledState: Record<string, Record<string, boolean>> = {}
+
+const getColor = throttle(
+	async (gwId: string, node: number, color: LED_COLOR) =>
+		sendToGateway({
+			gateway: gwId,
+			req: getLedState({
+				node,
+				color,
+			}),
+		}),
+)
 
 client.on('message', (_, message) => {
 	const packetReceivedEvent =
@@ -114,6 +137,19 @@ client.on('message', (_, message) => {
 				`Unknown gateway: ${gwId}! Add a new IoT Thing with the name "${gwId}" and the thing type "${thingTypeName}".`,
 			)
 			return
+		}
+
+		// Query LED state of node
+		if (ledState[gwId]?.[sourceAddress] === undefined) {
+			ledState[gwId] = {
+				...(ledState[gwId] ?? {}),
+				[sourceAddress]: true,
+			}
+			void Promise.all([
+				getColor(gwId, sourceAddress, LED_COLOR.RED),
+				getColor(gwId, sourceAddress, LED_COLOR.GREEN),
+				getColor(gwId, sourceAddress, LED_COLOR.BLUE),
+			])
 		}
 
 		nodes[gwId] = merge(
@@ -177,12 +213,9 @@ const sendToGateway = wirepasPublish({
 	debug: (...args) => debug(C2G, ...args),
 })
 const gwThingConnections: Record<string, awsMqtt.MqttClientConnection> = {}
-const throttle = pThrottle({
-	limit: 1,
-	interval: 250,
-})
+
 const updateColor = throttle(
-	async (gwId: string, node: number, color: LED_COLOR, ledState: boolean) =>
+	async (gwId: string, node: number, color: LED_COLOR, ledState: LED_STATE) =>
 		sendToGateway({
 			gateway: gwId,
 			req: setLEDColor({
@@ -204,13 +237,15 @@ for (const gwId of Object.keys(existingGws)) {
 				const { r, g, b } = payload.led
 				const updates = []
 				if (r !== undefined)
-					updates.push(updateColor(gwId, node, LED_COLOR.RED, r))
+					updates.push(updateColor(gwId, node, LED_COLOR.RED, toState(r)))
 				if (g !== undefined)
-					updates.push(updateColor(gwId, node, LED_COLOR.GREEN, g))
+					updates.push(updateColor(gwId, node, LED_COLOR.GREEN, toState(g)))
 				if (b !== undefined)
-					updates.push(updateColor(gwId, node, LED_COLOR.BLUE, b))
+					updates.push(updateColor(gwId, node, LED_COLOR.BLUE, toState(b)))
 				await Promise.all(updates)
 			}
 		}
 	})
 }
+
+const toState = (state: boolean) => (state ? LED_STATE.ON : LED_STATE.OFF)

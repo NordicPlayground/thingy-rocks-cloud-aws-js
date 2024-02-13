@@ -8,15 +8,17 @@ enum ExampleAppMessages {
 	LED_STATE_GET = 130,
 }
 
-// FIXME: change to 5 later
-// For now keep the LED ID as “0” (current boards do not manage this but for the demo it will be “5”.
-const LED_ID = 0
-
 export enum LED_COLOR {
 	RED = 0,
 	BLUE = 1,
 	GREEN = 2,
 	ALL = 255,
+}
+
+// LED state (Decimal value 0 => switch off, 1 => switch on)
+export enum LED_STATE {
+	OFF = 0,
+	ON = 1,
 }
 
 const sendPacket = (node: number, payload: Buffer): GenericMessage => ({
@@ -49,18 +51,11 @@ export const setLEDColor = ({
 }: {
 	node: number
 	color: LED_COLOR
-	ledState: boolean
+	ledState: LED_STATE
 }): GenericMessage =>
 	sendPacket(
 		node,
-		Buffer.from([
-			// LED state set message
-			ExampleAppMessages.LED_STATE_SET,
-			// LED identifier (Decimal value 0 is the first user available LED on the node)
-			color,
-			// LED state (Decimal value 0 => switch off, 1 => switch on)
-			ledState ? 1 : 0,
-		]),
+		Buffer.from([ExampleAppMessages.LED_STATE_SET, color, ledState]),
 	)
 
 /**
@@ -68,16 +63,14 @@ export const setLEDColor = ({
  *
  * @see https://github.com/wirepas/wm-sdk/tree/v1.4.0/source/example_apps/evaluation_app#led-state-get-request-message
  */
-export const getLedState = ({ node }: { node: number }): GenericMessage =>
-	sendPacket(
-		node,
-		Buffer.from([
-			// LED state set message
-			ExampleAppMessages.LED_STATE_GET,
-			// LED identifier (Decimal value 0 is the first user available LED on the node)
-			LED_ID,
-		]),
-	)
+export const getLedState = ({
+	node,
+	color,
+}: {
+	node: number
+	color: LED_COLOR
+}): GenericMessage =>
+	sendPacket(node, Buffer.from([ExampleAppMessages.LED_STATE_GET, color]))
 
 /**
  * Publish a message to the Wirepas 5G Mesh Gateway
