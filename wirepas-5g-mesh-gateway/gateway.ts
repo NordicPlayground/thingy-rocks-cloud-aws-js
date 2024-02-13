@@ -192,6 +192,7 @@ const updateColor = throttle(
 			}),
 		}),
 )
+
 for (const gwId of Object.keys(existingGws)) {
 	gwThingConnections[gwId] = await cloudToGateway(iotDataClient, {
 		debug: (...args) => debug(C2G, ...args),

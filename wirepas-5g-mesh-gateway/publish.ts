@@ -23,9 +23,9 @@ const sendPacket = (node: number, payload: Buffer): GenericMessage => ({
 	wirepas: {
 		sendPacketReq: {
 			qos: 2, // send the downlink messages (i.e from backend to nodes) with MQTT QoS 2 so that they are delivered only once to the gateway.
-			sourceEndpoint: 1,
+			sourceEndpoint: 0x10,
 			destinationAddress: node,
-			destinationEndpoint: 1,
+			destinationEndpoint: 0x41,
 			payload,
 			header: {
 				reqId: BigInt('0x' + randomBytes(8).toString('hex')),
@@ -107,20 +107,16 @@ export const wirepasPublish =
 				typeof value === 'bigint' ? value.toString() : value,
 			),
 		)
-		debug(
-			Buffer.from(Buffer.from(GenericMessage.toBinary(req))).toString('hex'),
-		)
 
 		await new Promise((resolve, reject) => {
 			client.publish(
 				topic,
 				Buffer.from(GenericMessage.toBinary(req)),
+				{ qos: 1 },
 				(err, res) => {
-					if (err !== undefined) return reject(err)
+					if (err !== undefined && err !== null) return reject(err)
 					return resolve(res)
 				},
 			)
 		})
-
-		client.end()
 	}
