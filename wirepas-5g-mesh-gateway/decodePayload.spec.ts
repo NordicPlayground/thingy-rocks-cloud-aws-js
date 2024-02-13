@@ -88,4 +88,7 @@ void describe('decodePayload()', () => {
 			),
 			{},
 		))
+
+	void it('should ignore LED status read messages', () =>
+		assert.deepEqual(decodePayload(Buffer.from('8201', 'hex')), {}))
 })

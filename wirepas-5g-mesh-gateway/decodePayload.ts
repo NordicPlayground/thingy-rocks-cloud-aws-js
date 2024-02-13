@@ -67,6 +67,11 @@ Byte 1: ID (0x03)
 Byte 2: Color. 0x00: red, 0x01: blue, 0x02: green
 Byte 3: State. 0x00: off, 0x01: on.
 
+### Read LED status
+
+Byte 1: ID (0x82)
+Byte 2: Color. 0x00: red, 0x01: blue, 0x02: green
+
 ## Diagnostic messages
 
 Concerning the message starting with BF, it does not come from the Thingy: these are diagnostic messages giving information about the network. You can safely ignore them too.
@@ -123,6 +128,11 @@ export const decodePayload = (
 					},
 				}
 		}
+	}
+
+	// LED reads special case
+	if (payload.length === 2 && msg.peek() === 0x82) {
+		return {}
 	}
 
 	// Regular message
