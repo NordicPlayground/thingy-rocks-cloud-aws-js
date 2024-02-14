@@ -19,17 +19,11 @@ const connect = async ({
 	privateKey,
 	deviceId,
 	mqttEndpoint,
-	log,
 }: {
 	clientCert: string
 	privateKey: string
 	deviceId: string
 	mqttEndpoint: string
-
-	log: {
-		debug: (...args: any[]) => void
-		error: (...args: any[]) => void
-	}
 }) =>
 	new Promise<mqtt.MqttClientConnection>((resolve, reject) => {
 		const cfg = iot.AwsIotMqttConnectionConfigBuilder.new_mtls_builder(
@@ -42,21 +36,21 @@ const connect = async ({
 		const client = new mqtt.MqttClient(clientBootstrap)
 		const connection = client.new_connection(cfg.build())
 		connection.on('error', (err) => {
-			log.error(JSON.stringify(err))
+			console.error(JSON.stringify(err))
 			reject(err)
 		})
 		connection.on('connect', () => {
-			log.debug(`${deviceId} connected`)
+			console.debug(`${deviceId} connected`)
 			resolve(connection)
 		})
 		connection.on('disconnect', () => {
-			log.debug(`${deviceId} disconnected`)
+			console.debug(`${deviceId} disconnected`)
 		})
 		connection.on('closed', () => {
-			log.debug(`${deviceId} closed`)
+			console.debug(`${deviceId} closed`)
 		})
 		connection.connect().catch(() => {
-			log.debug(`${deviceId} failed to connect.`)
+			console.debug(`${deviceId} failed to connect.`)
 		})
 	})
 
@@ -68,13 +62,7 @@ type Desired = {
 }
 
 export const cloudToGateway =
-	(
-		iotDataClient: IoTDataPlaneClient,
-		log: {
-			debug: (...args: any[]) => void
-			error: (...args: any[]) => void
-		},
-	) =>
+	(iotDataClient: IoTDataPlaneClient) =>
 	async (
 		deviceId: string,
 		onDesired: (desired: Desired) => Promise<void>,
@@ -104,7 +92,6 @@ export const cloudToGateway =
 			privateKey,
 			deviceId,
 			mqttEndpoint: 'iot.thingy.rocks',
-			log,
 		})
 		const shadow = new iotshadow.IotShadowClient(connection)
 
@@ -115,10 +102,10 @@ export const cloudToGateway =
 			mqtt.QoS.AtLeastOnce,
 			async (err, response) => {
 				if (err !== undefined) {
-					log.error(err)
+					console.error(err)
 				}
 				const desired = (response?.state ?? {}) as Desired
-				log.debug(JSON.stringify(desired))
+				console.debug(JSON.stringify(desired))
 				await onDesired(desired)
 				await iotDataClient.send(
 					new UpdateThingShadowCommand({

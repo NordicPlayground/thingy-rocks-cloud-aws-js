@@ -1,7 +1,6 @@
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import mqtt from 'mqtt'
 import { mqtt as awsMqtt } from 'aws-iot-device-sdk-v2'
-import { debug, error, log } from './log.js'
 import { GenericMessage } from './protobuf/ts/generic_message.js'
 import {
 	IoTDataPlaneClient,
@@ -78,24 +77,24 @@ const existingGws = (gateways ?? []).reduce(
 	{} as Record<string, ThingAttribute>,
 )
 Object.keys(existingGws).forEach((gwId) =>
-	debug(`Known gateway things: ${gwId}`),
+	console.debug(`Known gateway things: ${gwId}`),
 )
 
 const parsedEndpoint = new URL(gatewayEndpoint)
-log(`Connecting to`, parsedEndpoint.hostname)
+console.log(`Connecting to`, parsedEndpoint.hostname)
 
 const client = mqtt.connect(gatewayEndpoint)
 
 const topics = ['gw-event/#']
 
 client.on('connect', () => {
-	log(`Connected.`)
+	console.log(`Connected.`)
 	for (const topic of topics) {
 		client.subscribe(topic, (err, grants) => {
 			if (err !== null) {
 				throw err
 			}
-			for (const { topic } of grants ?? []) log(`Subscribed to`, topic)
+			for (const { topic } of grants ?? []) console.log(`Subscribed to`, topic)
 		})
 	}
 })
@@ -133,7 +132,7 @@ client.on('message', (_, message) => {
 
 		const rxTime = new Date(parseInt(BigInt(rxTimeMsEpoch).toString()))
 		if (existingGws[gwId] === undefined) {
-			error(
+			console.error(
 				`Unknown gateway: ${gwId}! Add a new IoT Thing with the name "${gwId}" and the thing type "${thingTypeName}".`,
 			)
 			return
@@ -162,12 +161,12 @@ client.on('message', (_, message) => {
 					payload: ((payload) => {
 						try {
 							return decodePayload(payload, (type, pos) => {
-								debug(`Unknown message type`, type)
-								debug(Buffer.from(payload).toString('hex'))
-								debug('  '.repeat(Math.max(0, pos - 1)) + ' ^')
+								console.debug(`Unknown message type`, type)
+								console.debug(Buffer.from(payload).toString('hex'))
+								console.debug('  '.repeat(Math.max(0, pos - 1)) + ' ^')
 							})
 						} catch {
-							debug(
+							console.debug(
 								`Failed to decode payload: ${Buffer.from(payload).toString('hex')}`,
 							)
 						}
@@ -185,7 +184,7 @@ setInterval(async () => {
 	await Promise.all(
 		Object.entries(nodes).map(async ([gwId, nodes]) => {
 			Object.entries(nodes).forEach(([nodeId, data]) => {
-				debug(gwId, nodeId, JSON.stringify(data))
+				console.debug(gwId, nodeId, JSON.stringify(data))
 			})
 
 			return iotDataClient.send(
@@ -204,13 +203,13 @@ setInterval(async () => {
 	)
 	nodes = {}
 }, stateFlushInterval * 1000)
-debug(`Flushing state every ${stateFlushInterval} seconds`)
+console.debug(`Flushing state every ${stateFlushInterval} seconds`)
 
 // Handle configuration changes
 const C2G = chalk.blue.dim('C2G')
 const sendToGateway = wirepasPublish({
 	client,
-	debug: (...args) => debug(C2G, ...args),
+	debug: (...args) => console.debug(C2G, ...args),
 })
 const gwThingConnections: Record<string, awsMqtt.MqttClientConnection> = {}
 
@@ -227,25 +226,25 @@ const updateColor = throttle(
 )
 
 for (const gwId of Object.keys(existingGws)) {
-	gwThingConnections[gwId] = await cloudToGateway(iotDataClient, {
-		debug: (...args) => debug(C2G, ...args),
-		error: (...args) => error(C2G, ...args),
-	})(gwId, async (desired) => {
-		for (const [nodeId, { payload }] of Object.entries(desired.nodes)) {
-			const node = parseInt(nodeId, 10)
-			if ('led' in payload && payload.led !== undefined) {
-				const { r, g, b } = payload.led
-				const updates = []
-				if (r !== undefined)
-					updates.push(updateColor(gwId, node, LED_COLOR.RED, toState(r)))
-				if (g !== undefined)
-					updates.push(updateColor(gwId, node, LED_COLOR.GREEN, toState(g)))
-				if (b !== undefined)
-					updates.push(updateColor(gwId, node, LED_COLOR.BLUE, toState(b)))
-				await Promise.all(updates)
+	gwThingConnections[gwId] = await cloudToGateway(iotDataClient)(
+		gwId,
+		async (desired) => {
+			for (const [nodeId, { payload }] of Object.entries(desired.nodes)) {
+				const node = parseInt(nodeId, 10)
+				if ('led' in payload && payload.led !== undefined) {
+					const { r, g, b } = payload.led
+					const updates = []
+					if (r !== undefined)
+						updates.push(updateColor(gwId, node, LED_COLOR.RED, toState(r)))
+					if (g !== undefined)
+						updates.push(updateColor(gwId, node, LED_COLOR.GREEN, toState(g)))
+					if (b !== undefined)
+						updates.push(updateColor(gwId, node, LED_COLOR.BLUE, toState(b)))
+					await Promise.all(updates)
+				}
 			}
-		}
-	})
+		},
+	)
 }
 
 const toState = (state: boolean) => (state ? LED_STATE.ON : LED_STATE.OFF)
