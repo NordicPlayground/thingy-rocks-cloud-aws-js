@@ -37,7 +37,7 @@ export class BackendStack extends Stack {
 		const baseLayer = new Lambda.LayerVersion(this, 'baseLayer', {
 			code: Lambda.Code.fromAsset(layer.layerZipFile),
 			compatibleArchitectures: [Lambda.Architecture.ARM_64],
-			compatibleRuntimes: [Lambda.Runtime.NODEJS_18_X],
+			compatibleRuntimes: [Lambda.Runtime.NODEJS_20_X],
 		})
 
 		const api = new WebsocketAPI(this, {

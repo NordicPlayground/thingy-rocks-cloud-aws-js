@@ -79,7 +79,7 @@ export class NRPlusGateway extends Construct {
 			{
 				handler: lambdaSources.parseSinkMessages.handler,
 				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_18_X,
+				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.minutes(15),
 				memorySize: 1792,
 				code: Lambda.Code.fromAsset(
@@ -116,7 +116,7 @@ export class NRPlusGateway extends Construct {
 			{
 				handler: lambdaSources.nrplusGatewayScan.handler,
 				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_18_X,
+				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.minutes(15),
 				memorySize: 1792,
 				code: Lambda.Code.fromAsset(

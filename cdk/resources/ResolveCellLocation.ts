@@ -42,7 +42,7 @@ export class ResolveCellLocation extends Construct {
 			{
 				handler: lambdaSources.resolveCellLocation.handler,
 				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_18_X,
+				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.seconds(60),
 				memorySize: 1792,
 				code: Lambda.Code.fromAsset(
@@ -149,7 +149,7 @@ export class ResolveCellLocation extends Construct {
 			{
 				handler: lambdaSources.onCellGeoLocationResolved.handler,
 				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_18_X,
+				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.seconds(60),
 				memorySize: 1792,
 				code: Lambda.Code.fromAsset(

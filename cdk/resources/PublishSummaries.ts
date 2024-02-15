@@ -38,7 +38,7 @@ export class PublishSummaries extends Construct {
 		const lambda = new Lambda.Function(this, 'lambda', {
 			handler: lambdaSources.publishSummaries.handler,
 			architecture: Lambda.Architecture.ARM_64,
-			runtime: Lambda.Runtime.NODEJS_18_X,
+			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
 			code: Lambda.Code.fromAsset(lambdaSources.publishSummaries.lambdaZipFile),
