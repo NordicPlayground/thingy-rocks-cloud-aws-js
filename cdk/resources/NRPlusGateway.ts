@@ -117,7 +117,7 @@ export class NRPlusGateway extends Construct {
 				handler: lambdaSources.nrplusGatewayScan.handler,
 				architecture: Lambda.Architecture.ARM_64,
 				runtime: Lambda.Runtime.NODEJS_18_X,
-				timeout: Duration.seconds(60),
+				timeout: Duration.minutes(15),
 				memorySize: 1792,
 				code: Lambda.Code.fromAsset(
 					lambdaSources.nrplusGatewayScan.lambdaZipFile,
@@ -131,14 +131,6 @@ export class NRPlusGateway extends Construct {
 					new IAM.PolicyStatement({
 						actions: ['iot:ListThings', 'iot:Publish'],
 						resources: ['*'],
-					}),
-					new IAM.PolicyStatement({
-						actions: ['ssm:GetParameter'],
-						resources: [
-							`arn:aws:ssm:${Stack.of(this).region}:${
-								Stack.of(this).account
-							}:parameter/thingy.rocks/nrplus/gatewayScanCommand`,
-						],
 					}),
 				],
 				logRetention: Logs.RetentionDays.ONE_DAY,
