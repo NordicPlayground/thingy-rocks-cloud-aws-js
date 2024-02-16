@@ -1,6 +1,10 @@
 import { ScannableArray } from './ScannableArray.js'
 export type Wirepas5GMeshNodePayload = {
-	temp?: number
+	temp?: {
+		v: number
+		// The local timestamp
+		ts: number
+	}
 	btn?: {
 		// The ID of the pressed button
 		v: number
@@ -166,7 +170,13 @@ export const decodePayload = (
 				skip()
 				continue
 			case MessageType.TEMPERATURE:
-				message = { ...message, temp: readFloat(msg, len) }
+				message = {
+					...message,
+					temp: {
+						v: readFloat(msg, len),
+						ts: now(),
+					},
+				}
 				continue
 			default:
 				onUnknown?.(type, msg.pos() - 1)

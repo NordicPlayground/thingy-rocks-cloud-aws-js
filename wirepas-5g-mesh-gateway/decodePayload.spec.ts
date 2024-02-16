@@ -4,6 +4,8 @@ import assert from 'node:assert/strict'
 
 void describe('decodePayload()', () => {
 	void it('should decode a regular payload', () => {
+		const now = Date.now()
+
 		const payload = Buffer.from(
 			[
 				// [0x01: COUNTER]         [0x04]   [size_t counter]
@@ -52,11 +54,14 @@ void describe('decodePayload()', () => {
 			'hex',
 		)
 
-		const decoded = decodePayload(payload)
+		const decoded = decodePayload(payload, undefined, () => now)
 
 		assert.deepEqual(decoded, {
 			// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-			temp: 24.479999542236328,
+			temp: {
+				v: 24.479999542236328,
+				ts: now,
+			},
 		})
 	})
 
