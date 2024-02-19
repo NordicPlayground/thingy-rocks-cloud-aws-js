@@ -10,7 +10,7 @@ const buttonPressRegExp = /Button ([0-9]+) pressed/
 
 const iotData = new IoTDataPlaneClient({})
 
-const updateNodeData = async (
+const updateNodeData = (
 	deviceId: string,
 	nodeId: string,
 	data: Record<string, unknown>,
@@ -69,7 +69,7 @@ parserInstance.onMessage((deviceId, message) => {
 	}
 })
 
-export const handler = async (event: KinesisStreamEvent): Promise<void> => {
+export const handler = (event: KinesisStreamEvent): void => {
 	const buffer: Record<string, string[]> = {}
 	for (const {
 		kinesis: { data, partitionKey },

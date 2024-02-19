@@ -83,7 +83,7 @@ export const wirepasPublish =
 		debug,
 	}: {
 		client: mqtt.MqttClient
-		debug: (...args: any[]) => void
+		debug: (...args: any[]) => unknown
 	}) =>
 	async ({
 		gateway,
@@ -96,7 +96,8 @@ export const wirepasPublish =
 
 		debug('Publishing to', topic)
 		debug(
-			JSON.stringify(req, (key, value) =>
+			JSON.stringify(req, (key, value): any =>
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 				typeof value === 'bigint' ? value.toString() : value,
 			),
 		)

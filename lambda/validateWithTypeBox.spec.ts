@@ -4,7 +4,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 
 void describe('validateWithTypeBox', () => {
-	void it('Should check input is valid', async () => {
+	void it('Should check input is valid', () => {
 		const maybeValid = validateWithTypeBox(Type.Number())(42)
 		assert.equal(
 			'value' in maybeValid && maybeValid.value,

@@ -180,8 +180,8 @@ client.on('message', (_, message) => {
 })
 
 // Regularly send buffered updates
-setInterval(async () => {
-	await Promise.all(
+setInterval(() => {
+	void Promise.all(
 		Object.entries(nodes).map(async ([gwId, nodes]) => {
 			Object.entries(nodes).forEach(([nodeId, data]) => {
 				console.debug(gwId, nodeId, JSON.stringify(data))
@@ -209,7 +209,7 @@ console.debug(`Flushing state every ${stateFlushInterval} seconds`)
 const C2G = chalk.blue.dim('C2G')
 const sendToGateway = wirepasPublish({
 	client,
-	debug: (...args) => console.debug(C2G, ...args),
+	debug: (...args: unknown[]) => console.debug(C2G, ...args),
 })
 const gwThingConnections: Record<string, awsMqtt.MqttClientConnection> = {}
 

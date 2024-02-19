@@ -100,14 +100,14 @@ export const cloudToGateway =
 				thingName: deviceId,
 			},
 			mqtt.QoS.AtLeastOnce,
-			async (err, response) => {
+			(err, response) => {
 				if (err !== undefined) {
 					console.error(err)
 				}
 				const desired = (response?.state ?? {}) as Desired
 				console.debug(JSON.stringify(desired))
-				await onDesired(desired)
-				await iotDataClient.send(
+				void onDesired(desired)
+				void iotDataClient.send(
 					new UpdateThingShadowCommand({
 						thingName: deviceId,
 						payload: JSON.stringify({

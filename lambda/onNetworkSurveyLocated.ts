@@ -87,7 +87,7 @@ export const handler = async (event: {
 			},
 		}),
 	)
-	if (Item === undefined) throw new Error(`Survey not found: ${name}!`)
+	if (Item === undefined) throw new Error(`Survey not found: ${surveyId}!`)
 
 	const survey = unmarshall(Item)
 
