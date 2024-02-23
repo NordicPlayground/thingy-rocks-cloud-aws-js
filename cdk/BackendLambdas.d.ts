@@ -13,4 +13,5 @@ type BackendLambdas = {
 	parseSinkMessages: PackedLambda
 	nrplusGatewayScan: PackedLambda
 	updatesToLwM2M: PackedLambda
+	publishLwM2MShadowsToJSON: PackedLambda
 }

@@ -52,6 +52,7 @@ new BackendApp({
 		parseSinkMessages: await pack('parseSinkMessages'),
 		nrplusGatewayScan: await pack('nrplusGatewayScan'),
 		updatesToLwM2M: await pack('updatesToLwM2M'),
+		publishLwM2MShadowsToJSON: await pack('publishLwM2MShadowsToJSON'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

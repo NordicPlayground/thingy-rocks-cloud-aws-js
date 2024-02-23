@@ -18,6 +18,7 @@ import { Wirepas5GMeshGateway } from '../resources/Wirepas5GMeshGateway.js'
 import { STACK_NAME } from './stackName.js'
 import { NRPlusGateway } from '../resources/NRPlusGateway.js'
 import { LwM2M } from '../resources/LwM2M.js'
+import { PublicLwM2MShadows } from '../resources/hello.nrfcloud.com/PublicLwM2MShadows.js'
 
 export class BackendStack extends Stack {
 	public constructor(
@@ -105,6 +106,11 @@ export class BackendStack extends Stack {
 
 		const wirepasGateway = new Wirepas5GMeshGateway(this)
 
+		const lwm2mPublicShadows = new PublicLwM2MShadows(this, {
+			lambdaSources,
+			baseLayer,
+		})
+
 		// Outputs
 		new CfnOutput(this, 'WebSocketURI', {
 			exportName: `${this.stackName}:WebSocketURI`,
@@ -140,6 +146,11 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'wirepasGatewayUserSecretAccessKey', {
 			value: wirepasGateway.accessKey.attrSecretAccessKey,
 			exportName: `${this.stackName}:wirepasGatewayUserSecretAccessKey`,
+		})
+
+		new CfnOutput(this, 'publicLwM2MShadowsBucketURL', {
+			value: `https://${lwm2mPublicShadows.bucket.bucketDomainName}/`,
+			exportName: `${this.stackName}:publicLwM2MShadowsBucketURL`,
 		})
 	}
 }
