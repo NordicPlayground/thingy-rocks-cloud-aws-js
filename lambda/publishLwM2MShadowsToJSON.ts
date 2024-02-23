@@ -17,7 +17,7 @@ export const handler = async (): Promise<void> => {
 			CacheControl: 'public, max-age=60',
 			Body: JSON.stringify({
 				'@context': 'https://github.com/hello-nrfcloud/proto/map/devices',
-				devices: (await fetchShadows()).map(({ deviceId, objects }) => ({
+				devices: (await fetchShadows(30)).map(({ deviceId, objects }) => ({
 					'@context': 'https://github.com/hello-nrfcloud/proto/map/device',
 					id: deviceId,
 					model: 'world.thingy.rocks',

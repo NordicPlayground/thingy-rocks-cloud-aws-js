@@ -123,7 +123,7 @@ export const handler = async (
 
 	if (message.data === 'LWM2M-shadows') {
 		// Publish LwM2M shadows
-		const shadows = await fetchLwM2M()
+		const shadows = await fetchLwM2M(1)
 
 		console.log(
 			JSON.stringify({
