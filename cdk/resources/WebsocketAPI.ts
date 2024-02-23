@@ -8,10 +8,10 @@ import {
 	Duration,
 	RemovalPolicy,
 	Stack,
-	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
+import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 export class WebsocketAPI extends Construct {
 	public readonly websocketURI: string
@@ -89,7 +89,7 @@ export class WebsocketAPI extends Construct {
 			},
 			initialPolicy: [],
 			layers: [baseLayer],
-			logRetention: Logs.RetentionDays.ONE_WEEK,
+			...new LambdaLogGroup(this, 'onConnectLogs'),
 		})
 		this.connectionsTable.grantWriteData(onConnect)
 
@@ -135,7 +135,7 @@ export class WebsocketAPI extends Construct {
 				),
 			},
 			layers: [baseLayer],
-			logRetention: Logs.RetentionDays.ONE_WEEK,
+			...new LambdaLogGroup(this, 'onMessageLogs'),
 			initialPolicy: [
 				new IAM.PolicyStatement({
 					actions: ['iot:Publish'],
@@ -201,7 +201,7 @@ export class WebsocketAPI extends Construct {
 			},
 			initialPolicy: [],
 			layers: [baseLayer],
-			logRetention: Logs.RetentionDays.ONE_WEEK,
+			...new LambdaLogGroup(this, 'onDisconnectLogs'),
 		})
 		this.connectionsTable.grantWriteData(onDisconnect)
 
@@ -283,7 +283,7 @@ export class WebsocketAPI extends Construct {
 					}),
 				],
 				layers: [baseLayer],
-				logRetention: Logs.RetentionDays.ONE_WEEK,
+				...new LambdaLogGroup(this, 'publishToWebsocketClientsLogs'),
 			},
 		)
 

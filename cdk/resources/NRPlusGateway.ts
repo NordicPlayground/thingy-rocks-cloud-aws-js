@@ -6,9 +6,9 @@ import Iot from 'aws-cdk-lib/aws-iot'
 import Kinesis, { StreamMode } from 'aws-cdk-lib/aws-kinesis'
 import Lambda, { StartingPosition } from 'aws-cdk-lib/aws-lambda'
 import { KinesisEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
-import Logs from 'aws-cdk-lib/aws-logs'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend'
+import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 export class NRPlusGateway extends Construct {
 	constructor(
@@ -95,7 +95,7 @@ export class NRPlusGateway extends Construct {
 						resources: ['*'],
 					}),
 				],
-				logRetention: Logs.RetentionDays.ONE_WEEK,
+				...new LambdaLogGroup(this, 'parseSinkMessagesFnLogs'),
 				reservedConcurrentExecutions: 1,
 			},
 		)
@@ -133,7 +133,7 @@ export class NRPlusGateway extends Construct {
 						resources: ['*'],
 					}),
 				],
-				logRetention: Logs.RetentionDays.ONE_DAY,
+				...new LambdaLogGroup(this, 'nrplusGatewayScanFnLogs'),
 			},
 		)
 

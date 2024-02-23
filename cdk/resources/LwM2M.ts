@@ -5,9 +5,9 @@ import {
 	aws_iot as IoT,
 	aws_lambda as Lambda,
 	Stack,
-	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import type { PackedLambda } from '../backend'
+import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 /**
  * Contains resources that provide LwM2M based data for devices
@@ -46,7 +46,7 @@ export class LwM2M extends Construct {
 					resources: ['*'],
 				}),
 			],
-			logRetention: Logs.RetentionDays.ONE_WEEK,
+			...new LambdaLogGroup(this, 'updatesToLwM2MLogs'),
 		})
 
 		const ruleRole = new IAM.Role(this, 'ruleRole', {

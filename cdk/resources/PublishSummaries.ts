@@ -4,12 +4,12 @@ import {
 	aws_iam as IAM,
 	aws_lambda as Lambda,
 	Duration,
-	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
 import type { WebsocketAPI } from './WebsocketAPI.js'
+import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 /**
  * Publish the summary statistics for the devices
@@ -77,7 +77,7 @@ export class PublishSummaries extends Construct {
 					resources: ['*'],
 				}),
 			],
-			logRetention: Logs.RetentionDays.ONE_WEEK,
+			...new LambdaLogGroup(this, 'lambdaLogs'),
 		})
 
 		websocketAPI.connectionsTable.grantFullAccess(lambda)

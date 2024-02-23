@@ -6,11 +6,11 @@ import {
 	aws_iot as IoT,
 	aws_lambda as Lambda,
 	Stack,
-	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
 import type { WebsocketAPI } from './WebsocketAPI.js'
+import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 export class ResolveCellLocation extends Construct {
 	public constructor(
@@ -66,7 +66,7 @@ export class ResolveCellLocation extends Construct {
 						resources: ['*'],
 					}),
 				],
-				logRetention: Logs.RetentionDays.ONE_WEEK,
+				...new LambdaLogGroup(this, 'resolveCellLocationLogs'),
 			},
 		)
 
@@ -172,7 +172,7 @@ export class ResolveCellLocation extends Construct {
 					}),
 				],
 				layers: [baseLayer],
-				logRetention: Logs.RetentionDays.ONE_WEEK,
+				...new LambdaLogGroup(this, 'onCellGeoLocationResolvedLambdaLogs'),
 			},
 		)
 		websocketAPI.connectionsTable.grantFullAccess(onCellGeoLocationResolved)

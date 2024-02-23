@@ -6,11 +6,11 @@ import {
 	aws_iam as IAM,
 	aws_lambda as Lambda,
 	aws_lambda_event_sources as LambdaEvents,
-	aws_logs as Logs,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend'
 import type { WebsocketAPI } from './WebsocketAPI'
+import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 /**
  * Notify clients about resolved neighboring cell location reports geo locations
@@ -66,7 +66,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 					resources: [websocketAPI.websocketAPIArn],
 				}),
 			],
-			logRetention: Logs.RetentionDays.ONE_WEEK,
+			...new LambdaLogGroup(this, 'onNewNetworkSurveyLogs'),
 		})
 
 		websocketAPI.connectionsTable.grantFullAccess(onNewNetworkSurvey)
@@ -112,7 +112,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 					}),
 				],
 				layers: [baseLayer],
-				logRetention: Logs.RetentionDays.ONE_WEEK,
+				...new LambdaLogGroup(this, 'onNetworkSurveyLocatedLogs'),
 			},
 		)
 		websocketAPI.connectionsTable.grantFullAccess(onNetworkSurveyLocated)
