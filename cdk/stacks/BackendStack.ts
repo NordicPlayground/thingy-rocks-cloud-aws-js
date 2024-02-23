@@ -36,6 +36,7 @@ export class BackendStack extends Stack {
 		super(parent, STACK_NAME)
 
 		const baseLayer = new Lambda.LayerVersion(this, 'baseLayer', {
+			layerVersionName: `${Stack.of(this).stackName}-baseLayer`,
 			code: Lambda.Code.fromAsset(layer.layerZipFile),
 			compatibleArchitectures: [Lambda.Architecture.ARM_64],
 			compatibleRuntimes: [Lambda.Runtime.NODEJS_20_X],
