@@ -182,21 +182,28 @@ client.on('message', (_, message) => {
 // Regularly send buffered updates
 setInterval(() => {
 	void Promise.all(
-		Object.entries(nodes).map(async ([gwId, nodes]) => {
+		Object.entries(nodes).map(async ([gwId, nodes]): Promise<void> => {
 			Object.entries(nodes).forEach(([nodeId, data]) => {
 				console.debug(gwId, nodeId, JSON.stringify(data))
 			})
 
-			return iotDataClient.send(
+			await iotDataClient.send(
 				new UpdateThingShadowCommand({
 					thingName: gwId,
-					payload: JSON.stringify({
-						state: {
-							reported: {
-								nodes,
+					payload: JSON.stringify(
+						{
+							state: {
+								reported: {
+									nodes,
+								},
 							},
 						},
-					}),
+						(_, v) => {
+							if (typeof v === 'number' && !Number.isInteger(v))
+								return parseFloat(v.toFixed(2))
+							return v
+						},
+					),
 				}),
 			)
 		}),
