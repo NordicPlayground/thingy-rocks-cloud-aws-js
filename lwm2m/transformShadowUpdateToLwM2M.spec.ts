@@ -16,13 +16,30 @@ void describe('transformShadowUpdateToLwM2M()', () => {
 							ts: 1699202473044,
 						},
 						bat: { v: 4382, ts: 1699202473174 },
+						fg: {
+							ts: 1708942457126,
+							v: {
+								V: 3710,
+								SoC: 20,
+								I: -442,
+								T: 297,
+							},
+						},
 					},
 				},
 			}),
 			[
 				{
 					ObjectID: 14202,
-					Resources: { '1': 4.382, '99': new Date('2023-11-05T16:41:13.174Z') },
+					Resources: {
+						'0': null,
+						'1': 4.382,
+						'2': null,
+						'3': null,
+						'4': null,
+						'5': null,
+						'99': new Date('2023-11-05T16:41:13.174Z'),
+					},
 				},
 				{
 					ObjectID: 14205,
@@ -30,7 +47,21 @@ void describe('transformShadowUpdateToLwM2M()', () => {
 						'0': 27.07,
 						'1': 29.261,
 						'2': 97.13,
+						'10': null,
 						'99': new Date('2023-11-05T16:41:13.044Z'),
+					},
+				},
+				// Make sure optional resources are unset
+				{
+					ObjectID: 14202,
+					Resources: {
+						'0': 20,
+						'1': 3.71,
+						'2': -442,
+						'3': 29.7,
+						'4': null,
+						'5': null,
+						'99': new Date(1708942457126),
 					},
 				},
 			],

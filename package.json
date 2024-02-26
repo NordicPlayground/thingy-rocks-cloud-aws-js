@@ -82,7 +82,7 @@
   "prettier": "@bifravst/prettier-config",
   "dependencies": {
     "@aws-sdk/client-s3": "3.521.0",
-    "@hello.nrfcloud.com/proto-lwm2m": "2.4.6",
+    "@hello.nrfcloud.com/proto-lwm2m": "2.5.1",
     "@nordicsemiconductor/from-env": "3.0.1",
     "@nordicsemiconductor/timestream-helpers": "6.0.2",
     "@protobuf-ts/runtime": "2.9.3",

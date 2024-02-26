@@ -3,6 +3,7 @@ import {
 	senMLtoLwM2M,
 	type LwM2MObjectInstance,
 	type Transformer,
+	definitions,
 } from '@hello.nrfcloud.com/proto-lwm2m'
 
 type Update = {
@@ -90,6 +91,25 @@ export const transformShadowUpdateToLwM2M = (
 			.then((result) => result.filter((item) => item !== null))
 			// Convert it to LwM2M
 			.then(senMLtoLwM2M)
+			// Mark omitted properties as unset
+			.then((lwm2m) => {
+				return lwm2m.map((o) => {
+					const res = definitions[o.ObjectID]?.Resources ?? {}
+					const resourcesInObject = Object.keys(o.Resources)
+					return Object.keys(res)
+						.filter((r) => !resourcesInObject.includes(r))
+						.reduce<LwM2MObjectInstance>(
+							(o, undefinedResourceID) => ({
+								...o,
+								Resources: {
+									...o.Resources,
+									[undefinedResourceID]: null,
+								},
+							}),
+							o,
+						)
+				})
+			})
 			// Handle errors
 			.catch((err) => {
 				console.error(err)
