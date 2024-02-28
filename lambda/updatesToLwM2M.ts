@@ -33,8 +33,6 @@ const updateShadow = async (
 
 /**
  * Store shadow updates in asset_tracker_v2 shadow format as LwM2M objects in a named shadow.
- *
- * Also store the updates in a table for historical data.
  */
 export const handler = async (event: {
 	deviceId: string
