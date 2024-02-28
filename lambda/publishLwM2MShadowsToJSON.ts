@@ -2,6 +2,7 @@ import { IoTClient } from '@aws-sdk/client-iot'
 import { fetchLwM2MShadows } from '../lwm2m/fetchLwM2MShadows.js'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { fromEnv } from '@nordicsemiconductor/from-env'
+import { models } from '@hello.nrfcloud.com/proto-lwm2m'
 
 const iot = new IoTClient({})
 const fetchShadows = fetchLwM2MShadows(iot)
@@ -20,7 +21,7 @@ export const handler = async (): Promise<void> => {
 				devices: (await fetchShadows(30)).map(({ deviceId, objects }) => ({
 					'@context': 'https://github.com/hello-nrfcloud/proto/map/device',
 					id: deviceId,
-					model: 'world.thingy.rocks',
+					model: models['asset_tracker_v2+AWS'].id,
 					state: objects,
 				})),
 			}),
