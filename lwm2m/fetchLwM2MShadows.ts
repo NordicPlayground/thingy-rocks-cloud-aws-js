@@ -1,8 +1,10 @@
 import { IoTClient, SearchIndexCommand } from '@aws-sdk/client-iot'
-import type { LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-lwm2m'
+import {
+	instanceTs,
+	type LwM2MObjectInstance,
+} from '@hello.nrfcloud.com/proto-lwm2m'
 import { shadowToObjects } from './shadowToObjects.js'
 import { getDeviceInfo } from '../lambda/withDeviceAlias.js'
-import { instanceTs } from './instanceTs.js'
 
 type LwM2MShadow = {
 	deviceId: string
