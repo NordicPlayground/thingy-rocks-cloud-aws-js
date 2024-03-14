@@ -25,6 +25,8 @@ const notifier = withDeviceAlias(iot)(
 	}),
 )
 
+const getActive = getActiveConnections(db, connectionsTableName)
+
 export const handler = async (event: {
 	roam: {
 		v: {
@@ -42,10 +44,7 @@ export const handler = async (event: {
 }): Promise<void> => {
 	console.log(JSON.stringify({ event, geolocationApiUrl }))
 
-	const connectionIds: string[] = await getActiveConnections(
-		db,
-		connectionsTableName,
-	)
+	const connectionIds: string[] = await getActive()
 	if (connectionIds.length === 0) {
 		console.log(`No clients to notify.`)
 		return

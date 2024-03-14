@@ -15,7 +15,7 @@ import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 export class WebsocketAPI extends Construct {
 	public readonly websocketURI: string
-	public readonly connectionsTable: DynamoDB.ITable
+	public readonly connectionsTable: DynamoDB.Table
 	public readonly websocketAPIArn: string
 	public readonly websocketManagementAPIURL: string
 	public constructor(
@@ -43,7 +43,7 @@ export class WebsocketAPI extends Construct {
 			},
 			timeToLiveAttribute: 'ttl',
 			removalPolicy: RemovalPolicy.DESTROY,
-		}) as DynamoDB.ITable
+		})
 
 		// API
 		const api = new ApiGateway.CfnApi(this, 'api', {

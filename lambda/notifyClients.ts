@@ -77,6 +77,7 @@ export const notifyClients = (
 	dropMessage = false,
 ): ((event: Event) => Promise<void>) => {
 	const send = sendEvent(apiGwManagementClient)
+	const getActive = getActiveConnections(db, connectionsTableName)
 	return async (event: Event): Promise<void> => {
 		console.log(
 			JSON.stringify({
@@ -87,10 +88,7 @@ export const notifyClients = (
 			console.debug(`Dropped message`)
 			return
 		}
-		const connectionIds: string[] = await getActiveConnections(
-			db,
-			connectionsTableName,
-		)
+		const connectionIds: string[] = await getActive()
 
 		for (const connectionId of connectionIds) {
 			try {
@@ -151,18 +149,35 @@ const getEventContext = (event: Event): URL | null => {
 	return null
 }
 
-export const getActiveConnections = async (
+export const getActiveConnections = (
 	db: DynamoDBClient,
 	connectionsTableName: string,
-): Promise<string[]> => {
-	const res = await db.send(
-		new ScanCommand({
-			TableName: connectionsTableName,
-		}),
-	)
+): (() => Promise<Array<string>>) => {
+	let lastResult: {
+		connectionIds: string[]
+		ts: number
+	}
+	return async (): Promise<string[]> => {
+		// Cache for 60 seconds
+		if (lastResult !== undefined && lastResult.ts > Date.now() - 60 * 1000) {
+			return lastResult.connectionIds
+		}
 
-	const connectionIds: string[] = res?.Items?.map(
-		({ connectionId }) => connectionId?.S,
-	).filter((connectionId) => connectionId !== undefined) as string[]
-	return connectionIds
+		const res = await db.send(
+			new ScanCommand({
+				TableName: connectionsTableName,
+			}),
+		)
+
+		const connectionIds: string[] = res?.Items?.map(
+			({ connectionId }) => connectionId?.S,
+		).filter((connectionId) => connectionId !== undefined) as string[]
+
+		lastResult = {
+			connectionIds,
+			ts: Date.now(),
+		}
+
+		return connectionIds
+	}
 }

@@ -117,6 +117,7 @@ export class BackendStack extends Stack {
 			assetTrackerStackName,
 			baseLayer,
 			lambdaSources,
+			websocketAPI: api,
 		})
 
 		// Outputs

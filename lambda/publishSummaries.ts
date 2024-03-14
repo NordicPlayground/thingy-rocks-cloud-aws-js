@@ -35,11 +35,10 @@ const [historicaldataDatabaseName, historicaldataTableName] =
 
 const timestream = new TimestreamQueryClient({})
 
+const getActive = getActiveConnections(db, connectionsTableName)
+
 export const handler = async (): Promise<void> => {
-	const connectionIds: string[] = await getActiveConnections(
-		db,
-		connectionsTableName,
-	)
+	const connectionIds: string[] = await getActive()
 	if (connectionIds.length === 0) {
 		console.log(`No clients to notify.`)
 		return

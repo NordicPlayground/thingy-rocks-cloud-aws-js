@@ -2,15 +2,24 @@ import { IoTClient, ListThingsInThingGroupCommand } from '@aws-sdk/client-iot'
 import { GetParametersByPathCommand, SSMClient } from '@aws-sdk/client-ssm'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { getActiveConnections } from './notifyClients.js'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
 const ssm = new SSMClient({})
 const iot = new IoTClient({})
 const s3 = new S3Client({})
+const db = new DynamoDBClient({})
 
-const { stackName, nrfAssetTrackerStackName, bucket } = fromEnv({
+const {
+	stackName,
+	nrfAssetTrackerStackName,
+	bucket,
+	websocketConnectionsTableName,
+} = fromEnv({
 	stackName: 'STACK_NAME',
 	nrfAssetTrackerStackName: 'ASSET_TRACKER_STACK_NAME',
 	bucket: 'BUCKET',
+	websocketConnectionsTableName: 'WEBSOCKET_CONNECTIONS_TABLE_NAME',
 })(process.env)
 
 const Prefix = `/${stackName}/memfault/`
@@ -36,6 +45,8 @@ if (
 	projectId === undefined
 )
 	throw new Error(`Memfault settings not configured!`)
+
+const getActive = getActiveConnections(db, websocketConnectionsTableName)
 
 type Reboot = {
 	type: 'memfault'
@@ -76,6 +87,10 @@ const api = {
  * Pull data from Memfault about all devices
  */
 export const handler = async (): Promise<void> => {
+	if ((await getActive()).length === 0) {
+		console.debug('No active connections.')
+		return
+	}
 	const { things } = await iot.send(
 		new ListThingsInThingGroupCommand({
 			thingGroupName: nrfAssetTrackerStackName,

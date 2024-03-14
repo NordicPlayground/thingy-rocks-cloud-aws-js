@@ -34,13 +34,12 @@ const notifier = withDeviceAlias(iot)(
 	}),
 )
 
+const getActive = getActiveConnections(db, connectionsTableName)
+
 export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 	console.log(JSON.stringify({ event, networkGeolocationApiUrl }))
 
-	const connectionIds: string[] = await getActiveConnections(
-		db,
-		connectionsTableName,
-	)
+	const connectionIds: string[] = await getActive()
 	if (connectionIds.length === 0) {
 		console.log(`No clients to notify.`)
 		return

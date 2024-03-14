@@ -12,6 +12,7 @@ import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
 import { LambdaLogGroup } from './LambdaLogGroup.js'
+import type { WebsocketAPI } from './WebsocketAPI.js'
 
 /**
  * Pull Memfault data for devices
@@ -24,12 +25,14 @@ export class Memfault extends Construct {
 			lambdaSources,
 			baseLayer,
 			assetTrackerStackName,
+			websocketAPI,
 		}: {
 			lambdaSources: {
 				memfault: PackedLambda
 			}
 			baseLayer: Lambda.ILayerVersion
 			assetTrackerStackName: string
+			websocketAPI: WebsocketAPI
 		},
 	) {
 		super(parent, 'Memfault')
@@ -61,7 +64,7 @@ export class Memfault extends Construct {
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
 			code: Lambda.Code.fromAsset(lambdaSources.memfault.lambdaZipFile),
-			description: 'Pull Memfault data for devices and put them in the shadow',
+			description: 'Pull Memfault data for devices and publish it on S3',
 			layers: [baseLayer],
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
@@ -69,6 +72,8 @@ export class Memfault extends Construct {
 				ASSET_TRACKER_STACK_NAME: assetTrackerStackName,
 				NODE_NO_WARNINGS: '1',
 				BUCKET: this.bucket.bucketName,
+				WEBSOCKET_CONNECTIONS_TABLE_NAME:
+					websocketAPI.connectionsTable.tableName,
 			},
 			initialPolicy: [
 				new IAM.PolicyStatement({
@@ -86,6 +91,7 @@ export class Memfault extends Construct {
 		})
 
 		this.bucket.grantWrite(fn)
+		websocketAPI.connectionsTable.grantReadData(fn)
 
 		const rule = new Events.Rule(this, 'Rule', {
 			schedule: Events.Schedule.expression('rate(5 minutes)'),
