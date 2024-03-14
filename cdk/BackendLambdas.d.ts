@@ -14,4 +14,5 @@ type BackendLambdas = {
 	nrplusGatewayScan: PackedLambda
 	updatesToLwM2M: PackedLambda
 	publishLwM2MShadowsToJSON: PackedLambda
+	memfault: PackedLambda
 }

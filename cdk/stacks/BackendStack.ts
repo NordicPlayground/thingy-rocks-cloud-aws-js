@@ -19,6 +19,7 @@ import { STACK_NAME } from './stackName.js'
 import { NRPlusGateway } from '../resources/NRPlusGateway.js'
 import { LwM2M } from '../resources/LwM2M.js'
 import { PublicLwM2MShadows } from '../resources/hello.nrfcloud.com/PublicLwM2MShadows.js'
+import { Memfault } from '../resources/Memfault.js'
 
 export class BackendStack extends Stack {
 	public constructor(
@@ -112,6 +113,12 @@ export class BackendStack extends Stack {
 			baseLayer,
 		})
 
+		const memfault = new Memfault(this, {
+			assetTrackerStackName,
+			baseLayer,
+			lambdaSources,
+		})
+
 		// Outputs
 		new CfnOutput(this, 'WebSocketURI', {
 			exportName: `${this.stackName}:WebSocketURI`,
@@ -152,6 +159,11 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'publicLwM2MShadowsBucketURL', {
 			value: `https://${lwm2mPublicShadows.bucket.bucketDomainName}/`,
 			exportName: `${this.stackName}:publicLwM2MShadowsBucketURL`,
+		})
+
+		new CfnOutput(this, 'memfaultBucketURL', {
+			value: `https://${memfault.bucket.bucketDomainName}/`,
+			exportName: `${this.stackName}:memfaultBucketURL`,
 		})
 	}
 }

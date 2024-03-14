@@ -2,7 +2,7 @@ import jsonata from 'jsonata'
 import {
 	senMLtoLwM2M,
 	type LwM2MObjectInstance,
-	type Transformer,
+	type Transform,
 	definitions,
 } from '@hello.nrfcloud.com/proto-lwm2m'
 
@@ -17,7 +17,7 @@ type Update = {
  * Very simple implementation of a converter.
  */
 export const transformShadowUpdateToLwM2M = (
-	transformers: Readonly<Array<Transformer>>,
+	transformers: Readonly<Array<Transform>>,
 ): ((update: Update) => Promise<ReturnType<typeof senMLtoLwM2M>>) => {
 	// Turn the JSONata in the transformers into executable functions
 	const transformerFns: Array<{

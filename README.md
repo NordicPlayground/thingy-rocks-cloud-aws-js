@@ -56,3 +56,13 @@ Run as a service using systemd:
 ```bash
 systemd-run -E GATEWAY_MQTT_ENDPOINT=${GATEWAY_MQTT_ENDPOINT} -E GATEWAY_AWS_ACCESS_KEY_ID=${GATEWAY_AWS_ACCESS_KEY_ID} -E GATEWAY_REGION=${GATEWAY_REGION} -E GATEWAY_AWS_SECRET_ACCESS_KEY=${GATEWAY_AWS_SECRET_ACCESS_KEY} --working-directory ${PWD} npx tsx wirepas-5g-mesh-gateway/gateway.ts
 ```
+
+### Memfault integration
+
+Configure these SSM parameters:
+
+```bash
+aws ssm put-parameter --name /thingy-rocks-backend/memfault/organizationAuthToken --type String --value <Memfault Organization Auth Token>
+aws ssm put-parameter --name /thingy-rocks-backend/memfault/organizationId --type String --value <Memfault Organization ID>
+aws ssm put-parameter --name /thingy-rocks-backend/memfault/projectId --type String --value <Memfault Project ID>
+```

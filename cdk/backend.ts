@@ -52,6 +52,8 @@ new BackendApp({
 		parseSinkMessages: await pack('parseSinkMessages'),
 		nrplusGatewayScan: await pack('nrplusGatewayScan'),
 		updatesToLwM2M: await pack('updatesToLwM2M'),
+		memfault: await pack('memfault'),
+		// For hello.nrfcloud.com/map
 		publishLwM2MShadowsToJSON: await pack('publishLwM2MShadowsToJSON'),
 	},
 	layer: await packLayer({
