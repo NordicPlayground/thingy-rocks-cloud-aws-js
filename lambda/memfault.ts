@@ -1,9 +1,10 @@
-import { IoTClient, ListThingsInThingGroupCommand } from '@aws-sdk/client-iot'
+import { IoTClient } from '@aws-sdk/client-iot'
 import { GetParametersByPathCommand, SSMClient } from '@aws-sdk/client-ssm'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { getActiveConnections } from './notifyClients.js'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { listThingsInGroup } from './listThingsInGroup.js'
 
 const ssm = new SSMClient({})
 const iot = new IoTClient({})
@@ -83,6 +84,8 @@ const api = {
 	},
 }
 
+const listThings = listThingsInGroup(iot)
+
 /**
  * Pull data from Memfault about all devices
  */
@@ -91,13 +94,9 @@ export const handler = async (): Promise<void> => {
 		console.debug('No active connections.')
 		return
 	}
-	const { things } = await iot.send(
-		new ListThingsInThingGroupCommand({
-			thingGroupName: nrfAssetTrackerStackName,
-		}),
-	)
+
 	const deviceReboots: Record<string, Array<Reboot>> = {}
-	for (const thing of things ?? []) {
+	for (const thing of await listThings(nrfAssetTrackerStackName)) {
 		const reboots = await api.getLastReboots(thing)
 		if (reboots === null) {
 			console.debug(thing, `No data found.`)
