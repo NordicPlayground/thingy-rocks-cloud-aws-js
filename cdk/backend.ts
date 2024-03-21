@@ -15,6 +15,7 @@ const packagesInLayer: string[] = [
 	'jsonata',
 	'mqtt',
 	'@protobuf-ts/runtime',
+	'p-retry',
 ]
 const pack = async (
 	id: string,
@@ -53,6 +54,7 @@ new BackendApp({
 		nrplusGatewayScan: await pack('nrplusGatewayScan'),
 		updatesToLwM2M: await pack('updatesToLwM2M'),
 		memfault: await pack('memfault'),
+		memfaultPollForReboots: await pack('memfaultPollForReboots'),
 		// For hello.nrfcloud.com/map
 		publishLwM2MShadowsToJSON: await pack('publishLwM2MShadowsToJSON'),
 	},

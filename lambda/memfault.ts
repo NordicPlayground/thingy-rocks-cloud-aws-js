@@ -1,88 +1,28 @@
-import { IoTClient } from '@aws-sdk/client-iot'
-import { GetParametersByPathCommand, SSMClient } from '@aws-sdk/client-ssm'
-import { fromEnv } from '@nordicsemiconductor/from-env'
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
-import { getActiveConnections } from './notifyClients.js'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { IoTClient } from '@aws-sdk/client-iot'
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { SSMClient } from '@aws-sdk/client-ssm'
+import { fromEnv } from '@nordicsemiconductor/from-env'
 import { listThingsInGroup } from './listThingsInGroup.js'
+import { createAPIClient, type Reboot } from './memfault/api.js'
+import { getActiveConnections } from './notifyClients.js'
 
-const ssm = new SSMClient({})
+export const ssm = new SSMClient({})
 const iot = new IoTClient({})
 const s3 = new S3Client({})
 const db = new DynamoDBClient({})
 
-const {
-	stackName,
-	nrfAssetTrackerStackName,
-	bucket,
-	websocketConnectionsTableName,
-} = fromEnv({
-	stackName: 'STACK_NAME',
-	nrfAssetTrackerStackName: 'ASSET_TRACKER_STACK_NAME',
-	bucket: 'BUCKET',
-	websocketConnectionsTableName: 'WEBSOCKET_CONNECTIONS_TABLE_NAME',
-})(process.env)
+const { stackName, nrfAssetTrackerStackName, bucket, connectionsTableName } =
+	fromEnv({
+		stackName: 'STACK_NAME',
+		nrfAssetTrackerStackName: 'ASSET_TRACKER_STACK_NAME',
+		bucket: 'BUCKET',
+		connectionsTableName: 'CONNECTIONS_TABLE_NAME',
+	})(process.env)
 
-const Prefix = `/${stackName}/memfault/`
-const { organizationAuthToken, organizationId, projectId } = (
-	(
-		await ssm.send(
-			new GetParametersByPathCommand({
-				Path: Prefix,
-			}),
-		)
-	)?.Parameters ?? []
-).reduce(
-	(params, p) => ({
-		...params,
-		[(p.Name ?? '').replace(Prefix, '')]: p.Value ?? '',
-	}),
-	{} as Record<string, string>,
-)
+const getActive = getActiveConnections(db, connectionsTableName)
 
-if (
-	organizationAuthToken === undefined ||
-	organizationId === undefined ||
-	projectId === undefined
-)
-	throw new Error(`Memfault settings not configured!`)
-
-const getActive = getActiveConnections(db, websocketConnectionsTableName)
-
-type Reboot = {
-	type: 'memfault'
-	mcu_reason_register: null
-	time: string // e.g. '2024-03-14T07:26:37.270000+00:00'
-	reason: number // e.g. 7
-	software_version: {
-		version: string // e.g. '1.11.1+thingy91.low-power.memfault'
-		id: number // e.g.504765
-		software_type: {
-			id: number //e.g. 32069;
-			name: string // e.g. 'thingy_world'
-		}
-		archived: boolean
-	}
-}
-
-const api = {
-	getLastReboots: async (deviceId: string): Promise<null | Array<Reboot>> => {
-		const res = await fetch(
-			`https://api.memfault.com/api/v0/organizations/${organizationId}/projects/${projectId}/devices/${deviceId}/reboots?${new URLSearchParams(
-				{
-					since: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-				},
-			).toString()}`,
-			{
-				headers: new Headers({
-					Authorization: `Basic ${Buffer.from(`:${organizationAuthToken}`).toString('base64')}`,
-				}),
-			},
-		)
-		if (!res.ok) return null
-		return (await res.json()).data
-	},
-}
+const api = await createAPIClient(ssm, stackName)
 
 const listThings = listThingsInGroup(iot)
 

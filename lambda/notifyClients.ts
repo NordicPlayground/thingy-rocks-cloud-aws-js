@@ -62,7 +62,15 @@ export type CellGeoLocationEvent = {
 	}
 }
 
-export type Event = DeviceEvent | CellGeoLocationEvent
+export type MemfaultUpdateReceived = {
+	deviceId: string
+	type: 'reboot'
+}
+
+export type Event =
+	| DeviceEvent
+	| CellGeoLocationEvent
+	| (Record<string, any> & { '@context': URL })
 
 export const notifyClients = (
 	{
@@ -92,7 +100,8 @@ export const notifyClients = (
 
 		for (const connectionId of connectionIds) {
 			try {
-				const context = getEventContext(event)
+				const context =
+					'@context' in event ? event['@context'] : getEventContext(event)
 				if (context === null)
 					throw new Error(`Unknown event: ${JSON.stringify(event)}`)
 				await send(connectionId, event, context)

@@ -5,6 +5,7 @@ import {
 	aws_s3 as S3,
 	aws_iam as IAM,
 	aws_lambda as Lambda,
+	aws_iot as IoT,
 	Stack,
 	RemovalPolicy,
 } from 'aws-cdk-lib'
@@ -29,6 +30,7 @@ export class Memfault extends Construct {
 		}: {
 			lambdaSources: {
 				memfault: PackedLambda
+				memfaultPollForReboots: PackedLambda
 			}
 			baseLayer: Lambda.ILayerVersion
 			assetTrackerStackName: string
@@ -72,8 +74,7 @@ export class Memfault extends Construct {
 				ASSET_TRACKER_STACK_NAME: assetTrackerStackName,
 				NODE_NO_WARNINGS: '1',
 				BUCKET: this.bucket.bucketName,
-				WEBSOCKET_CONNECTIONS_TABLE_NAME:
-					websocketAPI.connectionsTable.tableName,
+				CONNECTIONS_TABLE_NAME: websocketAPI.connectionsTable.tableName,
 			},
 			initialPolicy: [
 				new IAM.PolicyStatement({
@@ -103,6 +104,99 @@ export class Memfault extends Construct {
 		fn.addPermission('InvokeByEvents', {
 			principal: new IAM.ServicePrincipal('events.amazonaws.com') as IPrincipal,
 			sourceArn: rule.ruleArn,
+		})
+
+		// When a devices publishes button press 42, poll the Memfault API for an update
+		const pollForRebootsFn = new Lambda.Function(this, 'pollForRebootsFn', {
+			handler: lambdaSources.memfaultPollForReboots.handler,
+			architecture: Lambda.Architecture.ARM_64,
+			runtime: Lambda.Runtime.NODEJS_20_X,
+			timeout: Duration.seconds(120),
+			memorySize: 1792,
+			code: Lambda.Code.fromAsset(
+				lambdaSources.memfaultPollForReboots.lambdaZipFile,
+			),
+			description:
+				'Poll the Memfault API for an update after a device publishes a button event for button 42',
+			layers: [baseLayer],
+			environment: {
+				VERSION: this.node.tryGetContext('version'),
+				STACK_NAME: Stack.of(this).stackName,
+				ASSET_TRACKER_STACK_NAME: assetTrackerStackName,
+				NODE_NO_WARNINGS: '1',
+				BUCKET: this.bucket.bucketName,
+				CONNECTIONS_TABLE_NAME: websocketAPI.connectionsTable.tableName,
+				WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
+			},
+			initialPolicy: [
+				new IAM.PolicyStatement({
+					actions: ['ssm:GetParametersByPath'],
+					resources: [
+						`arn:aws:ssm:${Stack.of(this).region}:${Stack.of(this).account}:parameter/${Stack.of(this).stackName}/memfault/*`,
+					],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['execute-api:ManageConnections'],
+					resources: [websocketAPI.websocketAPIArn],
+				}),
+				new IAM.PolicyStatement({
+					actions: ['iot:DescribeThing'],
+					resources: ['*'],
+				}),
+			],
+			...new LambdaLogGroup(this, 'pollForRebootsFnLogs'),
+		})
+
+		websocketAPI.connectionsTable.grantFullAccess(pollForRebootsFn)
+
+		const button42RuleRole = new IAM.Role(this, 'button42RuleRole', {
+			assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com'),
+			inlinePolicies: {
+				rootPermissions: new IAM.PolicyDocument({
+					statements: [
+						new IAM.PolicyStatement({
+							actions: ['iot:Publish'],
+							resources: [
+								`arn:aws:iot:${Stack.of(this).region}:${Stack.of(this).account}:topic/errors`,
+							],
+						}),
+					],
+				}),
+			},
+		})
+
+		const button42Rule = new IoT.CfnTopicRule(this, 'button42Rule', {
+			topicRulePayload: {
+				awsIotSqlVersion: '2016-03-23',
+				description:
+					'Trigger a fetch of the Memfault data when a device publishes a button event for button 42',
+				ruleDisabled: false,
+				sql: [
+					'SELECT topic(1) as deviceId,',
+					'btn.ts as ts,',
+					`parse_time("yyyy-MM-dd'T'HH:mm:ss.S'Z'", timestamp()) as timestamp`,
+					"FROM '+/messages'",
+					'WHERE btn.v = 42',
+				].join(' '),
+				actions: [
+					{
+						lambda: {
+							functionArn: pollForRebootsFn.functionArn,
+						},
+					},
+				],
+				errorAction: {
+					republish: {
+						roleArn: button42RuleRole.roleArn,
+						topic: 'errors',
+					},
+				},
+			},
+		})
+
+		pollForRebootsFn.addPermission('storeMessagesRule', {
+			principal: new IAM.ServicePrincipal('iot.amazonaws.com'),
+			sourceArn: button42Rule.attrArn,
 		})
 	}
 }

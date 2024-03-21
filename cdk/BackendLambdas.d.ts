@@ -15,4 +15,5 @@ type BackendLambdas = {
 	updatesToLwM2M: PackedLambda
 	publishLwM2MShadowsToJSON: PackedLambda
 	memfault: PackedLambda
+	memfaultPollForReboots: PackedLambda
 }
