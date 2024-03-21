@@ -8,7 +8,7 @@ import { IoTClient, SearchIndexCommand } from '@aws-sdk/client-iot'
 import {
 	LwM2MObjectID,
 	type ConnectionInformation_14203,
-} from '@hello.nrfcloud.com/proto-lwm2m'
+} from '@hello.nrfcloud.com/proto-map'
 import {
 	IoTDataPlaneClient,
 	UpdateThingShadowCommand,

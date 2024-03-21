@@ -11,7 +11,7 @@ const packagesInLayer: string[] = [
 	'@sinclair/typebox',
 	'ajv',
 	'@nordicsemiconductor/timestream-helpers',
-	'@hello.nrfcloud.com/proto-lwm2m',
+	'@hello.nrfcloud.com/proto-map',
 	'jsonata',
 	'mqtt',
 	'@protobuf-ts/runtime',

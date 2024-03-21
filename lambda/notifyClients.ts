@@ -7,7 +7,7 @@ import {
 	DynamoDBClient,
 	ScanCommand,
 } from '@aws-sdk/client-dynamodb'
-import type { Summary } from './chartSummary'
+import type { Summary } from './chartSummary.js'
 
 export enum LocationSource {
 	MCELL = 'MCELL',

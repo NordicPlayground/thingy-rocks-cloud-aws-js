@@ -12,7 +12,7 @@ import {
 	UpdateThingShadowCommand,
 } from '@aws-sdk/client-iot-data-plane'
 import { objectsToShadow } from '../lwm2m/objectsToShadow.js'
-import { LwM2MObjectID } from '@hello.nrfcloud.com/proto-lwm2m'
+import { LwM2MObjectID } from '@hello.nrfcloud.com/proto-map'
 
 const { connectionsTableName, websocketManagementAPIURL, surveysTableName } =
 	fromEnv({

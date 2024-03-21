@@ -5,7 +5,6 @@ import {
 	aws_lambda as Lambda,
 	Duration,
 } from 'aws-cdk-lib'
-import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
 import type { WebsocketAPI } from './WebsocketAPI.js'
@@ -90,7 +89,9 @@ export class PublishSummaries extends Construct {
 		})
 
 		lambda.addPermission('InvokeByEvents', {
-			principal: new IAM.ServicePrincipal('events.amazonaws.com') as IPrincipal,
+			principal: new IAM.ServicePrincipal(
+				'events.amazonaws.com',
+			) as IAM.IPrincipal,
 			sourceArn: rule.ruleArn,
 		})
 	}

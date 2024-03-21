@@ -1,7 +1,7 @@
 import { aws_iam as IAM, aws_location as Location, Stack } from 'aws-cdk-lib'
 import type { CfnMap } from 'aws-cdk-lib/aws-location'
 import { Construct } from 'constructs'
-import type { UserAuthentication } from './UserAuthentication'
+import type { UserAuthentication } from './UserAuthentication.js'
 
 export class Map extends Construct {
 	public readonly map: CfnMap

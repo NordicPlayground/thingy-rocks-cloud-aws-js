@@ -9,7 +9,6 @@ import {
 	Stack,
 	RemovalPolicy,
 } from 'aws-cdk-lib'
-import type { IPrincipal } from 'aws-cdk-lib/aws-iam/index.js'
 import { Construct } from 'constructs'
 import type { PackedLambda } from '../backend.js'
 import { LambdaLogGroup } from './LambdaLogGroup.js'
@@ -102,7 +101,9 @@ export class Memfault extends Construct {
 		})
 
 		fn.addPermission('InvokeByEvents', {
-			principal: new IAM.ServicePrincipal('events.amazonaws.com') as IPrincipal,
+			principal: new IAM.ServicePrincipal(
+				'events.amazonaws.com',
+			) as IAM.IPrincipal,
 			sourceArn: rule.ruleArn,
 		})
 

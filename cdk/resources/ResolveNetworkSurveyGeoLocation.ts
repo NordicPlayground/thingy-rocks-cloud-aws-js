@@ -8,8 +8,8 @@ import {
 	aws_lambda_event_sources as LambdaEvents,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../backend'
-import type { WebsocketAPI } from './WebsocketAPI'
+import type { PackedLambda } from '../backend.js'
+import type { WebsocketAPI } from './WebsocketAPI.js'
 import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 /**

@@ -4,7 +4,7 @@ import {
 	type LwM2MObjectInstance,
 	type Transform,
 	definitions,
-} from '@hello.nrfcloud.com/proto-lwm2m'
+} from '@hello.nrfcloud.com/proto-map'
 
 type Update = {
 	state: {

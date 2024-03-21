@@ -6,7 +6,7 @@ import {
 	aws_lambda as Lambda,
 	Stack,
 } from 'aws-cdk-lib'
-import type { PackedLambda } from '../backend'
+import type { PackedLambda } from '../backend.js'
 import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 /**

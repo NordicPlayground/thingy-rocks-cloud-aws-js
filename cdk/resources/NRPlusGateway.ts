@@ -7,7 +7,7 @@ import Kinesis, { StreamMode } from 'aws-cdk-lib/aws-kinesis'
 import Lambda, { StartingPosition } from 'aws-cdk-lib/aws-lambda'
 import { KinesisEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../backend'
+import type { PackedLambda } from '../backend.js'
 import { LambdaLogGroup } from './LambdaLogGroup.js'
 
 export class NRPlusGateway extends Construct {

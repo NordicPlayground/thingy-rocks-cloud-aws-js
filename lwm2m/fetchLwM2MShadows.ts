@@ -2,7 +2,7 @@ import { IoTClient, SearchIndexCommand } from '@aws-sdk/client-iot'
 import {
 	instanceTs,
 	type LwM2MObjectInstance,
-} from '@hello.nrfcloud.com/proto-lwm2m'
+} from '@hello.nrfcloud.com/proto-map'
 import { shadowToObjects } from './shadowToObjects.js'
 import { getDeviceInfo } from '../lambda/withDeviceAlias.js'
 
