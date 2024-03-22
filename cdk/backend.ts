@@ -51,7 +51,6 @@ new BackendApp({
 		onNewNetworkSurvey: await pack('onNewNetworkSurvey'),
 		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
 		parseSinkMessages: await pack('parseSinkMessages'),
-		nrplusGatewayScan: await pack('nrplusGatewayScan'),
 		updatesToLwM2M: await pack('updatesToLwM2M'),
 		memfault: await pack('memfault'),
 		memfaultPollForReboots: await pack('memfaultPollForReboots'),

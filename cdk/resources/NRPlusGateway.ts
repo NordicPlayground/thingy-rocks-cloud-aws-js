@@ -1,7 +1,5 @@
 import { Duration, Stack } from 'aws-cdk-lib'
 import IAM from 'aws-cdk-lib/aws-iam'
-import Events from 'aws-cdk-lib/aws-events'
-import EventsTargets from 'aws-cdk-lib/aws-events-targets'
 import Iot from 'aws-cdk-lib/aws-iot'
 import Kinesis, { StreamMode } from 'aws-cdk-lib/aws-kinesis'
 import Lambda, { StartingPosition } from 'aws-cdk-lib/aws-lambda'
@@ -18,7 +16,6 @@ export class NRPlusGateway extends Construct {
 		}: {
 			lambdaSources: {
 				parseSinkMessages: PackedLambda
-				nrplusGatewayScan: PackedLambda
 			}
 		},
 	) {
@@ -108,45 +105,5 @@ export class NRPlusGateway extends Construct {
 				parallelizationFactor: 1,
 			}),
 		)
-
-		// Trigger scan message periodically
-		const nrplusGatewayScanFn = new Lambda.Function(
-			this,
-			'nrplusGatewayScanFn',
-			{
-				handler: lambdaSources.nrplusGatewayScan.handler,
-				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_20_X,
-				timeout: Duration.minutes(15),
-				memorySize: 1792,
-				code: Lambda.Code.fromAsset(
-					lambdaSources.nrplusGatewayScan.lambdaZipFile,
-				),
-				description:
-					'Periodically trigger scan in sink to sync with relay, required to communicate reliably with relay and relay-connected clients',
-				environment: {
-					VERSION: this.node.tryGetContext('version'),
-				},
-				initialPolicy: [
-					new IAM.PolicyStatement({
-						actions: ['iot:ListThings', 'iot:Publish'],
-						resources: ['*'],
-					}),
-				],
-				...new LambdaLogGroup(this, 'nrplusGatewayScanFnLogs'),
-			},
-		)
-
-		const rule = new Events.Rule(this, 'Rule', {
-			schedule: Events.Schedule.expression('rate(1 minute)'),
-			description: `Invoke the summary lambda`,
-			enabled: true,
-			targets: [new EventsTargets.LambdaFunction(nrplusGatewayScanFn)],
-		})
-
-		nrplusGatewayScanFn.addPermission('InvokeByEvents', {
-			principal: new IAM.ServicePrincipal('events.amazonaws.com'),
-			sourceArn: rule.ruleArn,
-		})
 	}
 }
