@@ -1,10 +1,7 @@
-import { mkdir } from 'node:fs/promises'
-import path from 'node:path'
 import { BackendApp } from './BackendApp.js'
-import { packLambda } from './packLambda.js'
-import { packLayer } from './packLayer.js'
 import { ASSET_TRACKER_STACK_NAME } from './stacks/stackName.js'
-export type PackedLambda = { lambdaZipFile: string; handler: string }
+import { packLambdaFromPath } from '@bifravst/aws-cdk-lambda-helpers'
+import { packLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
 
 const packagesInLayer: string[] = [
 	'@nordicsemiconductor/from-env',
@@ -17,27 +14,7 @@ const packagesInLayer: string[] = [
 	'@protobuf-ts/runtime',
 	'p-retry',
 ]
-const pack = async (
-	id: string,
-	handlerFunction = 'handler',
-): Promise<PackedLambda> => {
-	try {
-		await mkdir(path.join(process.cwd(), 'dist', 'lambdas'), {
-			recursive: true,
-		})
-	} catch {
-		// Directory exists
-	}
-	const zipFile = path.join(process.cwd(), 'dist', 'lambdas', `${id}.zip`)
-	const { handler } = await packLambda({
-		sourceFile: path.join(process.cwd(), 'lambda', `${id}.ts`),
-		zipFile,
-	})
-	return {
-		lambdaZipFile: zipFile,
-		handler: handler.replace('.js', `.${handlerFunction}`),
-	}
-}
+const pack = async (id: string) => packLambdaFromPath(id, `lambda/${id}.ts`)
 
 new BackendApp({
 	lambdaSources: {
@@ -52,7 +29,7 @@ new BackendApp({
 		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
 		parseSinkMessages: await pack('parseSinkMessages'),
 		updatesToLwM2M: await pack('updatesToLwM2M'),
-		memfault: await pack('memfault'),
+		memfaultPublishReboots: await pack('memfaultPublishReboots'),
 		memfaultPollForReboots: await pack('memfaultPollForReboots'),
 		// For hello.nrfcloud.com/map
 		publishLwM2MShadowsToJSON: await pack('publishLwM2MShadowsToJSON'),

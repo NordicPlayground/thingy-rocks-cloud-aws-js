@@ -10,9 +10,12 @@ import {
 	RemovalPolicy,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../backend.js'
-import { LambdaLogGroup } from './LambdaLogGroup.js'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
 import type { WebsocketAPI } from './WebsocketAPI.js'
+import type { BackendLambdas } from '../BackendLambdas.js'
 
 /**
  * Pull Memfault data for devices
@@ -27,10 +30,10 @@ export class Memfault extends Construct {
 			assetTrackerStackName,
 			websocketAPI,
 		}: {
-			lambdaSources: {
-				memfault: PackedLambda
-				memfaultPollForReboots: PackedLambda
-			}
+			lambdaSources: Pick<
+				BackendLambdas,
+				'memfaultPublishReboots' | 'memfaultPollForReboots'
+			>
 			baseLayer: Lambda.ILayerVersion
 			assetTrackerStackName: string
 			websocketAPI: WebsocketAPI
@@ -59,12 +62,12 @@ export class Memfault extends Construct {
 		})
 
 		const fn = new Lambda.Function(this, 'fn', {
-			handler: lambdaSources.memfault.handler,
+			handler: lambdaSources.memfaultPublishReboots.handler,
 			architecture: Lambda.Architecture.ARM_64,
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(lambdaSources.memfault.lambdaZipFile),
+			code: new LambdaSource(this, lambdaSources.memfaultPublishReboots).code,
 			description: 'Pull Memfault data for devices and publish it on S3',
 			layers: [baseLayer],
 			environment: {
@@ -114,9 +117,7 @@ export class Memfault extends Construct {
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(120),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(
-				lambdaSources.memfaultPollForReboots.lambdaZipFile,
-			),
+			code: new LambdaSource(this, lambdaSources.memfaultPollForReboots).code,
 			description:
 				'Poll the Memfault API for an update after a device publishes a button event for button 42',
 			layers: [baseLayer],

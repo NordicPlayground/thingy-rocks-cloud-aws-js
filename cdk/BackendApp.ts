@@ -1,6 +1,6 @@
 import { App } from 'aws-cdk-lib'
 import type { BackendLambdas } from './BackendLambdas.js'
-import type { PackedLayer } from './packLayer.js'
+import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
 import { BackendStack } from './stacks/BackendStack.js'
 
 export class BackendApp extends App {
@@ -16,8 +16,10 @@ export class BackendApp extends App {
 		super({
 			context: {
 				version: Date.now().toString(),
+				isTest: false,
 			},
 		})
+		console.log(lambdaSources)
 		new BackendStack(this, { lambdaSources, layer, assetTrackerStackName })
 	}
 }

@@ -8,9 +8,12 @@ import {
 	aws_lambda_event_sources as LambdaEvents,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../backend.js'
 import type { WebsocketAPI } from './WebsocketAPI.js'
-import { LambdaLogGroup } from './LambdaLogGroup.js'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import type { BackendLambdas } from '../BackendLambdas.js'
 
 /**
  * Notify clients about resolved neighboring cell location reports geo locations
@@ -26,10 +29,10 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 			surveysTable,
 			networkSurveyGeoStateMachineARN,
 		}: {
-			lambdaSources: {
-				onNewNetworkSurvey: PackedLambda
-				onNetworkSurveyLocated: PackedLambda
-			}
+			lambdaSources: Pick<
+				BackendLambdas,
+				'onNewNetworkSurvey' | 'onNetworkSurveyLocated'
+			>
 			baseLayer: Lambda.ILayerVersion
 			websocketAPI: WebsocketAPI
 			networkSurveyGeolocationApiUrl: string
@@ -49,9 +52,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(
-				lambdaSources.onNewNetworkSurvey.lambdaZipFile,
-			),
+			code: new LambdaSource(this, lambdaSources.onNewNetworkSurvey).code,
 			description: 'Invoked when devices publishes a new network survey',
 			layers: [baseLayer],
 			environment: {
@@ -91,9 +92,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.seconds(60),
 				memorySize: 1792,
-				code: Lambda.Code.fromAsset(
-					lambdaSources.onNetworkSurveyLocated.lambdaZipFile,
-				),
+				code: new LambdaSource(this, lambdaSources.onNetworkSurveyLocated).code,
 				description: 'Publish network survey geo location resolutions',
 				environment: {
 					VERSION: this.node.tryGetContext('version'),

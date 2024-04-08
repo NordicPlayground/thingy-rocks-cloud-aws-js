@@ -8,9 +8,12 @@ import {
 	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../backend.js'
 import type { WebsocketAPI } from './WebsocketAPI.js'
-import { LambdaLogGroup } from './LambdaLogGroup.js'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import type { BackendLambdas } from '../BackendLambdas.js'
 
 export class ResolveCellLocation extends Construct {
 	public constructor(
@@ -22,10 +25,10 @@ export class ResolveCellLocation extends Construct {
 			websocketAPI,
 			cellGeoStateMachineARN,
 		}: {
-			lambdaSources: {
-				resolveCellLocation: PackedLambda
-				onCellGeoLocationResolved: PackedLambda
-			}
+			lambdaSources: Pick<
+				BackendLambdas,
+				'resolveCellLocation' | 'onCellGeoLocationResolved'
+			>
 			baseLayer: Lambda.ILayerVersion
 			geolocationApiUrl: string
 			websocketAPI: WebsocketAPI
@@ -45,9 +48,7 @@ export class ResolveCellLocation extends Construct {
 				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.seconds(60),
 				memorySize: 1792,
-				code: Lambda.Code.fromAsset(
-					lambdaSources.resolveCellLocation.lambdaZipFile,
-				),
+				code: new LambdaSource(this, lambdaSources.resolveCellLocation).code,
 				description: 'Invoked when devices report their cell location',
 				layers: [baseLayer],
 				environment: {
@@ -152,9 +153,8 @@ export class ResolveCellLocation extends Construct {
 				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.seconds(60),
 				memorySize: 1792,
-				code: Lambda.Code.fromAsset(
-					lambdaSources.onCellGeoLocationResolved.lambdaZipFile,
-				),
+				code: new LambdaSource(this, lambdaSources.onCellGeoLocationResolved)
+					.code,
 				description: 'Publish cell geolocation resolutions',
 				environment: {
 					VERSION: this.node.tryGetContext('version'),

@@ -7,7 +7,7 @@ import {
 	Stack,
 } from 'aws-cdk-lib'
 import type { BackendLambdas } from '../BackendLambdas.js'
-import type { PackedLayer } from '../packLayer.js'
+import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
 import { Map } from '../resources/Map.js'
 import { PublishSummaries } from '../resources/PublishSummaries.js'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'

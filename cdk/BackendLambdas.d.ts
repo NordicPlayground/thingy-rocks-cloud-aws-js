@@ -1,4 +1,4 @@
-import type { PackedLambda } from './backend'
+import type { PackedLambda } from '@bifravst/aws-cdk-lambda-helpers'
 
 type BackendLambdas = {
 	publishToWebsocketClients: PackedLambda
@@ -13,6 +13,6 @@ type BackendLambdas = {
 	parseSinkMessages: PackedLambda
 	updatesToLwM2M: PackedLambda
 	publishLwM2MShadowsToJSON: PackedLambda
-	memfault: PackedLambda
+	memfaultPublishReboots: PackedLambda
 	memfaultPollForReboots: PackedLambda
 }

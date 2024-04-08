@@ -6,8 +6,11 @@ import {
 	aws_lambda as Lambda,
 	Stack,
 } from 'aws-cdk-lib'
-import type { PackedLambda } from '../backend.js'
-import { LambdaLogGroup } from './LambdaLogGroup.js'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import type { BackendLambdas } from '../BackendLambdas.js'
 
 /**
  * Contains resources that provide LwM2M based data for devices
@@ -19,9 +22,7 @@ export class LwM2M extends Construct {
 			lambdaSources,
 			baseLayer,
 		}: {
-			lambdaSources: {
-				updatesToLwM2M: PackedLambda
-			}
+			lambdaSources: Pick<BackendLambdas, 'updatesToLwM2M'>
 			baseLayer: Lambda.ILayerVersion
 		},
 	) {
@@ -33,7 +34,7 @@ export class LwM2M extends Construct {
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(lambdaSources.updatesToLwM2M.lambdaZipFile),
+			code: new LambdaSource(this, lambdaSources.updatesToLwM2M).code,
 			description:
 				'Store shadow updates asset_tracker_v2 shadow format as LwM2M objects in a named shadow. ',
 			layers: [baseLayer],

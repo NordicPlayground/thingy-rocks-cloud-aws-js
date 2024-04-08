@@ -6,9 +6,12 @@ import {
 	Duration,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../backend.js'
 import type { WebsocketAPI } from './WebsocketAPI.js'
-import { LambdaLogGroup } from './LambdaLogGroup.js'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import type { BackendLambdas } from '../BackendLambdas.js'
 
 /**
  * Publish the summary statistics for the devices
@@ -23,9 +26,7 @@ export class PublishSummaries extends Construct {
 			historicaldataTableInfo,
 			historicaldataTableArn,
 		}: {
-			lambdaSources: {
-				publishSummaries: PackedLambda
-			}
+			lambdaSources: Pick<BackendLambdas, 'publishSummaries'>
 			baseLayer: Lambda.ILayerVersion
 			websocketAPI: WebsocketAPI
 			historicaldataTableInfo: string
@@ -40,7 +41,7 @@ export class PublishSummaries extends Construct {
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(lambdaSources.publishSummaries.lambdaZipFile),
+			code: new LambdaSource(this, lambdaSources.publishSummaries).code,
 			description:
 				'Publish the summary statistics for the devices, invoked every minute',
 			layers: [baseLayer],

@@ -8,8 +8,11 @@ import {
 	aws_events as Events,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../../backend.js'
-import { LambdaLogGroup } from '../LambdaLogGroup.js'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import type { BackendLambdas } from '../../BackendLambdas.js'
 
 /**
  * Publish a JSON of all LwM2M shadows so https://hello.nrfcloud.com/map can show them.
@@ -23,9 +26,7 @@ export class PublicLwM2MShadows extends Construct {
 			lambdaSources,
 		}: {
 			baseLayer: Lambda.ILayerVersion
-			lambdaSources: {
-				publishLwM2MShadowsToJSON: PackedLambda
-			}
+			lambdaSources: Pick<BackendLambdas, `publishLwM2MShadowsToJSON`>
 		},
 	) {
 		super(parent, 'PublicLwM2MShadows')
@@ -56,9 +57,8 @@ export class PublicLwM2MShadows extends Construct {
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.minutes(1),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(
-				lambdaSources.publishLwM2MShadowsToJSON.lambdaZipFile,
-			),
+			code: new LambdaSource(this, lambdaSources.publishLwM2MShadowsToJSON)
+				.code,
 			description:
 				'Provides the LwM2M shadow of the devices to https://hello.nrfcloud.com/map',
 			layers: [baseLayer],

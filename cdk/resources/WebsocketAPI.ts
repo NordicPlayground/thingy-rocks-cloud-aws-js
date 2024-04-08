@@ -10,8 +10,11 @@ import {
 	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../backend.js'
-import { LambdaLogGroup } from './LambdaLogGroup.js'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import type { BackendLambdas } from '../BackendLambdas.js'
 
 export class WebsocketAPI extends Construct {
 	public readonly websocketURI: string
@@ -24,12 +27,10 @@ export class WebsocketAPI extends Construct {
 			lambdaSources,
 			baseLayer,
 		}: {
-			lambdaSources: {
-				publishToWebsocketClients: PackedLambda
-				onConnect: PackedLambda
-				onMessage: PackedLambda
-				onDisconnect: PackedLambda
-			}
+			lambdaSources: Pick<
+				BackendLambdas,
+				`publishToWebsocketClients` | `onConnect` | `onMessage` | `onDisconnect`
+			>
 			baseLayer: Lambda.ILayerVersion
 		},
 	) {
@@ -81,7 +82,7 @@ export class WebsocketAPI extends Construct {
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(5),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(lambdaSources.onConnect.lambdaZipFile),
+			code: new LambdaSource(this, lambdaSources.onConnect).code,
 			description: 'Registers new clients',
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
@@ -123,7 +124,7 @@ export class WebsocketAPI extends Construct {
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(lambdaSources.onMessage.lambdaZipFile),
+			code: new LambdaSource(this, lambdaSources.onMessage).code,
 			description: 'Receives messages from clients',
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
@@ -193,7 +194,7 @@ export class WebsocketAPI extends Construct {
 			runtime: Lambda.Runtime.NODEJS_20_X,
 			timeout: Duration.seconds(5),
 			memorySize: 1792,
-			code: Lambda.Code.fromAsset(lambdaSources.onDisconnect.lambdaZipFile),
+			code: new LambdaSource(this, lambdaSources.onDisconnect).code,
 			description: 'De-registers disconnected clients',
 			environment: {
 				VERSION: this.node.tryGetContext('version'),
@@ -263,9 +264,8 @@ export class WebsocketAPI extends Construct {
 				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.minutes(1),
 				memorySize: 1792,
-				code: Lambda.Code.fromAsset(
-					lambdaSources.publishToWebsocketClients.lambdaZipFile,
-				),
+				code: new LambdaSource(this, lambdaSources.publishToWebsocketClients)
+					.code,
 				description: 'Publishes device events to the websocket API.',
 				environment: {
 					VERSION: this.node.tryGetContext('version'),

@@ -5,8 +5,11 @@ import Kinesis, { StreamMode } from 'aws-cdk-lib/aws-kinesis'
 import Lambda, { StartingPosition } from 'aws-cdk-lib/aws-lambda'
 import { KinesisEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
 import { Construct } from 'constructs'
-import type { PackedLambda } from '../backend.js'
-import { LambdaLogGroup } from './LambdaLogGroup.js'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import type { BackendLambdas } from '../BackendLambdas.js'
 
 export class NRPlusGateway extends Construct {
 	constructor(
@@ -14,9 +17,7 @@ export class NRPlusGateway extends Construct {
 		{
 			lambdaSources,
 		}: {
-			lambdaSources: {
-				parseSinkMessages: PackedLambda
-			}
+			lambdaSources: Pick<BackendLambdas, 'parseSinkMessages'>
 		},
 	) {
 		super(parent, 'nrplus-gateway')
@@ -79,9 +80,7 @@ export class NRPlusGateway extends Construct {
 				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.minutes(15),
 				memorySize: 1792,
-				code: Lambda.Code.fromAsset(
-					lambdaSources.parseSinkMessages.lambdaZipFile,
-				),
+				code: new LambdaSource(this, lambdaSources.parseSinkMessages).code,
 				description: 'Parse sink messages',
 				environment: {
 					VERSION: this.node.tryGetContext('version'),
