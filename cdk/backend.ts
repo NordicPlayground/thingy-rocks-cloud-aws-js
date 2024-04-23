@@ -31,8 +31,6 @@ new BackendApp({
 		updatesToLwM2M: await pack('updatesToLwM2M'),
 		memfaultPublishReboots: await pack('memfaultPublishReboots'),
 		memfaultPollForReboots: await pack('memfaultPollForReboots'),
-		// For hello.nrfcloud.com/map
-		publishLwM2MShadowsToJSON: await pack('publishLwM2MShadowsToJSON'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

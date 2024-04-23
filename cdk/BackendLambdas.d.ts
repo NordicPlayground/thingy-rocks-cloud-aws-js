@@ -12,7 +12,6 @@ type BackendLambdas = {
 	onNetworkSurveyLocated: PackedLambda
 	parseSinkMessages: PackedLambda
 	updatesToLwM2M: PackedLambda
-	publishLwM2MShadowsToJSON: PackedLambda
 	memfaultPublishReboots: PackedLambda
 	memfaultPollForReboots: PackedLambda
 }
