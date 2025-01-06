@@ -53,6 +53,7 @@
     "constructs": "10.3.0",
     "glob": "10.3.12",
     "husky": "9.0.11",
+    "lint-staged": "15.3.0",
     "prettier": "3.2.5",
     "tsx": "4.7.2",
     "yazl": "2.5.1"
