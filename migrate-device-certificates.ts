@@ -69,7 +69,9 @@ for (const device of devicesToMigrate) {
 		await toIot.send(
 			new CreateThingCommand({
 				thingName: device,
-				attributePayload: fromDevices.get(device)!.attributes,
+				attributePayload: {
+					attributes: fromDevices.get(device)!.attributes,
+				},
 			}),
 		)
 
