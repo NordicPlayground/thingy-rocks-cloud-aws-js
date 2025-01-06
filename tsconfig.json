@@ -18,6 +18,7 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "allowImportingTsExtensions": true
   }
 }

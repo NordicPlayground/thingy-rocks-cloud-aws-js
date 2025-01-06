@@ -1,17 +1,17 @@
 import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import {
+	Duration,
 	aws_events as Events,
 	aws_events_targets as EventsTargets,
 	aws_iam as IAM,
 	aws_lambda as Lambda,
-	Duration,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { WebsocketAPI } from './WebsocketAPI.js'
-import {
-	LambdaLogGroup,
-	LambdaSource,
-} from '@bifravst/aws-cdk-lambda-helpers/cdk'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import type { BackendLambdas } from '../BackendLambdas.ts'
+import type { WebsocketAPI } from './WebsocketAPI.ts'
 
 /**
  * Publish the summary statistics for the devices

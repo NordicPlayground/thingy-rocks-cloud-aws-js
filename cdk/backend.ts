@@ -1,7 +1,7 @@
-import { BackendApp } from './BackendApp.js'
-import { ASSET_TRACKER_STACK_NAME } from './stacks/stackName.js'
 import { packLambdaFromPath } from '@bifravst/aws-cdk-lambda-helpers'
 import { packLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
+import { BackendApp } from './BackendApp.ts'
+import { ASSET_TRACKER_STACK_NAME } from './stacks/stackName.ts'
 
 const packagesInLayer: string[] = [
 	'@nordicsemiconductor/from-env',
@@ -14,7 +14,8 @@ const packagesInLayer: string[] = [
 	'@protobuf-ts/runtime',
 	'p-retry',
 ]
-const pack = async (id: string) => packLambdaFromPath(id, `lambda/${id}.ts`)
+const pack = async (id: string) =>
+	packLambdaFromPath({ id, sourceFilePath: `lambda/${id}.ts` })
 
 new BackendApp({
 	lambdaSources: {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { shadowToObjects } from './shadowToObjects.js'
+import { shadowToObjects } from './shadowToObjects.ts'
 
 void describe('shadowToObjects()', () => {
 	void it('should convert a shadow to LwM2M objects', () =>

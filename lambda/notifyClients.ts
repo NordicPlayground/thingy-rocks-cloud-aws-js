@@ -1,13 +1,8 @@
-import {
-	ApiGatewayManagementApiClient,
-	PostToConnectionCommand,
-} from '@aws-sdk/client-apigatewaymanagementapi'
-import {
-	DeleteItemCommand,
-	DynamoDBClient,
-	ScanCommand,
-} from '@aws-sdk/client-dynamodb'
-import type { Summary } from './chartSummary.js'
+import type { ApiGatewayManagementApiClient } from '@aws-sdk/client-apigatewaymanagementapi'
+import { PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi'
+import type { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DeleteItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb'
+import type { Summary } from './chartSummary.ts'
 
 export enum LocationSource {
 	MCELL = 'MCELL',

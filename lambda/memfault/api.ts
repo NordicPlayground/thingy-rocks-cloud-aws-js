@@ -1,4 +1,5 @@
-import { GetParametersByPathCommand, SSMClient } from '@aws-sdk/client-ssm'
+import type { SSMClient } from '@aws-sdk/client-ssm'
+import { GetParametersByPathCommand } from '@aws-sdk/client-ssm'
 
 export const createAPIClient = async (
 	ssm: SSMClient,

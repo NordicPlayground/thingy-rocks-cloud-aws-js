@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test'
-import assert from 'node:assert/strict'
-import { transformShadowUpdateToLwM2M } from './transformShadowUpdateToLwM2M.js'
 import { models } from '@hello.nrfcloud.com/proto-map'
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+import { transformShadowUpdateToLwM2M } from './transformShadowUpdateToLwM2M.ts'
 
 void describe('transformShadowUpdateToLwM2M()', () => {
 	void it('should convert a shadow update', async () =>

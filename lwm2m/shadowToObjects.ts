@@ -2,7 +2,7 @@ import {
 	timestampResources,
 	type LwM2MObjectInstance,
 } from '@hello.nrfcloud.com/proto-map'
-import type { LwM2MShadow } from './objectsToShadow.js'
+import type { LwM2MShadow } from './objectsToShadow.ts'
 
 export const shadowToObjects = (shadow: LwM2MShadow): LwM2MObjectInstance[] =>
 	Object.entries(shadow)
@@ -36,4 +36,4 @@ export const shadowToObjects = (shadow: LwM2MShadow): LwM2MObjectInstance[] =>
 			})
 		})
 		.flat()
-		.filter((o) => o !== null) as LwM2MObjectInstance[]
+		.filter((o) => o !== null)

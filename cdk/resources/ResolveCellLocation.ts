@@ -1,4 +1,8 @@
 import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import {
 	Duration,
 	aws_events_targets as EventTargets,
 	aws_events as Events,
@@ -8,12 +12,8 @@ import {
 	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { WebsocketAPI } from './WebsocketAPI.js'
-import {
-	LambdaLogGroup,
-	LambdaSource,
-} from '@bifravst/aws-cdk-lambda-helpers/cdk'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import type { BackendLambdas } from '../BackendLambdas.ts'
+import type { WebsocketAPI } from './WebsocketAPI.ts'
 
 export class ResolveCellLocation extends Construct {
 	public constructor(

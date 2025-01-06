@@ -1,4 +1,7 @@
-import { Construct } from 'constructs'
+import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
 import {
 	Duration,
 	aws_iam as IAM,
@@ -6,11 +9,8 @@ import {
 	aws_lambda as Lambda,
 	Stack,
 } from 'aws-cdk-lib'
-import {
-	LambdaLogGroup,
-	LambdaSource,
-} from '@bifravst/aws-cdk-lambda-helpers/cdk'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import { Construct } from 'constructs'
+import type { BackendLambdas } from '../BackendLambdas.ts'
 
 /**
  * Contains resources that provide LwM2M based data for devices

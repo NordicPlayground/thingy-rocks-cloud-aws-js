@@ -1,4 +1,5 @@
-import { IoTClient, ListThingsInThingGroupCommand } from '@aws-sdk/client-iot'
+import type { IoTClient } from '@aws-sdk/client-iot'
+import { ListThingsInThingGroupCommand } from '@aws-sdk/client-iot'
 
 export const listThingsInGroup =
 	(iot: IoTClient) =>

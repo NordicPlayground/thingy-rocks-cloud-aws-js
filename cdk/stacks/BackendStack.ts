@@ -1,22 +1,22 @@
+import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
+import type { App } from 'aws-cdk-lib'
 import {
-	App,
 	CfnOutput,
 	aws_dynamodb as DynamoDB,
 	Fn,
 	aws_lambda as Lambda,
 	Stack,
 } from 'aws-cdk-lib'
-import type { BackendLambdas } from '../BackendLambdas.js'
-import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
-import { Map } from '../resources/Map.js'
-import { PublishSummaries } from '../resources/PublishSummaries.js'
-import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
-import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.js'
-import { UserAuthentication } from '../resources/UserAuthentication.js'
-import { WebsocketAPI } from '../resources/WebsocketAPI.js'
-import { STACK_NAME } from './stackName.js'
-import { LwM2M } from '../resources/LwM2M.js'
-import { Memfault } from '../resources/Memfault.js'
+import type { BackendLambdas } from '../BackendLambdas.ts'
+import { LwM2M } from '../resources/LwM2M.ts'
+import { Map } from '../resources/Map.ts'
+import { Memfault } from '../resources/Memfault.ts'
+import { PublishSummaries } from '../resources/PublishSummaries.ts'
+import { ResolveCellLocation } from '../resources/ResolveCellLocation.ts'
+import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.ts'
+import { UserAuthentication } from '../resources/UserAuthentication.ts'
+import { WebsocketAPI } from '../resources/WebsocketAPI.ts'
+import { STACK_NAME } from './stackName.ts'
 
 export class BackendStack extends Stack {
 	public constructor(
@@ -35,7 +35,7 @@ export class BackendStack extends Stack {
 
 		const baseLayer = new Lambda.LayerVersion(this, 'baseLayer', {
 			layerVersionName: `${Stack.of(this).stackName}-baseLayer`,
-			code: Lambda.Code.fromAsset(layer.layerZipFile),
+			code: Lambda.Code.fromAsset(layer.layerZipFilePath),
 			compatibleArchitectures: [Lambda.Architecture.ARM_64],
 			compatibleRuntimes: [Lambda.Runtime.NODEJS_20_X],
 		})

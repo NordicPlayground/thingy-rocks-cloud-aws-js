@@ -1,7 +1,7 @@
-import { App } from 'aws-cdk-lib'
-import type { BackendLambdas } from './BackendLambdas.js'
 import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
-import { BackendStack } from './stacks/BackendStack.js'
+import { App } from 'aws-cdk-lib'
+import type { BackendLambdas } from './BackendLambdas.ts'
+import { BackendStack } from './stacks/BackendStack.ts'
 
 export class BackendApp extends App {
 	public constructor({

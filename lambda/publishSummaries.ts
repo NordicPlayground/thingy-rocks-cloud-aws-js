@@ -3,9 +3,9 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { IoTClient } from '@aws-sdk/client-iot'
 import { TimestreamQueryClient } from '@aws-sdk/client-timestream-query'
 import { fromEnv } from '@nordicsemiconductor/from-env'
-import { createChartSummary } from './chartSummary.js'
-import { getActiveConnections, notifyClients } from './notifyClients.js'
-import { withDeviceAlias } from './withDeviceAlias.js'
+import { createChartSummary } from './chartSummary.ts'
+import { getActiveConnections, notifyClients } from './notifyClients.ts'
+import { withDeviceAlias } from './withDeviceAlias.ts'
 
 const {
 	connectionsTableName,

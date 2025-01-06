@@ -1,21 +1,21 @@
 import {
-	Duration,
-	aws_events as Events,
-	aws_events_targets as EventsTargets,
-	aws_s3 as S3,
-	aws_iam as IAM,
-	aws_lambda as Lambda,
-	aws_iot as IoT,
-	Stack,
-	RemovalPolicy,
-} from 'aws-cdk-lib'
-import { Construct } from 'constructs'
-import {
 	LambdaLogGroup,
 	LambdaSource,
 } from '@bifravst/aws-cdk-lambda-helpers/cdk'
-import type { WebsocketAPI } from './WebsocketAPI.js'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import {
+	Duration,
+	aws_events as Events,
+	aws_events_targets as EventsTargets,
+	aws_iam as IAM,
+	aws_iot as IoT,
+	aws_lambda as Lambda,
+	RemovalPolicy,
+	aws_s3 as S3,
+	Stack,
+} from 'aws-cdk-lib'
+import { Construct } from 'constructs'
+import type { BackendLambdas } from '../BackendLambdas.ts'
+import type { WebsocketAPI } from './WebsocketAPI.ts'
 
 /**
  * Pull Memfault data for devices

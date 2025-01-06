@@ -1,15 +1,15 @@
+import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
+import { DescribeThingCommand, IoTClient } from '@aws-sdk/client-iot'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { Type } from '@sinclair/typebox'
 import type {
 	APIGatewayProxyStructuredResultV2,
 	APIGatewayProxyWebsocketEventV2,
 } from 'aws-lambda'
-import { validateWithTypeBox } from './validateWithTypeBox.js'
-import { DescribeThingCommand, IoTClient } from '@aws-sdk/client-iot'
-import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
-import { sendEvent } from './notifyClients.js'
-import { fetchLwM2MShadows } from '../lwm2m/fetchLwM2MShadows.js'
+import { fetchLwM2MShadows } from '../lwm2m/fetchLwM2MShadows.ts'
+import { sendEvent } from './notifyClients.ts'
+import { validateWithTypeBox } from './validateWithTypeBox.ts'
 
 const { TableName, websocketManagementAPIURL } = fromEnv({
 	TableName: 'CONNECTIONS_TABLE_NAME',

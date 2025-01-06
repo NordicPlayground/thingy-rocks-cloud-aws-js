@@ -1,19 +1,19 @@
 import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import {
 	aws_apigatewayv2 as ApiGateway,
+	Duration,
 	aws_dynamodb as DynamoDB,
 	aws_iam as IAM,
 	aws_iot as IoT,
 	aws_lambda as Lambda,
-	Duration,
 	RemovalPolicy,
 	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import {
-	LambdaLogGroup,
-	LambdaSource,
-} from '@bifravst/aws-cdk-lambda-helpers/cdk'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import type { BackendLambdas } from '../BackendLambdas.ts'
 
 export class WebsocketAPI extends Construct {
 	public readonly websocketURI: string

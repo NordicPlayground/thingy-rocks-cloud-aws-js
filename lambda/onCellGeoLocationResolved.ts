@@ -1,19 +1,19 @@
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { fromEnv } from '@nordicsemiconductor/from-env'
-import { Type } from '@sinclair/typebox'
-import { LocationSource, Network, notifyClients } from './notifyClients.js'
-import { validateWithTypeBox } from './validateWithTypeBox.js'
 import { IoTClient, SearchIndexCommand } from '@aws-sdk/client-iot'
-import {
-	LwM2MObjectID,
-	type ConnectionInformation_14203,
-} from '@hello.nrfcloud.com/proto-map'
 import {
 	IoTDataPlaneClient,
 	UpdateThingShadowCommand,
 } from '@aws-sdk/client-iot-data-plane'
-import { objectsToShadow } from '../lwm2m/objectsToShadow.js'
+import {
+	LwM2MObjectID,
+	type ConnectionInformation_14203,
+} from '@hello.nrfcloud.com/proto-map'
+import { fromEnv } from '@nordicsemiconductor/from-env'
+import { Type } from '@sinclair/typebox'
+import { objectsToShadow } from '../lwm2m/objectsToShadow.ts'
+import { LocationSource, Network, notifyClients } from './notifyClients.ts'
+import { validateWithTypeBox } from './validateWithTypeBox.ts'
 
 const { connectionsTableName, websocketManagementAPIURL } = fromEnv({
 	connectionsTableName: 'CONNECTIONS_TABLE_NAME',

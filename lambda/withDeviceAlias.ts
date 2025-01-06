@@ -1,5 +1,5 @@
-import { IoTClient } from '@aws-sdk/client-iot'
-import type { notifyClients } from './notifyClients.js'
+import type { IoTClient } from '@aws-sdk/client-iot'
+import type { notifyClients } from './notifyClients.ts'
 
 import { DescribeThingCommand } from '@aws-sdk/client-iot'
 

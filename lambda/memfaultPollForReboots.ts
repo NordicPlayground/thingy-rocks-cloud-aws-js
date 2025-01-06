@@ -3,10 +3,10 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { IoTClient } from '@aws-sdk/client-iot'
 import { SSMClient } from '@aws-sdk/client-ssm'
 import { fromEnv } from '@nordicsemiconductor/from-env'
-import { createAPIClient } from './memfault/api.js'
-import { getActiveConnections, notifyClients } from './notifyClients.js'
-import { withDeviceAlias } from './withDeviceAlias.js'
 import pRetry from 'p-retry'
+import { createAPIClient } from './memfault/api.ts'
+import { getActiveConnections, notifyClients } from './notifyClients.ts'
+import { withDeviceAlias } from './withDeviceAlias.ts'
 
 const ssm = new SSMClient({})
 const iot = new IoTClient({})

@@ -1,5 +1,6 @@
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
-import { AttributeValue, DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import type { AttributeValue } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { IoTClient } from '@aws-sdk/client-iot'
 import { unmarshall } from '@aws-sdk/util-dynamodb'
 import { fromEnv } from '@nordicsemiconductor/from-env'
@@ -8,8 +9,8 @@ import {
 	getActiveConnections,
 	notifyClients,
 	type GeoLocation,
-} from './notifyClients.js'
-import { withDeviceAlias } from './withDeviceAlias.js'
+} from './notifyClients.ts'
+import { withDeviceAlias } from './withDeviceAlias.ts'
 
 const {
 	connectionsTableName,

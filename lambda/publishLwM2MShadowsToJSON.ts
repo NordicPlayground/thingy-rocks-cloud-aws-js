@@ -1,8 +1,8 @@
 import { IoTClient } from '@aws-sdk/client-iot'
-import { fetchLwM2MShadows } from '../lwm2m/fetchLwM2MShadows.js'
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
-import { fromEnv } from '@nordicsemiconductor/from-env'
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { models } from '@hello.nrfcloud.com/proto-map'
+import { fromEnv } from '@nordicsemiconductor/from-env'
+import { fetchLwM2MShadows } from '../lwm2m/fetchLwM2MShadows.ts'
 
 const iot = new IoTClient({})
 const fetchShadows = fetchLwM2MShadows(iot)

@@ -3,9 +3,9 @@ import { IoTClient } from '@aws-sdk/client-iot'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { SSMClient } from '@aws-sdk/client-ssm'
 import { fromEnv } from '@nordicsemiconductor/from-env'
-import { listThingsInGroup } from './listThingsInGroup.js'
-import { createAPIClient, type Reboot } from './memfault/api.js'
-import { getActiveConnections } from './notifyClients.js'
+import { listThingsInGroup } from './listThingsInGroup.ts'
+import { createAPIClient, type Reboot } from './memfault/api.ts'
+import { getActiveConnections } from './notifyClients.ts'
 
 export const ssm = new SSMClient({})
 const iot = new IoTClient({})

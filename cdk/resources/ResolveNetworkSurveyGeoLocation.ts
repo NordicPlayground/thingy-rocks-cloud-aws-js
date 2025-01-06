@@ -1,6 +1,10 @@
 import {
+	LambdaLogGroup,
+	LambdaSource,
+} from '@bifravst/aws-cdk-lambda-helpers/cdk'
+import type { aws_dynamodb as DynamoDB } from 'aws-cdk-lib'
+import {
 	Duration,
-	aws_dynamodb as DynamoDB,
 	aws_events_targets as EventTargets,
 	aws_events as Events,
 	aws_iam as IAM,
@@ -8,12 +12,8 @@ import {
 	aws_lambda_event_sources as LambdaEvents,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { WebsocketAPI } from './WebsocketAPI.js'
-import {
-	LambdaLogGroup,
-	LambdaSource,
-} from '@bifravst/aws-cdk-lambda-helpers/cdk'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import type { BackendLambdas } from '../BackendLambdas.ts'
+import type { WebsocketAPI } from './WebsocketAPI.ts'
 
 /**
  * Notify clients about resolved neighboring cell location reports geo locations

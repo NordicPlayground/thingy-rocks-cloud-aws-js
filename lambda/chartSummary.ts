@@ -1,6 +1,6 @@
+import type { TimestreamQueryClient } from '@aws-sdk/client-timestream-query'
 import {
 	QueryCommand,
-	TimestreamQueryClient,
 	type QueryResponse,
 } from '@aws-sdk/client-timestream-query'
 import { parseResult } from '@nordicsemiconductor/timestream-helpers'
@@ -67,10 +67,10 @@ const groupResult = (
 			summaries[deviceId] = {
 				base,
 			} as Summary
-		if ((summaries[deviceId] as Summary)[key] === undefined) {
-			;((summaries[deviceId] as Summary)[key] as Readings) = [reading]
+		if (summaries[deviceId][key] === undefined) {
+			;(summaries[deviceId][key] as unknown as Readings) = [reading]
 		} else {
-			;((summaries[deviceId] as Summary)[key] as Readings).push(reading)
+			;(summaries[deviceId][key] as Readings).push(reading)
 		}
 	}
 }
