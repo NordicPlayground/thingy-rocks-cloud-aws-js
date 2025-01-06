@@ -4,7 +4,6 @@ import {
 	aws_iam as IAM,
 	aws_iot as IoT,
 	aws_lambda as Lambda,
-	aws_ssm as SSM,
 	Duration,
 	RemovalPolicy,
 	Stack,
@@ -130,22 +129,10 @@ export class WebsocketAPI extends Construct {
 				VERSION: this.node.tryGetContext('version'),
 				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
 				WEBSOCKET_MANAGEMENT_API_URL: this.websocketManagementAPIURL,
-				GATEWAY_MQTT_ENDPOINT: SSM.StringParameter.valueForStringParameter(
-					this,
-					`${Stack.of(parent).stackName}-Wirepas5GMeshGatewayEndpoint`,
-				),
 			},
 			layers: [baseLayer],
 			...new LambdaLogGroup(this, 'onMessageLogs'),
 			initialPolicy: [
-				new IAM.PolicyStatement({
-					actions: ['iot:Publish'],
-					resources: [
-						`arn:aws:iot:${Stack.of(parent).region}:${
-							Stack.of(parent).account
-						}:topic/*/nrplus-ctrl`,
-					],
-				}),
 				new IAM.PolicyStatement({
 					actions: ['execute-api:ManageConnections'],
 					resources: [this.websocketAPIArn],

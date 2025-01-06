@@ -24,37 +24,10 @@ Install the dependencies:
 npm ci
 ```
 
-### Configure
-
-Set the Wirepas 5G Mesh Gateway endpoint:
-
-```bash
-aws ssm put-parameter --name thingy-rocks-backend-Wirepas5GMeshGatewayEndpoint --type String --value $GATEWAY_MQTT_ENDPOINT
-```
-
 ### Deploy
 
 ```bash
 npx cdk deploy
-```
-
-### Running the Wirepas 5G Mesh Gateway
-
-Create a thing type `wirepas-5g-mesh-gateway`.
-
-Configure the gateway settings using the `.envrc` (see
-[the example](./envrc.example)).
-
-Run:
-
-```bash
-npx tsx wirepas-5g-mesh-gateway/gateway.ts
-```
-
-Run as a service using systemd:
-
-```bash
-systemd-run -E GATEWAY_MQTT_ENDPOINT=${GATEWAY_MQTT_ENDPOINT} -E GATEWAY_AWS_ACCESS_KEY_ID=${GATEWAY_AWS_ACCESS_KEY_ID} -E GATEWAY_REGION=${GATEWAY_REGION} -E GATEWAY_AWS_SECRET_ACCESS_KEY=${GATEWAY_AWS_SECRET_ACCESS_KEY} --working-directory ${PWD} npx tsx wirepas-5g-mesh-gateway/gateway.ts
 ```
 
 ### Memfault integration

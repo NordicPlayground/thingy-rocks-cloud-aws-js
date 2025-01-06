@@ -6,15 +6,7 @@ import type {
 	APIGatewayProxyWebsocketEventV2,
 } from 'aws-lambda'
 import { validateWithTypeBox } from './validateWithTypeBox.js'
-import {
-	IoTDataPlaneClient,
-	PublishCommand,
-} from '@aws-sdk/client-iot-data-plane'
 import { DescribeThingCommand, IoTClient } from '@aws-sdk/client-iot'
-import {
-	UpdateThingShadowCommand,
-	type UpdateThingShadowCommandInput,
-} from '@aws-sdk/client-iot-data-plane'
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { sendEvent } from './notifyClients.js'
 import { fetchLwM2MShadows } from '../lwm2m/fetchLwM2MShadows.js'
@@ -31,37 +23,10 @@ const deviceControl = Type.Object({
 
 const message = Type.Object({
 	message: Type.Literal('sendmessage'),
-	data: Type.Union([
-		Type.Intersect([
-			deviceControl,
-			Type.Object({
-				nrplusCtrl: Type.String({ minLength: 1 }),
-			}),
-		]),
-		Type.Intersect([
-			deviceControl,
-			Type.Object({
-				wirepasCtrl: Type.Object({
-					nodes: Type.Record(
-						Type.String({ minLength: 1 }),
-						Type.Object({
-							payload: Type.Object({
-								led: Type.Object({
-									r: Type.Boolean(),
-									g: Type.Boolean(),
-									b: Type.Boolean(),
-								}),
-							}),
-						}),
-					),
-				}),
-			}),
-		]),
-	]),
+	data: deviceControl,
 })
 const validateMessage = validateWithTypeBox(message)
 
-const iotData = new IoTDataPlaneClient({})
 const iot = new IoTClient({})
 const db = new DynamoDBClient({})
 
@@ -161,28 +126,6 @@ export const handler = async (
 				statusCode: 403,
 				body: `Code ${code} not valid for device ${deviceId}!`,
 			}
-		}
-		if ('nrplusCtrl' in msg) {
-			await iotData.send(
-				new PublishCommand({
-					topic: `${deviceId}/nrplus-ctrl`,
-					payload: Buffer.from(msg.nrplusCtrl, 'utf-8'),
-					qos: 1,
-				}),
-			)
-			console.log(`>`, `${deviceId}/nrplus-ctrl`, msg.nrplusCtrl)
-		}
-		if ('wirepasCtrl' in msg) {
-			const update: UpdateThingShadowCommandInput = {
-				thingName: deviceId,
-				payload: JSON.stringify({
-					state: {
-						desired: msg.wirepasCtrl,
-					},
-				}),
-			}
-			await iotData.send(new UpdateThingShadowCommand(update))
-			console.log(JSON.stringify({ update }))
 		}
 		return {
 			statusCode: 202,

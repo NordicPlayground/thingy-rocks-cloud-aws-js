@@ -27,7 +27,6 @@ new BackendApp({
 		publishSummaries: await pack('publishSummaries'),
 		onNewNetworkSurvey: await pack('onNewNetworkSurvey'),
 		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
-		parseSinkMessages: await pack('parseSinkMessages'),
 		updatesToLwM2M: await pack('updatesToLwM2M'),
 		memfaultPublishReboots: await pack('memfaultPublishReboots'),
 		memfaultPollForReboots: await pack('memfaultPollForReboots'),

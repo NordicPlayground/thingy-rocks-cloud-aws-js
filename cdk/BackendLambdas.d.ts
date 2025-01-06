@@ -10,7 +10,6 @@ type BackendLambdas = {
 	publishSummaries: PackedLambda
 	onNewNetworkSurvey: PackedLambda
 	onNetworkSurveyLocated: PackedLambda
-	parseSinkMessages: PackedLambda
 	updatesToLwM2M: PackedLambda
 	memfaultPublishReboots: PackedLambda
 	memfaultPollForReboots: PackedLambda

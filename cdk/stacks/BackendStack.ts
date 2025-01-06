@@ -14,9 +14,7 @@ import { ResolveCellLocation } from '../resources/ResolveCellLocation.js'
 import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.js'
 import { UserAuthentication } from '../resources/UserAuthentication.js'
 import { WebsocketAPI } from '../resources/WebsocketAPI.js'
-import { Wirepas5GMeshGateway } from '../resources/Wirepas5GMeshGateway.js'
 import { STACK_NAME } from './stackName.js'
-import { NRPlusGateway } from '../resources/NRPlusGateway.js'
 import { LwM2M } from '../resources/LwM2M.js'
 import { Memfault } from '../resources/Memfault.js'
 
@@ -96,18 +94,12 @@ export class BackendStack extends Stack {
 			),
 		})
 
-		new NRPlusGateway(this, {
-			lambdaSources,
-		})
-
 		new LwM2M(this, {
 			lambdaSources,
 			baseLayer,
 		})
 
-		const wirepasGateway = new Wirepas5GMeshGateway(this)
-
-		const memfault = new Memfault(this, {
+		new Memfault(this, {
 			assetTrackerStackName,
 			baseLayer,
 			lambdaSources,
@@ -139,21 +131,6 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'identityPoolId', {
 			value: userAuthentication.identityPool.ref,
 			exportName: `${this.stackName}:identityPoolId`,
-		})
-
-		new CfnOutput(this, 'wirepasGatewayUserAccessKeyId', {
-			value: wirepasGateway.accessKey.ref,
-			exportName: `${this.stackName}:wirepasGatewayUserAccessKeyId`,
-		})
-
-		new CfnOutput(this, 'wirepasGatewayUserSecretAccessKey', {
-			value: wirepasGateway.accessKey.attrSecretAccessKey,
-			exportName: `${this.stackName}:wirepasGatewayUserSecretAccessKey`,
-		})
-
-		new CfnOutput(this, 'memfaultBucketURL', {
-			value: `https://${memfault.bucket.bucketDomainName}/`,
-			exportName: `${this.stackName}:memfaultBucketURL`,
 		})
 	}
 }
