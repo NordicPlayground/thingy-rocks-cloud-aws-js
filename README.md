@@ -30,6 +30,10 @@ npm ci
 npx cdk deploy
 ```
 
+### Enable AWS IoT Thing Index
+
+Enable AWS IoT Thing indexing for the lwm2m named shadow and Thing connectivity.
+
 ### Memfault integration
 
 Configure these SSM parameters:
