@@ -1,10 +1,10 @@
-import jsonata from 'jsonata'
 import {
+	definitions,
 	senMLtoLwM2M,
 	type LwM2MObjectInstance,
 	type Transform,
-	definitions,
 } from '@hello.nrfcloud.com/proto-map'
+import jsonata from 'jsonata'
 
 type Update = {
 	state: {
