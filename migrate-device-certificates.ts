@@ -1,4 +1,5 @@
 import {
+	AddThingToThingGroupCommand,
 	AttachThingPrincipalCommand,
 	CreateThingCommand,
 	IoTClient,
@@ -72,6 +73,13 @@ for (const device of devicesToMigrate) {
 				attributePayload: {
 					attributes: fromDevices.get(device)!.attributes,
 				},
+			}),
+		)
+
+		await toIot.send(
+			new AddThingToThingGroupCommand({
+				thingGroupName: 'nrf-asset-tracker',
+				thingName: device,
 			}),
 		)
 
