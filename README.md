@@ -27,6 +27,7 @@ npm ci
 ### Deploy
 
 ```bash
+npm run build:container
 npx cdk deploy
 ```
 

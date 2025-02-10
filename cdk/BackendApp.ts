@@ -1,17 +1,22 @@
 import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
-import { App } from 'aws-cdk-lib'
+import { App, type Environment } from 'aws-cdk-lib'
 import type { BackendLambdas } from './BackendLambdas.ts'
 import { BackendStack } from './stacks/BackendStack.ts'
+import { UDPIngestStack } from './stacks/UDPIngestStack.ts'
 
 export class BackendApp extends App {
 	public constructor({
 		lambdaSources,
 		layer,
 		assetTrackerStackName,
+		coAPEndpointContainerTag,
+		env,
 	}: {
 		lambdaSources: BackendLambdas
 		layer: PackedLayer
 		assetTrackerStackName: string
+		coAPEndpointContainerTag: string
+		env: Required<Environment>
 	}) {
 		super({
 			context: {
@@ -19,6 +24,15 @@ export class BackendApp extends App {
 				isTest: false,
 			},
 		})
-		new BackendStack(this, { lambdaSources, layer, assetTrackerStackName })
+		new BackendStack(this, {
+			lambdaSources,
+			layer,
+			assetTrackerStackName,
+		})
+
+		new UDPIngestStack(this, {
+			coAPEndpointContainerTag,
+			env,
+		})
 	}
 }

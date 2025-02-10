@@ -1,3 +1,41 @@
 {
-  "acknowledged-issue-numbers": [29483]
+  "acknowledged-issue-numbers": [29483],
+  "vpc-provider:account=374216331074:filter.isDefault=true:region=us-west-2:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0f9cf64f72aba472e",
+    "vpcCidrBlock": "172.31.0.0/16",
+    "ownerAccountId": "374216331074",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-065fb207ddb235155",
+            "cidr": "172.31.32.0/20",
+            "availabilityZone": "us-west-2a",
+            "routeTableId": "rtb-09bcdf8d271ef58b0"
+          },
+          {
+            "subnetId": "subnet-0ce246797095faf85",
+            "cidr": "172.31.16.0/20",
+            "availabilityZone": "us-west-2b",
+            "routeTableId": "rtb-09bcdf8d271ef58b0"
+          },
+          {
+            "subnetId": "subnet-090cb088edd71a223",
+            "cidr": "172.31.0.0/20",
+            "availabilityZone": "us-west-2c",
+            "routeTableId": "rtb-09bcdf8d271ef58b0"
+          },
+          {
+            "subnetId": "subnet-096da2b10a347fda5",
+            "cidr": "172.31.48.0/20",
+            "availabilityZone": "us-west-2d",
+            "routeTableId": "rtb-09bcdf8d271ef58b0"
+          }
+        ]
+      }
+    ]
+  }
 }
