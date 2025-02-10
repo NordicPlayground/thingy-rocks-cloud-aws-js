@@ -6,7 +6,7 @@ import {
 	UpdateThingShadowCommand,
 } from '@aws-sdk/client-iot-data-plane'
 import { unmarshall } from '@aws-sdk/util-dynamodb'
-import { LwM2MObjectID } from '@hello.nrfcloud.com/proto-map'
+import { LwM2MObjectID } from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { Type } from '@sinclair/typebox'
 import { objectsToShadow } from '../lwm2m/objectsToShadow.ts'

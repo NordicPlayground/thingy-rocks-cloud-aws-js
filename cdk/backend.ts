@@ -10,8 +10,6 @@ const packagesInLayer: string[] = [
 	'@nordicsemiconductor/timestream-helpers',
 	'@hello.nrfcloud.com/proto-map',
 	'jsonata',
-	'mqtt',
-	'@protobuf-ts/runtime',
 	'p-retry',
 ]
 const pack = async (id: string) =>

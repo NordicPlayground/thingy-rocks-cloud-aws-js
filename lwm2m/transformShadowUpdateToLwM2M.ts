@@ -1,10 +1,10 @@
 import {
 	definitions,
-	senMLtoLwM2M,
 	type LwM2MObjectInstance,
-	type Transform,
-} from '@hello.nrfcloud.com/proto-map'
+} from '@hello.nrfcloud.com/proto-map/lwm2m'
+import { senMLtoLwM2M } from '@hello.nrfcloud.com/proto-map/senml'
 import jsonata from 'jsonata'
+import type { Transform } from '../proto-asset_tracker_v2+AWS/types.ts'
 
 type Update = {
 	state: {
@@ -18,7 +18,7 @@ type Update = {
  */
 export const transformShadowUpdateToLwM2M = (
 	transformers: Readonly<Array<Transform>>,
-): ((update: Update) => Promise<ReturnType<typeof senMLtoLwM2M>>) => {
+): ((update: Update) => Promise<Array<LwM2MObjectInstance>>) => {
 	// Turn the JSONata in the transformers into executable functions
 	const transformerFns: Array<{
 		match: ReturnType<typeof jsonata>
@@ -92,8 +92,11 @@ export const transformShadowUpdateToLwM2M = (
 			// Convert it to LwM2M
 			.then(senMLtoLwM2M)
 			// Mark omitted properties as unset
-			.then((lwm2m) => {
-				return lwm2m.map((o) => {
+			.then((maybeLwm2m) => {
+				if ('error' in maybeLwm2m) {
+					throw maybeLwm2m.error
+				}
+				return maybeLwm2m.lwm2m.map((o) => {
 					const res = definitions[o.ObjectID]?.Resources ?? {}
 					const resourcesInObject = Object.keys(o.Resources)
 					return Object.keys(res)

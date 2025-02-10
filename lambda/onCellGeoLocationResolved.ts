@@ -8,7 +8,7 @@ import {
 import {
 	LwM2MObjectID,
 	type ConnectionInformation_14203,
-} from '@hello.nrfcloud.com/proto-map'
+} from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { Type } from '@sinclair/typebox'
 import { objectsToShadow } from '../lwm2m/objectsToShadow.ts'

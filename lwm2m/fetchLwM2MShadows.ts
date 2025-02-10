@@ -3,7 +3,7 @@ import { SearchIndexCommand } from '@aws-sdk/client-iot'
 import {
 	instanceTs,
 	type LwM2MObjectInstance,
-} from '@hello.nrfcloud.com/proto-map'
+} from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { getDeviceInfo } from '../lambda/withDeviceAlias.ts'
 import { shadowToObjects } from './shadowToObjects.ts'
 
@@ -43,7 +43,7 @@ export const fetchLwM2MShadows = (
 							objects: shadowToObjects(reported).filter((instance) => {
 								const updateTs = instanceTs(instance)
 								return (
-									Date.now() - updateTs.getTime() <
+									Date.now() - updateTs * 1000 <
 									notOlderThanDays * 24 * 60 * 60 * 1000
 								)
 							}),

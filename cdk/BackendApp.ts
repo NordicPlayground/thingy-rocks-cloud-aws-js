@@ -19,7 +19,6 @@ export class BackendApp extends App {
 				isTest: false,
 			},
 		})
-		console.log(lambdaSources)
 		new BackendStack(this, { lambdaSources, layer, assetTrackerStackName })
 	}
 }

@@ -1,7 +1,7 @@
 import {
 	timestampResources,
 	type LwM2MObjectInstance,
-} from '@hello.nrfcloud.com/proto-map'
+} from '@hello.nrfcloud.com/proto-map/lwm2m'
 import type { LwM2MShadow } from './objectsToShadow.ts'
 
 export const shadowToObjects = (shadow: LwM2MShadow): LwM2MObjectInstance[] =>
@@ -12,23 +12,14 @@ export const shadowToObjects = (shadow: LwM2MShadow): LwM2MObjectInstance[] =>
 				string,
 			]
 			const ObjectID = parseInt(ObjectIDString, 10)
-			const tsResource = timestampResources[ObjectID]
+			const tsResource = timestampResources.get(ObjectID)
 			if (tsResource === undefined) return null
 			return Object.entries(Instances).map(([instanceId, Resources]) => {
 				const ObjectInstanceID = parseInt(instanceId, 10)
 				const objectInstance: LwM2MObjectInstance = {
 					ObjectID,
 					ObjectVersion,
-					Resources: Object.entries(Resources).reduce(
-						(Resources, [k, v]) => ({
-							...Resources,
-							[k]:
-								typeof v === 'number' && parseInt(k, 10) === tsResource
-									? new Date(v)
-									: v,
-						}),
-						{},
-					),
+					Resources,
 				}
 				if (ObjectInstanceID > 0)
 					objectInstance.ObjectInstanceID = ObjectInstanceID

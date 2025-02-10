@@ -1,14 +1,12 @@
-import { models } from '@hello.nrfcloud.com/proto-map'
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import { Asset_tracker_v2_AWS } from '../proto-asset_tracker_v2+AWS/transforms.ts'
 import { transformShadowUpdateToLwM2M } from './transformShadowUpdateToLwM2M.ts'
 
 void describe('transformShadowUpdateToLwM2M()', () => {
 	void it('should convert a shadow update', async () =>
 		assert.deepEqual(
-			await transformShadowUpdateToLwM2M(
-				models['asset_tracker_v2+AWS'].transforms,
-			)({
+			await transformShadowUpdateToLwM2M(Asset_tracker_v2_AWS.transforms)({
 				state: {
 					reported: {
 						env: {
@@ -38,7 +36,7 @@ void describe('transformShadowUpdateToLwM2M()', () => {
 						'3': null,
 						'4': null,
 						'5': null,
-						'99': new Date('2023-11-05T16:41:13.174Z'),
+						'99': Math.floor(1699202473174 / 1000),
 					},
 				},
 				{
@@ -48,7 +46,7 @@ void describe('transformShadowUpdateToLwM2M()', () => {
 						'1': 29.261,
 						'2': 97.13,
 						'10': null,
-						'99': new Date('2023-11-05T16:41:13.044Z'),
+						'99': Math.floor(1699202473044 / 1000),
 					},
 				},
 				// Make sure optional resources are unset
@@ -61,7 +59,7 @@ void describe('transformShadowUpdateToLwM2M()', () => {
 						'3': 29.7,
 						'4': null,
 						'5': null,
-						'99': new Date(1708942457126),
+						'99': Math.floor(1708942457126 / 1000),
 					},
 				},
 			],

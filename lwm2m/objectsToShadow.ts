@@ -1,4 +1,7 @@
-import type { LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-map'
+import {
+	timestampResources,
+	type LwM2MObjectInstance,
+} from '@hello.nrfcloud.com/proto-map/lwm2m'
 
 export type LwM2MShadow = Record<
 	string,
@@ -10,13 +13,11 @@ export const objectsToShadow = (
 ): LwM2MShadow =>
 	objects
 		.sort((u1, u2) => {
-			const d1 = Object.values(u1.Resources).find(
-				(r) => r instanceof Date,
-			) as Date
-			const d2 = Object.values(u2.Resources).find(
-				(r) => r instanceof Date,
-			) as Date
-			return d1.getTime() > d2.getTime() ? 1 : -1
+			const tsRes1 =
+				u1.Resources[timestampResources.get(u1.ObjectID) ?? -1] ?? -1
+			const tsRes2 =
+				u2.Resources[timestampResources.get(u2.ObjectID) ?? -1] ?? -1
+			return tsRes1 > tsRes2 ? 1 : -1
 		})
 		.reduce<LwM2MShadow>((shadow, update) => {
 			const key = `${update.ObjectID}:${update.ObjectVersion ?? '1.0'}`
@@ -25,13 +26,13 @@ export const objectsToShadow = (
 				[key]: {
 					[update.ObjectInstanceID ?? 0]: {
 						...(shadow[key] ?? {}),
-						...Object.entries(update.Resources).reduce((resources, [k, v]) => {
-							if (v instanceof Date) return { ...resources, [k]: v.getTime() }
-							return {
+						...Object.entries(update.Resources).reduce(
+							(resources, [k, v]) => ({
 								...resources,
 								[k]: v,
-							}
-						}, {}),
+							}),
+							{},
+						),
 					},
 				},
 			}

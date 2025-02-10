@@ -2,13 +2,14 @@ import {
 	IoTDataPlaneClient,
 	UpdateThingShadowCommand,
 } from '@aws-sdk/client-iot-data-plane'
-import { models, type LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-map'
+import { type LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { objectsToShadow } from '../lwm2m/objectsToShadow.ts'
 import { transformShadowUpdateToLwM2M } from '../lwm2m/transformShadowUpdateToLwM2M.ts'
+import { Asset_tracker_v2_AWS } from '../proto-asset_tracker_v2+AWS/transforms.ts'
 
 const iotData = new IoTDataPlaneClient({})
 const transformUpdate = transformShadowUpdateToLwM2M(
-	models['asset_tracker_v2+AWS'].transforms,
+	Asset_tracker_v2_AWS.transforms,
 )
 
 const updateShadow = async (
