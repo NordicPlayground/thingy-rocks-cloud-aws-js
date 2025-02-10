@@ -1,13 +1,18 @@
+import { repositoryName } from '@bifravst/aws-cdk-ecr-helpers/repository'
 import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
-import type { App } from 'aws-cdk-lib'
+import type { App, Environment } from 'aws-cdk-lib'
 import {
 	CfnOutput,
 	aws_dynamodb as DynamoDB,
+	aws_ecr as ECR,
+	aws_ecs as ECS,
 	Fn,
 	aws_lambda as Lambda,
 	Stack,
 } from 'aws-cdk-lib'
+import { ContainerRepositoryId } from '../../aws/ecr.ts'
 import type { BackendLambdas } from '../BackendLambdas.ts'
+import { CoAPEndpoint } from '../resources/CoAPEndpoint.ts'
 import { LwM2M } from '../resources/LwM2M.ts'
 import { Map } from '../resources/Map.ts'
 import { Memfault } from '../resources/Memfault.ts'
@@ -25,13 +30,19 @@ export class BackendStack extends Stack {
 			lambdaSources,
 			layer,
 			assetTrackerStackName,
+			coAPEndpointContainerTag,
+			env,
 		}: {
 			lambdaSources: BackendLambdas
 			layer: PackedLayer
 			assetTrackerStackName: string
+			coAPEndpointContainerTag: string
+			env: Required<Environment>
 		},
 	) {
-		super(parent, STACK_NAME)
+		super(parent, STACK_NAME, {
+			env,
+		})
 
 		const baseLayer = new Lambda.LayerVersion(this, 'baseLayer', {
 			layerVersionName: `${Stack.of(this).stackName}-baseLayer`,
@@ -104,6 +115,26 @@ export class BackendStack extends Stack {
 			baseLayer,
 			lambdaSources,
 			websocketAPI: api,
+		})
+
+		const coapEndpoint = new CoAPEndpoint(this, {
+			image: ECS.ContainerImage.fromEcrRepository(
+				ECR.Repository.fromRepositoryName(
+					this,
+					'coap-endpoint-ecr',
+					repositoryName({
+						stackName: Stack.of(this).stackName,
+						id: ContainerRepositoryId.CoAPEndpoint,
+					}),
+				),
+				coAPEndpointContainerTag,
+			),
+		})
+
+		new CfnOutput(this, 'coAPEndpointPublicIP', {
+			exportName: `${this.stackName}:coAPEndpoint`,
+			description: 'The DNS name of the CoAP endpoint',
+			value: coapEndpoint.service.loadBalancer.loadBalancerDnsName,
 		})
 
 		// Outputs

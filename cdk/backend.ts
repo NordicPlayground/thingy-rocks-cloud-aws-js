@@ -1,7 +1,12 @@
+import { STS } from '@aws-sdk/client-sts'
 import { packLambdaFromPath } from '@bifravst/aws-cdk-lambda-helpers'
 import { packLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
+import { fromEnv } from '@nordicsemiconductor/from-env'
+import { env } from '../aws/env.ts'
 import { BackendApp } from './BackendApp.ts'
 import { ASSET_TRACKER_STACK_NAME } from './stacks/stackName.ts'
+
+const sts = new STS({})
 
 const packagesInLayer: string[] = [
 	'@nordicsemiconductor/from-env',
@@ -14,6 +19,13 @@ const packagesInLayer: string[] = [
 ]
 const pack = async (id: string) =>
 	packLambdaFromPath({ id, sourceFilePath: `lambda/${id}.ts` })
+
+// Ensure needed container images exist
+const { coAPEndpointContainerTag } = fromEnv({
+	coAPEndpointContainerTag: 'COAP_ENDPOINT_CONTAINER_TAG',
+})(process.env)
+
+const accountEnv = await env({ sts })
 
 new BackendApp({
 	lambdaSources: {
@@ -35,4 +47,7 @@ new BackendApp({
 		dependencies: packagesInLayer,
 	}),
 	assetTrackerStackName: ASSET_TRACKER_STACK_NAME,
+	coAPEndpointContainerTag,
+	// Needed for VPC
+	env: accountEnv,
 })
