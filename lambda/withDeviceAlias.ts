@@ -41,13 +41,18 @@ export const getDeviceInfo =
 	}
 
 const getDeviceAttributes = (iot: IoTClient) => async (deviceId: string) => {
-	const { attributes, thingTypeName } = await iot.send(
-		new DescribeThingCommand({ thingName: deviceId }),
-	)
-	const { name, location } = attributes ?? {}
-	return {
-		alias: name,
-		location,
-		type: thingTypeName,
+	try {
+		const { attributes, thingTypeName } = await iot.send(
+			new DescribeThingCommand({ thingName: deviceId }),
+		)
+		const { name, location } = attributes ?? {}
+		return {
+			alias: name,
+			location,
+			type: thingTypeName,
+		}
+	} catch (e) {
+		console.error('Failed to get device info', e)
+		return {}
 	}
 }

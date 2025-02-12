@@ -18,7 +18,7 @@ const { connectionsTableName, websocketManagementAPIURL, stackName } = fromEnv({
 	stackName: 'STACK_NAME',
 })(process.env)
 
-export const apiGwManagementClient = new ApiGatewayManagementApi({
+const apiGwManagementClient = new ApiGatewayManagementApi({
 	endpoint: websocketManagementAPIURL,
 })
 

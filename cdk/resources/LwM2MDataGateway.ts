@@ -7,6 +7,7 @@ import {
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { BackendLambdas } from '../BackendLambdas.js'
+import type { WebsocketAPI } from './WebsocketAPI.ts'
 
 /**
  * Resources for devices that act as Gateways for other devices and publish LwM2mM objects in SenML
@@ -18,9 +19,11 @@ export class LwM2MDataGateway extends Construct {
 		{
 			lambdaSources,
 			baseLayer,
+			websocketAPI,
 		}: {
 			lambdaSources: Pick<BackendLambdas, 'lwm2mGateway'>
 			baseLayer: Lambda.ILayerVersion
+			websocketAPI: WebsocketAPI
 		},
 	) {
 		super(parent, LwM2MDataGateway.name)
@@ -64,12 +67,22 @@ export class LwM2MDataGateway extends Construct {
 				layers: [baseLayer],
 				initialPolicy: [
 					new IAM.PolicyStatement({
-						actions: ['iot:UpdateThingShadow'],
+						actions: ['iot:UpdateThingShadow', 'iot:DescribeThing'],
 						resources: ['*'],
 					}),
+					new IAM.PolicyStatement({
+						actions: ['execute-api:ManageConnections'],
+						resources: [websocketAPI.websocketAPIArn],
+					}),
 				],
+				environment: {
+					CONNECTIONS_TABLE_NAME: websocketAPI.connectionsTable.tableName,
+					WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
+				},
 			},
 		)
+
+		websocketAPI.connectionsTable.grantReadWriteData(lwm2mGatewayFn.fn)
 
 		const ruleRole = new IAM.Role(this, 'ruleRole', {
 			assumedBy: new IAM.ServicePrincipal(

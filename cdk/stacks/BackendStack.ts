@@ -110,6 +110,7 @@ export class BackendStack extends Stack {
 		const lwm2mgw = new LwM2MDataGateway(this, {
 			lambdaSources,
 			baseLayer,
+			websocketAPI: api,
 		})
 
 		new CfnOutput(this, 'thingPolicyArn', {
