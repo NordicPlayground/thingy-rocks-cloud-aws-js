@@ -11,6 +11,7 @@ type BackendLambdas = {
 	onNewNetworkSurvey: PackedLambda
 	onNetworkSurveyLocated: PackedLambda
 	updatesToLwM2M: PackedLambda
+	lwm2mGateway: PackedLambda
 	memfaultPublishReboots: PackedLambda
 	memfaultPollForReboots: PackedLambda
 }

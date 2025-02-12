@@ -49,7 +49,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 		const onNewNetworkSurvey = new Lambda.Function(this, 'onNewNetworkSurvey', {
 			handler: lambdaSources.onNewNetworkSurvey.handler,
 			architecture: Lambda.Architecture.ARM_64,
-			runtime: Lambda.Runtime.NODEJS_20_X,
+			runtime: Lambda.Runtime.NODEJS_22_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
 			code: new LambdaSource(this, lambdaSources.onNewNetworkSurvey).code,
@@ -89,7 +89,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 			{
 				handler: lambdaSources.onNetworkSurveyLocated.handler,
 				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_20_X,
+				runtime: Lambda.Runtime.NODEJS_22_X,
 				timeout: Duration.seconds(60),
 				memorySize: 1792,
 				code: new LambdaSource(this, lambdaSources.onNetworkSurveyLocated).code,

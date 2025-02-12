@@ -9,9 +9,9 @@ import {
 	LwM2MObjectID,
 	type ConnectionInformation_14203,
 } from '@hello.nrfcloud.com/proto-map/lwm2m'
+import { objectsToShadow } from '@hello.nrfcloud.com/proto-map/lwm2m/aws'
 import { fromEnv } from '@nordicsemiconductor/from-env'
 import { Type } from '@sinclair/typebox'
-import { objectsToShadow } from '../lwm2m/objectsToShadow.ts'
 import { LocationSource, Network, notifyClients } from './notifyClients.ts'
 import { validateWithTypeBox } from './validateWithTypeBox.ts'
 

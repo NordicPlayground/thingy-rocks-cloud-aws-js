@@ -37,7 +37,6 @@
     "@bifravst/eslint-config-typescript": "6.1.20",
     "@bifravst/prettier-config": "1.1.5",
     "@commitlint/config-conventional": "19.7.1",
-    "@hello.nrfcloud.com/proto-map": "16.1.36",
     "@types/aws-lambda": "8.10.147",
     "@types/node": "22.13.1",
     "aws-cdk": "2.178.1",
@@ -78,6 +77,10 @@
   },
   "prettier": "@bifravst/prettier-config",
   "dependencies": {
+    "@hello.nrfcloud.com/lambda-helpers": "2.0.71",
+    "@hello.nrfcloud.com/proto-map": "16.1.36",
+    "@middy/core": "6.0.0",
+    "@middy/input-output-logger": "6.0.0",
     "@nordicsemiconductor/from-env": "3.0.1",
     "@nordicsemiconductor/timestream-helpers": "6.0.2",
     "@sinclair/typebox": "0.34.16",

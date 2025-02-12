@@ -4,8 +4,8 @@ import {
 	instanceTs,
 	type LwM2MObjectInstance,
 } from '@hello.nrfcloud.com/proto-map/lwm2m'
+import { shadowToObjects } from '@hello.nrfcloud.com/proto-map/lwm2m/aws'
 import { getDeviceInfo } from '../lambda/withDeviceAlias.ts'
-import { shadowToObjects } from './shadowToObjects.ts'
 
 type LwM2MShadow = {
 	deviceId: string

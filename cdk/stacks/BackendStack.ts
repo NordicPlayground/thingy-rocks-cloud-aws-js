@@ -9,6 +9,7 @@ import {
 } from 'aws-cdk-lib'
 import type { BackendLambdas } from '../BackendLambdas.ts'
 import { LwM2M } from '../resources/LwM2M.ts'
+import { LwM2MDataGateway } from '../resources/LwM2MDataGateway.ts'
 import { Map } from '../resources/Map.ts'
 import { Memfault } from '../resources/Memfault.ts'
 import { PublishSummaries } from '../resources/PublishSummaries.ts'
@@ -37,7 +38,7 @@ export class BackendStack extends Stack {
 			layerVersionName: `${Stack.of(this).stackName}-baseLayer`,
 			code: Lambda.Code.fromAsset(layer.layerZipFilePath),
 			compatibleArchitectures: [Lambda.Architecture.ARM_64],
-			compatibleRuntimes: [Lambda.Runtime.NODEJS_20_X],
+			compatibleRuntimes: [Lambda.Runtime.NODEJS_22_X],
 		})
 
 		const api = new WebsocketAPI(this, {
@@ -104,6 +105,17 @@ export class BackendStack extends Stack {
 			baseLayer,
 			lambdaSources,
 			websocketAPI: api,
+		})
+
+		const lwm2mgw = new LwM2MDataGateway(this, {
+			lambdaSources,
+			baseLayer,
+		})
+
+		new CfnOutput(this, 'thingPolicyArn', {
+			value: lwm2mgw.thingPolicy.attrArn,
+			exportName: `${this.stackName}:thingPolicyArn`,
+			description: 'Thingy policy for LwM2M data gateways',
 		})
 
 		// Outputs

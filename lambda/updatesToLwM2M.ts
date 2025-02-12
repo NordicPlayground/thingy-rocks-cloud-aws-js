@@ -1,33 +1,14 @@
-import {
-	IoTDataPlaneClient,
-	UpdateThingShadowCommand,
-} from '@aws-sdk/client-iot-data-plane'
-import { type LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-map/lwm2m'
-import { objectsToShadow } from '../lwm2m/objectsToShadow.ts'
+import { IoTDataPlaneClient } from '@aws-sdk/client-iot-data-plane'
 import { transformShadowUpdateToLwM2M } from '../lwm2m/transformShadowUpdateToLwM2M.ts'
 import { Asset_tracker_v2_AWS } from '../proto-asset_tracker_v2+AWS/transforms.ts'
+import { updateShadow } from './updateShadow.ts'
 
-const iotData = new IoTDataPlaneClient({})
+export const iotData = new IoTDataPlaneClient({})
 const transformUpdate = transformShadowUpdateToLwM2M(
 	Asset_tracker_v2_AWS.transforms,
 )
 
-const updateShadow = async (
-	deviceId: string,
-	objects: LwM2MObjectInstance[],
-): Promise<void> => {
-	await iotData.send(
-		new UpdateThingShadowCommand({
-			thingName: deviceId,
-			shadowName: 'lwm2m',
-			payload: JSON.stringify({
-				state: {
-					reported: objectsToShadow(objects),
-				},
-			}),
-		}),
-	)
-}
+const u = updateShadow(iotData)
 
 /**
  * Store shadow updates in asset_tracker_v2 shadow format as LwM2M objects in a named shadow.
@@ -51,5 +32,5 @@ export const handler = async (event: {
 		}),
 	)
 
-	void updateShadow(deviceId, objects)
+	void u(deviceId, objects)
 }

@@ -78,7 +78,7 @@ export class WebsocketAPI extends Construct {
 		const onConnect = new Lambda.Function(this, 'onConnect', {
 			handler: lambdaSources.onConnect.handler,
 			architecture: Lambda.Architecture.ARM_64,
-			runtime: Lambda.Runtime.NODEJS_20_X,
+			runtime: Lambda.Runtime.NODEJS_22_X,
 			timeout: Duration.seconds(5),
 			memorySize: 1792,
 			code: new LambdaSource(this, lambdaSources.onConnect).code,
@@ -120,7 +120,7 @@ export class WebsocketAPI extends Construct {
 		const onMessage = new Lambda.Function(this, 'onMessage', {
 			handler: lambdaSources.onMessage.handler,
 			architecture: Lambda.Architecture.ARM_64,
-			runtime: Lambda.Runtime.NODEJS_20_X,
+			runtime: Lambda.Runtime.NODEJS_22_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
 			code: new LambdaSource(this, lambdaSources.onMessage).code,
@@ -178,7 +178,7 @@ export class WebsocketAPI extends Construct {
 		const onDisconnect = new Lambda.Function(this, 'onDisconnect', {
 			handler: lambdaSources.onDisconnect.handler,
 			architecture: Lambda.Architecture.ARM_64,
-			runtime: Lambda.Runtime.NODEJS_20_X,
+			runtime: Lambda.Runtime.NODEJS_22_X,
 			timeout: Duration.seconds(5),
 			memorySize: 1792,
 			code: new LambdaSource(this, lambdaSources.onDisconnect).code,
@@ -248,7 +248,7 @@ export class WebsocketAPI extends Construct {
 			{
 				handler: lambdaSources.publishToWebsocketClients.handler,
 				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_20_X,
+				runtime: Lambda.Runtime.NODEJS_22_X,
 				timeout: Duration.minutes(1),
 				memorySize: 1792,
 				code: new LambdaSource(this, lambdaSources.publishToWebsocketClients)
