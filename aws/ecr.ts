@@ -1,3 +1,3 @@
 export enum ContainerRepositoryId {
-	CoAPEndpoint = 'coap-endpoint',
+	UDPIngest = 'udp-ingest',
 }

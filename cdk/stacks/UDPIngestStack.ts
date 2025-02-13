@@ -2,17 +2,17 @@ import { repositoryName } from '@bifravst/aws-cdk-ecr-helpers/repository'
 import type { App, Environment } from 'aws-cdk-lib'
 import { CfnOutput, aws_ecr as ECR, aws_ecs as ECS, Stack } from 'aws-cdk-lib'
 import { ContainerRepositoryId } from '../../aws/ecr.ts'
-import { CoAPEndpoint } from '../resources/CoAPEndpoint.ts'
+import { UDPIngest } from '../resources/UDPIngest.ts'
 import { UDP_INGEST_STACK_NAME } from './stackName.ts'
 
 export class UDPIngestStack extends Stack {
 	public constructor(
 		parent: App,
 		{
-			coAPEndpointContainerTag,
+			UDPIngestContainerTag,
 			env,
 		}: {
-			coAPEndpointContainerTag: string
+			UDPIngestContainerTag: string
 			env: Required<Environment>
 		},
 	) {
@@ -20,28 +20,28 @@ export class UDPIngestStack extends Stack {
 			env,
 		})
 
-		const coapEndpoint = new CoAPEndpoint(this, {
+		const updIngest = new UDPIngest(this, {
 			image: ECS.ContainerImage.fromEcrRepository(
 				ECR.Repository.fromRepositoryName(
 					this,
-					'coap-endpoint-ecr',
+					'udp-ingest-ecr',
 					repositoryName({
 						stackName: Stack.of(this).stackName,
-						id: ContainerRepositoryId.CoAPEndpoint,
+						id: ContainerRepositoryId.UDPIngest,
 					}),
 				),
-				coAPEndpointContainerTag,
+				UDPIngestContainerTag,
 			),
 		})
 
-		new CfnOutput(this, 'coAPEndpointPublicIP', {
-			exportName: `${this.stackName}:coAPEndpoint`,
+		new CfnOutput(this, 'UDPIngestPublicIP', {
+			exportName: `${this.stackName}:UDPIngest`,
 			description: 'The DNS name of the CoAP endpoint',
-			value: coapEndpoint.service.loadBalancer.loadBalancerDnsName,
+			value: updIngest.service.loadBalancer.loadBalancerDnsName,
 		})
 	}
 }
 
 export type StackOutputs = {
-	coAPEndpointPublicIP: string
+	UDPIngestPublicIP: string
 }

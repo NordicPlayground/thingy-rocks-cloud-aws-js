@@ -7,7 +7,7 @@ import run from '@bifravst/run'
 import path from 'node:path'
 import { ContainerRepositoryId } from '../../../../aws/ecr.ts'
 
-export const buildCoAPEndpointImage = async (
+export const buildUDPIngestImage = async (
 	builder: ImageBuilder,
 	checker: ImageChecker,
 	debug?: typeof console.debug,
@@ -21,8 +21,24 @@ export const buildCoAPEndpointImage = async (
 			'cdk',
 			'resources',
 			'containers',
-			'coap-endpoint',
+			'udp-ingest',
 			'server',
+		),
+		log: {
+			debug,
+		},
+	})
+
+	await run({
+		command: 'go',
+		args: ['build'],
+		cwd: path.join(
+			process.cwd(),
+			'cdk',
+			'resources',
+			'containers',
+			'udp-ingest',
+			'health',
 		),
 		log: {
 			debug,
@@ -34,7 +50,7 @@ export const buildCoAPEndpointImage = async (
 		'cdk',
 		'resources',
 		'containers',
-		'coap-endpoint',
+		'udp-ingest',
 	)
 
 	const tag = await hashFolder(dockerFilePath)
@@ -49,7 +65,7 @@ export const buildCoAPEndpointImage = async (
 		return tag
 
 	await builder({
-		id: ContainerRepositoryId.CoAPEndpoint,
+		id: ContainerRepositoryId.UDPIngest,
 		tag,
 		dockerFilePath,
 		debug,

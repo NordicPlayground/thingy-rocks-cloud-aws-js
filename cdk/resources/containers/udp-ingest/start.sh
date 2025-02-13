@@ -5,7 +5,8 @@ ipv4_interfaces=$(ip -o -4 addr show | awk '{print $2}' | cut -d':' -f1 | sort -
 for interface in $ipv4_interfaces; do
     IP=$(ip -o -4 addr show $interface | awk '{print $4}' | cut -d'/' -f1)
     echo "Interface: $interface, Assigned IP: $IP"
-    nohup /home/coap/coap-server -address $IP -network udp4 &
+    nohup /home/udp-ingest/udp-ingest -address $IP:5683 &
+    nohup /home/udp-ingest/health -address $IP &
 done
 
 sleep infinity

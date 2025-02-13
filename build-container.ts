@@ -5,7 +5,7 @@ import {
 } from '@bifravst/aws-cdk-ecr-helpers/image'
 import { getOrCreateRepository } from '@bifravst/aws-cdk-ecr-helpers/repository'
 import { ContainerRepositoryId } from './aws/ecr.ts'
-import { buildCoAPEndpointImage } from './cdk/resources/containers/coap-endpoint/buildCoAPEndpointImage.ts'
+import { buildUDPIngestImage } from './cdk/resources/containers/udp-ingest/buildUDPIngestImage.ts'
 import { STACK_NAME } from './cdk/stacks/stackName.ts'
 
 // Build the container needed to run the backend.
@@ -14,20 +14,20 @@ const ecr = new ECRClient({})
 
 const ensureRepo = getOrCreateRepository({ ecr })
 
-const coAPEndpointRepo = await ensureRepo({
+const UDPIngestRepo = await ensureRepo({
 	stackName: STACK_NAME,
-	id: ContainerRepositoryId.CoAPEndpoint,
+	id: ContainerRepositoryId.UDPIngest,
 	debug: console.debug,
 })
 
-const tag = await buildCoAPEndpointImage(
+const tag = await buildUDPIngestImage(
 	buildAndPublishImage({
 		ecr,
-		repo: coAPEndpointRepo,
+		repo: UDPIngestRepo,
 	}),
 	checkIfImageExists({
 		ecr,
-		repo: coAPEndpointRepo,
+		repo: UDPIngestRepo,
 	}),
 	console.debug,
 )

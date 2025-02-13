@@ -8,4 +8,5 @@ npm-debug.log
 cdk.out/
 dist/
 certificates/
-cdk/resources/containers/coap-endpoint/server/coap-server
+cdk/resources/containers/udp-ingest/server/udp-ingest
+cdk/resources/containers/udp-ingest/health/health
