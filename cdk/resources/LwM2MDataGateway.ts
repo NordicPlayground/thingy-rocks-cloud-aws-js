@@ -53,6 +53,18 @@ export class LwM2MDataGateway extends Construct {
 							'arn:aws:iot:*:*:topic/${iot:ClientId}/lwm2m-gateway/senml/*',
 						],
 					},
+					{
+						Effect: 'Allow',
+						Action: ['iot:Receive'],
+						Resource: ['*'],
+					},
+					{
+						Effect: 'Allow',
+						Action: ['iot:Subscribe'],
+						Resource: [
+							'arn:aws:iot:*:*:topicfilter/${iot:ClientId}/lwm2m-gateway/senml/*',
+						],
+					},
 				],
 			},
 		})
@@ -67,7 +79,11 @@ export class LwM2MDataGateway extends Construct {
 				layers: [baseLayer],
 				initialPolicy: [
 					new IAM.PolicyStatement({
-						actions: ['iot:UpdateThingShadow', 'iot:DescribeThing'],
+						actions: [
+							'iot:UpdateThingShadow',
+							'iot:DescribeThing',
+							'iot:Publish',
+						],
 						resources: ['*'],
 					}),
 					new IAM.PolicyStatement({
@@ -113,6 +129,7 @@ export class LwM2MDataGateway extends Construct {
 					`SELECT * as senML,`,
 					`topic(1) as gatewayId,`,
 					`topic(4) as deviceId,`,
+					`newuuid() as messageId,`,
 					`timestamp() as timestamp`,
 					`FROM '+/lwm2m-gateway/senml/+'`,
 				].join(' '),

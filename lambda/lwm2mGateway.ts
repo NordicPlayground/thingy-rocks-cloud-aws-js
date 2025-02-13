@@ -1,7 +1,10 @@
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { IoTClient } from '@aws-sdk/client-iot'
-import { IoTDataPlaneClient } from '@aws-sdk/client-iot-data-plane'
+import {
+	IoTDataPlaneClient,
+	PublishCommand,
+} from '@aws-sdk/client-iot-data-plane'
 import { requestLogger } from '@hello.nrfcloud.com/lambda-helpers/requestLogger'
 import {
 	senMLtoLwM2M,
@@ -43,11 +46,12 @@ export const handler = middy()
 			gatewayId: string
 			deviceId: string
 			timestamp: number
+			messageId: string
 			senML: SenMLType
 		}) => {
-			const { deviceId, senML, gatewayId } = event
+			const { deviceId, senML, gatewayId, timestamp, messageId } = event
 
-			const maybeObjects = senMLtoLwM2M(senML as any)
+			const maybeObjects = senMLtoLwM2M(Array.isArray(senML) ? senML : [])
 
 			const iotThingName = `${gatewayId}-${deviceId}`
 
@@ -55,6 +59,17 @@ export const handler = middy()
 				console.error(
 					`[${iotThingName}]`,
 					JSON.stringify(maybeObjects.error.message),
+				)
+				await iotData.send(
+					new PublishCommand({
+						topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/rejected`,
+						payload: JSON.stringify({
+							error: maybeObjects.error.message,
+							messageId,
+							timestamp,
+							senML,
+						}),
+					}),
 				)
 				return
 			}
@@ -64,6 +79,17 @@ export const handler = middy()
 
 			if (objects.length === 0) {
 				console.debug(`No LwM2M objects found.`)
+				await iotData.send(
+					new PublishCommand({
+						topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/rejected`,
+						payload: JSON.stringify({
+							error: 'No LwM2M objects found.',
+							messageId,
+							timestamp,
+							senML,
+						}),
+					}),
+				)
 				return
 			}
 
@@ -76,5 +102,17 @@ export const handler = middy()
 				deviceId: iotThingName,
 				objects,
 			})
+
+			await iotData.send(
+				new PublishCommand({
+					topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/accepted`,
+					payload: JSON.stringify({
+						messageId,
+						timestamp,
+						senML,
+						lwm2m: objects,
+					}),
+				}),
+			)
 		},
 	)
