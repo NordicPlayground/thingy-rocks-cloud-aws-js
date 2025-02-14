@@ -13,6 +13,25 @@ export const buildUDPIngestImage = async (
 	debug?: typeof console.debug,
 	pull?: boolean,
 ): Promise<string> => {
+	const dockerFilePath = path.join(
+		process.cwd(),
+		'cdk',
+		'resources',
+		'containers',
+		'udp-ingest',
+	)
+
+	const tag = await hashFolder(dockerFilePath)
+
+	if (
+		await checker({
+			tag,
+			debug,
+			pull,
+		})
+	)
+		return tag
+
 	await run({
 		command: 'go',
 		args: ['build'],
@@ -44,25 +63,6 @@ export const buildUDPIngestImage = async (
 			debug,
 		},
 	})
-
-	const dockerFilePath = path.join(
-		process.cwd(),
-		'cdk',
-		'resources',
-		'containers',
-		'udp-ingest',
-	)
-
-	const tag = await hashFolder(dockerFilePath)
-
-	if (
-		await checker({
-			tag,
-			debug,
-			pull,
-		})
-	)
-		return tag
 
 	await builder({
 		id: ContainerRepositoryId.UDPIngest,

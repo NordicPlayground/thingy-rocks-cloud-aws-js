@@ -25,8 +25,8 @@ const pack = async (id: string) =>
 	packLambdaFromPath({ id, sourceFilePath: `lambda/${id}.ts` })
 
 // Ensure needed container images exist
-const { UDPIngestContainerTag } = fromEnv({
-	UDPIngestContainerTag: 'COAP_ENDPOINT_CONTAINER_TAG',
+const { udpIngestContainerTag } = fromEnv({
+	udpIngestContainerTag: 'UDP_INGEST_CONTAINER_TAG',
 })(process.env)
 
 const accountEnv = await env({ sts })
@@ -52,7 +52,7 @@ new BackendApp({
 		dependencies: packagesInLayer,
 	}),
 	assetTrackerStackName: ASSET_TRACKER_STACK_NAME,
-	UDPIngestContainerTag,
+	udpIngestContainerTag,
 	// Needed for VPC
 	env: accountEnv,
 })

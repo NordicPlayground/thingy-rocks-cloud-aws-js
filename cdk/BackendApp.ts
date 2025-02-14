@@ -9,13 +9,13 @@ export class BackendApp extends App {
 		lambdaSources,
 		layer,
 		assetTrackerStackName,
-		UDPIngestContainerTag,
+		udpIngestContainerTag,
 		env,
 	}: {
 		lambdaSources: BackendLambdas
 		layer: PackedLayer
 		assetTrackerStackName: string
-		UDPIngestContainerTag: string
+		udpIngestContainerTag: string
 		env: Required<Environment>
 	}) {
 		super({
@@ -31,7 +31,7 @@ export class BackendApp extends App {
 		})
 
 		new UDPIngestStack(this, {
-			UDPIngestContainerTag,
+			udpIngestContainerTag,
 			env,
 		})
 	}

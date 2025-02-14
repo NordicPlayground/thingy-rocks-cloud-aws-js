@@ -23,5 +23,6 @@ USER udp-ingest
 WORKDIR /home/udp-ingest
 
 EXPOSE 5683/udp
+EXPOSE 8080/udp
 
-CMD [ "/home/start.sh" ]
+CMD [ "/home/udp-ingest/start.sh" ]

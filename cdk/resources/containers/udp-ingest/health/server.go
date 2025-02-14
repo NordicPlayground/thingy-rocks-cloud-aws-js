@@ -16,16 +16,13 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	address := flag.String("address", "localhost",
-		"The UDP Server listen address, e.g. `localhost` or `0.0.0.0`.")
-
-	var flagValues = ServerFlags{
-		Address:  *address,
-	}
+	address := flag.String("address", "localhost:8080",
+		"The HTTP server listen address, e.g. `localhost:8080` or `0.0.0.0:8080`.")
+	flag.Parse()
 
 	http.HandleFunc("/health", healthHandler)
-	fmt.Printf("Starting server on %s:80\n", flagValues.Address)
-	if err := http.ListenAndServe(fmt.Sprintf("%s:80", flagValues.Address), nil); err != nil {
-		fmt.Println("Failed to start server:", err)
+	fmt.Printf("Starting HTTP server on %s\n", *address)
+	if err := http.ListenAndServe(*address, nil); err != nil {
+		fmt.Println("Failed to start HTTP server:", err)
 	}
 }

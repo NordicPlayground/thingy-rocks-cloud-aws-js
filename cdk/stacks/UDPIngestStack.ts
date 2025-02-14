@@ -9,10 +9,10 @@ export class UDPIngestStack extends Stack {
 	public constructor(
 		parent: App,
 		{
-			UDPIngestContainerTag,
+			udpIngestContainerTag,
 			env,
 		}: {
-			UDPIngestContainerTag: string
+			udpIngestContainerTag: string
 			env: Required<Environment>
 		},
 	) {
@@ -30,8 +30,14 @@ export class UDPIngestStack extends Stack {
 						id: ContainerRepositoryId.UDPIngest,
 					}),
 				),
-				UDPIngestContainerTag,
+				udpIngestContainerTag,
 			),
+		})
+
+		new CfnOutput(this, 'UDPIngestContainerTag', {
+			exportName: `${this.stackName}:UDPIngestContainerTag`,
+			description: 'The DNS name of the CoAP endpoint',
+			value: updIngest.service.loadBalancer.loadBalancerDnsName,
 		})
 
 		new CfnOutput(this, 'UDPIngestPublicIP', {

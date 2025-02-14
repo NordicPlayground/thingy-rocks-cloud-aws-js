@@ -37,15 +37,18 @@ export class UDPIngest extends Construct {
 			secrets: {},
 			environment: {},
 			healthCheck: {
-				command: ['CMD-SHELL', 'curl -f http://localhost/health || exit 1'],
+				command: [
+					'CMD-SHELL',
+					'curl -f http://localhost:8080/health || exit 1',
+				],
 				interval: Duration.minutes(1),
 				retries: 3,
 			},
 		})
 
 		container.addPortMappings({
-			containerPort: 80,
-			hostPort: 80,
+			containerPort: 8080,
+			hostPort: 8080,
 			protocol: ECS.Protocol.TCP,
 		})
 
