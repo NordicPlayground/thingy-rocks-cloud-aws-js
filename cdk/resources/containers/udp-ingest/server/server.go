@@ -18,17 +18,6 @@ func check(e error) {
 }
 
 func main() {
-	address := flag.String("address", "localhost:6666", "The UDP Server listen address, e.g. `localhost:6666` or `0.0.0.0:6666`.")
-	flag.Parse()
-
-	conn, err := net.ListenPacket("udp", *address)
-	check(err)
-	defer conn.Close()
-
-	fmt.Printf("Listening on %s\n", *address)
-
-	buffer := make([]byte, 1024)
-
 	awsRegion := os.Getenv("AWS_REGION")
 	if awsRegion == "" {
 		panic("AWS_REGION environment variable not set")
@@ -41,9 +30,19 @@ func main() {
 
 	conf := aws.NewConfig().WithRegion(awsRegion)
 	sess := session.Must(session.NewSession(conf))
-	check(err)
 
 	sqsClient := sqs.New(sess)
+
+	address := flag.String("address", "localhost:6666", "The UDP Server listen address, e.g. `localhost:6666` or `0.0.0.0:6666`.")
+	flag.Parse()
+
+	conn, err := net.ListenPacket("udp", *address)
+	check(err)
+	defer conn.Close()
+
+	fmt.Printf("Listening on %s\n", *address)
+
+	buffer := make([]byte, 1024)
 
 	for {
 		n, addr, err := conn.ReadFrom(buffer)
