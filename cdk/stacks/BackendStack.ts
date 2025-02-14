@@ -8,6 +8,7 @@ import {
 	Stack,
 } from 'aws-cdk-lib'
 import type { BackendLambdas } from '../BackendLambdas.ts'
+import { IotLifeCycleEvents } from '../resources/IotLifeCycleEvents.ts'
 import { LwM2M } from '../resources/LwM2M.ts'
 import { LwM2MDataGateway } from '../resources/LwM2MDataGateway.ts'
 import { Map } from '../resources/Map.ts'
@@ -118,6 +119,8 @@ export class BackendStack extends Stack {
 			exportName: `${this.stackName}:thingPolicyArn`,
 			description: 'Thingy policy for LwM2M data gateways',
 		})
+
+		new IotLifeCycleEvents(this)
 
 		// Outputs
 		new CfnOutput(this, 'WebSocketURI', {
