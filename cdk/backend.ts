@@ -46,6 +46,7 @@ new BackendApp({
 		lwm2mGateway: await pack('lwm2mGateway'),
 		memfaultPublishReboots: await pack('memfaultPublishReboots'),
 		memfaultPollForReboots: await pack('memfaultPollForReboots'),
+		processUPDPackets: await pack('processUPDPackets'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

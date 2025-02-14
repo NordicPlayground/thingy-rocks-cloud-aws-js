@@ -17,7 +17,7 @@ const ensureRepo = getOrCreateRepository({ ecr })
 const UDPIngestRepo = await ensureRepo({
 	stackName: UDP_INGEST_STACK_NAME,
 	id: ContainerRepositoryId.UDPIngest,
-	debug: console.debug,
+	debug: console.error,
 })
 
 const tag = await buildUDPIngestImage(
@@ -29,7 +29,7 @@ const tag = await buildUDPIngestImage(
 		ecr,
 		repo: UDPIngestRepo,
 	}),
-	console.debug,
+	console.error,
 )
 
-process.stdout.write(tag)
+process.stdout.write(`export UDP_INGEST_CONTAINER_TAG=${tag}\n`)

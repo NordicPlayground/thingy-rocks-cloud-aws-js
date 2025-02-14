@@ -33,6 +33,8 @@ export class BackendApp extends App {
 		new UDPIngestStack(this, {
 			udpIngestContainerTag,
 			env,
+			lambdaSources,
+			layer,
 		})
 	}
 }

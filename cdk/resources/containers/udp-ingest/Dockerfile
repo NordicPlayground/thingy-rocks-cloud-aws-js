@@ -3,12 +3,13 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN <<EOT
-  apt-get -y update
-  apt-get -y install iproute2
-  apt-get -y install ca-certificates
-  update-ca-certificates
-  apt-get -y clean
-  rm -rf /var/lib/apt/lists/*
+  apt-get -y update &&
+  apt-get -y install iproute2 &&
+  apt-get -y install ca-certificates &&
+  apt-get -y install curl &&
+  update-ca-certificates &&
+  apt-get -y clean &&
+  rm -rf /var/lib/apt/lists/* &&
   mkdir /var/log/hello.nrfcloud.com
 EOT
 
@@ -22,7 +23,7 @@ COPY --chown=udp-ingest:udp-ingest ./start.sh                   /home/udp-ingest
 USER udp-ingest
 WORKDIR /home/udp-ingest
 
-EXPOSE 5683/udp
+EXPOSE 6666/udp
 EXPOSE 8080/udp
 
 CMD [ "/home/udp-ingest/start.sh" ]

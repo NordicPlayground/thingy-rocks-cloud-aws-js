@@ -28,6 +28,7 @@ npm ci
 
 ```bash
 npm run build:container
+# export the environment variable UDP_INGEST_CONTAINER_TAG as printed
 npx cdk deploy
 ```
 
@@ -44,3 +45,15 @@ aws ssm put-parameter --name /thingy-rocks-backend/memfault/organizationAuthToke
 aws ssm put-parameter --name /thingy-rocks-backend/memfault/organizationId --type String --value <Memfault Organization ID>
 aws ssm put-parameter --name /thingy-rocks-backend/memfault/projectId --type String --value <Memfault Project ID>
 ```
+
+### UDP ingress
+
+`udp.ingress.thingy.rocks` receives UDP packages on port `6666`.
+
+### API domain
+
+A hosted Zone is created by the deployment.
+
+Create a `NS` record in the DNS settings for `thingy.rocks` (in CloudFlare),
+with the `ingress.thingy.rocks` as the name and the list of nameservers from the
+output.
