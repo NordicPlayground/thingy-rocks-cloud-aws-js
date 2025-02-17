@@ -1,10 +1,12 @@
 import { Duration, aws_ec2 as EC2, aws_ecs as ECS, Stack } from 'aws-cdk-lib'
+import { Subnet } from 'aws-cdk-lib/aws-ec2'
 import type { CfnService, ContainerImage } from 'aws-cdk-lib/aws-ecs'
 import { FargateService, LogDriver } from 'aws-cdk-lib/aws-ecs'
 import {
 	NetworkLoadBalancer,
 	NetworkTargetGroup,
 	Protocol,
+	type CfnLoadBalancer,
 } from 'aws-cdk-lib/aws-elasticloadbalancingv2'
 import {
 	ManagedPolicy,
@@ -121,14 +123,30 @@ export class UDPIngest extends Construct {
 			securityGroups: [securityGroup],
 		})
 
-		this.nlb = new NetworkLoadBalancer(this, 'NLB', {
+		this.nlb = new NetworkLoadBalancer(this, 'NLBfixedIP', {
 			vpc,
 			internetFacing: true,
 			securityGroups: [securityGroup],
-			vpcSubnets: { subnetType: EC2.SubnetType.PUBLIC },
 		})
 
-		const forwardTCP = new NetworkTargetGroup(this, 'tcpTarget', {
+		const publicIpSubnet = Subnet.fromSubnetId(
+			this,
+			'subnetWithStaticIP',
+			'subnet-065fb207ddb235155',
+		)
+
+		// No high-level API yet for SubnetMappings: https://github.com/aws/aws-cdk/issues/9696
+		const cfnNLB = this.nlb.node.defaultChild as CfnLoadBalancer
+
+		const subnetMapping1: CfnLoadBalancer.SubnetMappingProperty = {
+			subnetId: publicIpSubnet.subnetId,
+			allocationId: 'eipalloc-00a526f52277124a2',
+		}
+
+		cfnNLB.subnetMappings = [subnetMapping1]
+		cfnNLB.subnets = undefined
+
+		const forwardTCP = new NetworkTargetGroup(this, 'healthCheckTG', {
 			targets: [service],
 			port: HEALTH_CHECK_PORT,
 			protocol: Protocol.TCP,
@@ -141,11 +159,12 @@ export class UDPIngest extends Construct {
 			defaultTargetGroups: [forwardTCP],
 		})
 
-		const forwardUDP = new NetworkTargetGroup(this, 'udpTarget', {
+		const forwardUDP = new NetworkTargetGroup(this, 'udpIngressTG', {
 			targets: [service],
 			port: UDP_PORT,
 			protocol: Protocol.UDP,
 			vpc,
+			// All targets must have TCP health check
 			healthCheck: {
 				port: `${HEALTH_CHECK_PORT}`,
 			},
