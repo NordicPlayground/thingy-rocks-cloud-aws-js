@@ -7,9 +7,11 @@ import {
 	aws_ecr as ECR,
 	aws_ecs as ECS,
 	Fn,
+	aws_iam as IAM,
 	aws_lambda as Lambda,
 	Stack,
 } from 'aws-cdk-lib'
+import { Table } from 'aws-cdk-lib/aws-dynamodb'
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53'
 import { LoadBalancerTarget } from 'aws-cdk-lib/aws-route53-targets'
@@ -17,7 +19,7 @@ import { Queue } from 'aws-cdk-lib/aws-sqs'
 import { ContainerRepositoryId } from '../../aws/ecr.ts'
 import type { BackendLambdas } from '../BackendLambdas.js'
 import { UDPIngest } from '../resources/UDPIngest.ts'
-import { UDP_INGEST_STACK_NAME } from './stackName.ts'
+import { STACK_NAME, UDP_INGEST_STACK_NAME } from './stackName.ts'
 
 export class UDPIngestStack extends Stack {
 	public constructor(
@@ -88,7 +90,7 @@ export class UDPIngestStack extends Stack {
 			description: 'The hosted zone name servers',
 		})
 
-		new PackedLambdaFn(
+		const processUPDPacketsFn = new PackedLambdaFn(
 			this,
 			'processUPDPackets',
 			lambdaSources.processUPDPackets,
@@ -96,11 +98,38 @@ export class UDPIngestStack extends Stack {
 				events: [new SqsEventSource(queue)],
 				description: 'Process UDP packets',
 				layers: [baseLayer],
+				initialPolicy: [
+					new IAM.PolicyStatement({
+						actions: [
+							'iot:UpdateThingShadow',
+							'iot:DescribeThing',
+							'iot:Publish',
+						],
+						resources: ['*'],
+					}),
+					new IAM.PolicyStatement({
+						actions: ['execute-api:ManageConnections'],
+						resources: [
+							Fn.importValue(`${STACK_NAME}:WebSocketManagementApiARN`),
+						],
+					}),
+				],
+				environment: {
+					CONNECTIONS_TABLE_NAME: Fn.importValue(
+						`${STACK_NAME}:connectionsTableName`,
+					),
+					WEBSOCKET_MANAGEMENT_API_URL: Fn.importValue(
+						`${STACK_NAME}:WebSocketManagementApiURL`,
+					),
+				},
 			},
 		)
-	}
-}
 
-export type StackOutputs = {
-	UDPIngestPublicIP: string
+		const connectionsTable = Table.fromTableName(
+			this,
+			'connectionsTableName',
+			Fn.importValue(`${STACK_NAME}:connectionsTableName`),
+		)
+		connectionsTable.grantReadWriteData(processUPDPacketsFn.fn)
+	}
 }

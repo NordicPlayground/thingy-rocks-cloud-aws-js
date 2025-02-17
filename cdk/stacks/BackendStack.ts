@@ -134,6 +134,11 @@ export class BackendStack extends Stack {
 			value: api.websocketManagementAPIURL,
 		})
 
+		new CfnOutput(this, 'WebSocketManagementApiARN', {
+			exportName: `${this.stackName}:WebSocketManagementApiARN`,
+			value: api.websocketAPIArn,
+		})
+
 		new CfnOutput(this, 'connectionsTableName', {
 			exportName: `${this.stackName}:connectionsTableName`,
 			value: api.connectionsTable.tableName,
