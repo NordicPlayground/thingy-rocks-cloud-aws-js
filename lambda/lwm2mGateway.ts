@@ -96,9 +96,7 @@ export const handler = middy()
 			await u(iotThingName, objects)
 
 			await notifier({
-				'@context': new URL(
-					'https://github.com/hello-nrfcloud/proto-map/tree/saga/lwm2m',
-				),
+				'@context': new URL('https://thingy.rocks/lwm2m-update'),
 				deviceId: iotThingName,
 				objects,
 			})
