@@ -160,7 +160,7 @@ export const handler = async (event: {
 										1: lng,
 										3: accuracy,
 										6: source,
-										99: Date.now(),
+										99: Math.floor(Date.now() / 1000),
 									},
 								},
 							]),
