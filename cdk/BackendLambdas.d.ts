@@ -15,4 +15,5 @@ type BackendLambdas = {
 	memfaultPublishReboots: PackedLambda
 	memfaultPollForReboots: PackedLambda
 	processUPDPackets: PackedLambda
+	udpDatagramsLogs: PackedLambda
 }

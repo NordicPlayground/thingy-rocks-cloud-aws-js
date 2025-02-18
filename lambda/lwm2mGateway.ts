@@ -53,11 +53,9 @@ export const handler = middy()
 
 			const maybeObjects = senMLtoLwM2M(Array.isArray(senML) ? senML : [])
 
-			const iotThingName = `${gatewayId}-${deviceId}`
-
 			if ('error' in maybeObjects) {
 				console.error(
-					`[${iotThingName}]`,
+					`[${deviceId}]`,
 					JSON.stringify(maybeObjects.error.message),
 				)
 				await iotData.send(
@@ -75,7 +73,7 @@ export const handler = middy()
 			}
 
 			const objects = maybeObjects.lwm2m
-			console.debug(`[${iotThingName}]`, JSON.stringify(maybeObjects))
+			console.debug(`[${deviceId}]`, JSON.stringify(maybeObjects))
 
 			if (objects.length === 0) {
 				console.debug(`No LwM2M objects found.`)
@@ -93,11 +91,11 @@ export const handler = middy()
 				return
 			}
 
-			await u(iotThingName, objects)
+			await u(deviceId, objects)
 
 			await notifier({
 				'@context': new URL('https://thingy.rocks/lwm2m-update'),
-				deviceId: iotThingName,
+				deviceId,
 				objects,
 			})
 

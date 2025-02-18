@@ -4,11 +4,14 @@ import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
 import type { App, Environment } from 'aws-cdk-lib'
 import {
 	CfnOutput,
+	Duration,
+	aws_dynamodb as DynamoDB,
 	aws_ecr as ECR,
 	aws_ecs as ECS,
 	Fn,
 	aws_iam as IAM,
 	aws_lambda as Lambda,
+	RemovalPolicy,
 	Stack,
 } from 'aws-cdk-lib'
 import { Table } from 'aws-cdk-lib/aws-dynamodb'
@@ -32,7 +35,10 @@ export class UDPIngestStack extends Stack {
 		}: {
 			udpIngestContainerTag: string
 			env: Required<Environment>
-			lambdaSources: Pick<BackendLambdas, 'processUPDPackets'>
+			lambdaSources: Pick<
+				BackendLambdas,
+				'processUPDPackets' | 'udpDatagramsLogs'
+			>
 			layer: PackedLayer
 		},
 	) {
@@ -90,6 +96,21 @@ export class UDPIngestStack extends Stack {
 			description: 'The hosted zone name servers',
 		})
 
+		// Make message conversion results available
+		const udpDatagramsTable = new DynamoDB.Table(this, 'table', {
+			billingMode: DynamoDB.BillingMode.PAY_PER_REQUEST,
+			partitionKey: {
+				name: 'deviceId',
+				type: DynamoDB.AttributeType.STRING,
+			},
+			sortKey: {
+				name: 'messageId',
+				type: DynamoDB.AttributeType.STRING,
+			},
+			timeToLiveAttribute: 'ttl',
+			removalPolicy: RemovalPolicy.DESTROY,
+		})
+
 		const processUPDPacketsFn = new PackedLambdaFn(
 			this,
 			'processUPDPackets',
@@ -121,9 +142,11 @@ export class UDPIngestStack extends Stack {
 					WEBSOCKET_MANAGEMENT_API_URL: Fn.importValue(
 						`${STACK_NAME}:WebSocketManagementApiURL`,
 					),
+					UDP_DATAGRAMS_TABLE_NAME: udpDatagramsTable.tableName,
 				},
 			},
 		)
+		udpDatagramsTable.grantWriteData(processUPDPacketsFn.fn)
 
 		const connectionsTable = Table.fromTableName(
 			this,
@@ -131,5 +154,31 @@ export class UDPIngestStack extends Stack {
 			Fn.importValue(`${STACK_NAME}:connectionsTableName`),
 		)
 		connectionsTable.grantReadWriteData(processUPDPacketsFn.fn)
+
+		const udpDatagramsLogsFn = new PackedLambdaFn(
+			this,
+			'udpDatagramsLogsFn',
+			lambdaSources.udpDatagramsLogs,
+			{
+				timeout: Duration.minutes(1),
+				description:
+					'Returns the last UDP datagrams conversion results for a device.',
+				layers: [baseLayer],
+				environment: {
+					UDP_DATAGRAMS_TABLE_NAME: udpDatagramsTable.tableName,
+				},
+			},
+		)
+		udpDatagramsTable.grantReadData(udpDatagramsLogsFn.fn)
+
+		const udpDatagramsLogsFnUrl = udpDatagramsLogsFn.fn.addFunctionUrl({
+			authType: Lambda.FunctionUrlAuthType.NONE,
+		})
+
+		new CfnOutput(this, 'udpDatagramsLogsUrl', {
+			value: udpDatagramsLogsFnUrl.url,
+			description:
+				'The URL to retrieve the last UDP datagrams conversion results',
+		})
 	}
 }

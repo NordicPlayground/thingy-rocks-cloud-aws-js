@@ -20,6 +20,8 @@ const packagesInLayer: Array<keyof (typeof pJson)['dependencies']> = [
 	'@middy/core',
 	'@middy/input-output-logger',
 	'@hello.nrfcloud.com/lambda-helpers',
+	'ulidx',
+	'@bifravst/from-env',
 ]
 const pack = async (id: string) =>
 	packLambdaFromPath({ id, sourceFilePath: `lambda/${id}.ts` })
@@ -47,6 +49,7 @@ new BackendApp({
 		memfaultPublishReboots: await pack('memfaultPublishReboots'),
 		memfaultPollForReboots: await pack('memfaultPollForReboots'),
 		processUPDPackets: await pack('processUPDPackets'),
+		udpDatagramsLogs: await pack('udpDatagramsLogs'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',
