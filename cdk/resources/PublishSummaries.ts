@@ -11,6 +11,7 @@ import {
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { BackendLambdas } from '../BackendLambdas.ts'
+import type { LwM2MObjectsHistory } from './LwM2MObjectsHistory.ts'
 import type { WebsocketAPI } from './WebsocketAPI.ts'
 
 /**
@@ -25,12 +26,14 @@ export class PublishSummaries extends Construct {
 			websocketAPI,
 			historicaldataTableInfo,
 			historicaldataTableArn,
+			lwM2MHistory,
 		}: {
 			lambdaSources: Pick<BackendLambdas, 'publishSummaries'>
 			baseLayer: Lambda.ILayerVersion
 			websocketAPI: WebsocketAPI
 			historicaldataTableInfo: string
 			historicaldataTableArn: string
+			lwM2MHistory: LwM2MObjectsHistory
 		},
 	) {
 		super(parent, 'PublishSummaries')
@@ -50,6 +53,7 @@ export class PublishSummaries extends Construct {
 				CONNECTIONS_TABLE_NAME: websocketAPI.connectionsTable.tableName,
 				WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
 				HISTORICALDATA_TABLE_INFO: historicaldataTableInfo,
+				LWM2M_OBJECT_HISTORY_TABLE_INFO: lwM2MHistory.table.ref,
 			},
 			initialPolicy: [
 				new IAM.PolicyStatement({
@@ -57,7 +61,7 @@ export class PublishSummaries extends Construct {
 					resources: [websocketAPI.websocketAPIArn],
 				}),
 				new IAM.PolicyStatement({
-					resources: [historicaldataTableArn],
+					resources: [historicaldataTableArn, lwM2MHistory.table.attrArn],
 					actions: [
 						'timestream:Select',
 						'timestream:DescribeTable',

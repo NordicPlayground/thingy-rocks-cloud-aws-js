@@ -3,7 +3,13 @@ import {
 	QueryCommand,
 	type QueryResponse,
 } from '@aws-sdk/client-timestream-query'
-import { parseResult } from '@nordicsemiconductor/timestream-helpers'
+import { parseResult } from '@bifravst/timestream-helpers'
+import {
+	definitions,
+	LwM2MObjectID,
+	type Environment_14205,
+} from '@hello.nrfcloud.com/proto-map/lwm2m'
+import { binResourceHistory } from './binResourceHistory.ts'
 
 const summaryQuery = ({
 	db,
@@ -79,11 +85,21 @@ export const createChartSummary = async ({
 	timestream,
 	historicaldataDatabaseName,
 	historicaldataTableName,
+	lwm2mObjectHistoryDbName,
+	lwm2mObjectHistoryTableName,
 }: {
 	timestream: TimestreamQueryClient
 	historicaldataDatabaseName: string
 	historicaldataTableName: string
+	lwm2mObjectHistoryDbName: string
+	lwm2mObjectHistoryTableName: string
 }): Promise<Summaries> => {
+	const binnedLwM2MObjectHistory = binResourceHistory({
+		DatabaseName: lwm2mObjectHistoryDbName,
+		TableName: lwm2mObjectHistoryTableName,
+		ts: timestream,
+	})
+
 	const [bat, temp, fgSoC, fgI] = await Promise.all([
 		timestream.send(
 			new QueryCommand({
@@ -132,6 +148,34 @@ export const createChartSummary = async ({
 	groupResult(summaries, 'temp', temp, now)
 	groupResult(summaries, 'fgSoC', fgSoC, now)
 	groupResult(summaries, 'fgI', fgI, now)
+
+	const lwm2mTemps = (await binnedLwM2MObjectHistory({
+		def: definitions[LwM2MObjectID.Environment_14205],
+		instance: 1,
+		aggregateFn: 'avg',
+		hours: 1,
+	})) as Array<Environment_14205['Resources'] & { deviceId: string }>
+
+	console.log(JSON.stringify({ lwm2mTemps }))
+
+	for (const { deviceId, ...resources } of lwm2mTemps) {
+		if (summaries[deviceId] === undefined) {
+			summaries[deviceId] = {
+				base: now,
+			}
+		}
+		const temp = resources[0]
+		if (temp === undefined) continue
+		const d = Math.max(
+			0,
+			Math.floor((now.getTime() - resources[99] * 1000) / 1000),
+		)
+		if (summaries[deviceId].temp === undefined) {
+			summaries[deviceId].temp = [[temp, d]]
+		} else {
+			summaries[deviceId].temp.push([temp, d])
+		}
+	}
 
 	return summaries
 }

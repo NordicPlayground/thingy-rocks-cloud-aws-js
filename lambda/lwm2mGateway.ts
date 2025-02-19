@@ -5,13 +5,13 @@ import {
 	IoTDataPlaneClient,
 	PublishCommand,
 } from '@aws-sdk/client-iot-data-plane'
+import { fromEnv } from '@bifravst/from-env'
 import { requestLogger } from '@hello.nrfcloud.com/lambda-helpers/requestLogger'
 import {
 	senMLtoLwM2M,
 	type SenMLType,
 } from '@hello.nrfcloud.com/proto-map/senml'
 import middy from '@middy/core'
-import { fromEnv } from '@nordicsemiconductor/from-env'
 import { notifyClients } from './notifyClients.ts'
 import { updateShadow } from './updateShadow.ts'
 import { withDeviceAlias } from './withDeviceAlias.ts'

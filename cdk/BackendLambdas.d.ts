@@ -16,4 +16,5 @@ type BackendLambdas = {
 	memfaultPollForReboots: PackedLambda
 	processUPDPackets: PackedLambda
 	udpDatagramsLogs: PackedLambda
+	storeObjectsInTimestream: PackedLambda
 }

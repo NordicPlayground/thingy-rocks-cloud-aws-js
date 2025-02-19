@@ -1,7 +1,7 @@
 import { STS } from '@aws-sdk/client-sts'
 import { packLambdaFromPath } from '@bifravst/aws-cdk-lambda-helpers'
 import { packLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
-import { fromEnv } from '@nordicsemiconductor/from-env'
+import { fromEnv } from '@bifravst/from-env'
 import { env } from '../aws/env.ts'
 import pJson from '../package.json' assert { type: 'json' }
 import { BackendApp } from './BackendApp.ts'
@@ -10,10 +10,10 @@ import { ASSET_TRACKER_STACK_NAME } from './stacks/stackName.ts'
 const sts = new STS({})
 
 const packagesInLayer: Array<keyof (typeof pJson)['dependencies']> = [
-	'@nordicsemiconductor/from-env',
+	'@bifravst/from-env',
 	'@sinclair/typebox',
 	'ajv',
-	'@nordicsemiconductor/timestream-helpers',
+	'@bifravst/timestream-helpers',
 	'@hello.nrfcloud.com/proto-map',
 	'jsonata',
 	'p-retry',
@@ -50,6 +50,7 @@ new BackendApp({
 		memfaultPollForReboots: await pack('memfaultPollForReboots'),
 		processUPDPackets: await pack('processUPDPackets'),
 		udpDatagramsLogs: await pack('udpDatagramsLogs'),
+		storeObjectsInTimestream: await pack('storeObjectsInTimestream'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',
@@ -59,4 +60,5 @@ new BackendApp({
 	udpIngestContainerTag,
 	// Needed for VPC
 	env: accountEnv,
+	version: process.env.VERSION ?? '0.0.0',
 })

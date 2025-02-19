@@ -11,16 +11,18 @@ export class BackendApp extends App {
 		assetTrackerStackName,
 		udpIngestContainerTag,
 		env,
+		version,
 	}: {
 		lambdaSources: BackendLambdas
 		layer: PackedLayer
 		assetTrackerStackName: string
 		udpIngestContainerTag: string
 		env: Required<Environment>
+		version: string
 	}) {
 		super({
 			context: {
-				version: Date.now().toString(),
+				version,
 				isTest: false,
 			},
 		})

@@ -3,7 +3,7 @@ import type { AttributeValue } from '@aws-sdk/client-dynamodb'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { IoTClient } from '@aws-sdk/client-iot'
 import { unmarshall } from '@aws-sdk/util-dynamodb'
-import { fromEnv } from '@nordicsemiconductor/from-env'
+import { fromEnv } from '@bifravst/from-env'
 import type { DynamoDBStreamEvent } from 'aws-lambda'
 import {
 	getActiveConnections,

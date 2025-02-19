@@ -2,7 +2,7 @@ import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { IoTClient } from '@aws-sdk/client-iot'
 import { SSMClient } from '@aws-sdk/client-ssm'
-import { fromEnv } from '@nordicsemiconductor/from-env'
+import { fromEnv } from '@bifravst/from-env'
 import pRetry from 'p-retry'
 import { createAPIClient } from './memfault/api.ts'
 import { getActiveConnections, notifyClients } from './notifyClients.ts'

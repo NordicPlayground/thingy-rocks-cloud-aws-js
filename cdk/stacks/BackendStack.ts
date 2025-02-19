@@ -11,6 +11,7 @@ import type { BackendLambdas } from '../BackendLambdas.ts'
 import { IotLifeCycleEvents } from '../resources/IotLifeCycleEvents.ts'
 import { LwM2M } from '../resources/LwM2M.ts'
 import { LwM2MDataGateway } from '../resources/LwM2MDataGateway.ts'
+import { LwM2MObjectsHistory } from '../resources/LwM2MObjectsHistory.ts'
 import { Map } from '../resources/Map.ts'
 import { Memfault } from '../resources/Memfault.ts'
 import { PublishSummaries } from '../resources/PublishSummaries.ts'
@@ -84,10 +85,20 @@ export class BackendStack extends Stack {
 			userAuthentication,
 		})
 
+		/**
+		 * This is the history of LwM2M shadow updates.
+		 */
+		const lwM2MHistory = new LwM2MObjectsHistory(this, {
+			lambdaSources,
+			layers: [baseLayer],
+		})
+
 		new PublishSummaries(this, {
 			lambdaSources,
 			baseLayer,
 			websocketAPI: api,
+			lwM2MHistory,
+			// This references the historical data table from the asset tracker stack, which is not yet using LwM2M to encode the data
 			historicaldataTableInfo: Fn.importValue(
 				`${assetTrackerStackName}:historicaldataTableInfo`,
 			),

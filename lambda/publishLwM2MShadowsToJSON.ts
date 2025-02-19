@@ -1,6 +1,6 @@
 import { IoTClient } from '@aws-sdk/client-iot'
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import { fromEnv } from '@nordicsemiconductor/from-env'
+import { fromEnv } from '@bifravst/from-env'
 import { fetchLwM2MShadows } from '../lwm2m/fetchLwM2MShadows.ts'
 import { Asset_tracker_v2_AWS } from '../proto-asset_tracker_v2+AWS/transforms.ts'
 
