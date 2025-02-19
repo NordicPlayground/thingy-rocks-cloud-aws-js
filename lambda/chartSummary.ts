@@ -7,6 +7,7 @@ import { parseResult } from '@bifravst/timestream-helpers'
 import {
 	definitions,
 	LwM2MObjectID,
+	type BatteryAndPower_14202,
 	type Environment_14205,
 } from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { binResourceHistory } from './binResourceHistory.ts'
@@ -149,33 +150,76 @@ export const createChartSummary = async ({
 	groupResult(summaries, 'fgSoC', fgSoC, now)
 	groupResult(summaries, 'fgI', fgI, now)
 
+	// Get the temperature readings from the last hour
+
 	const lwm2mTemps = (await binnedLwM2MObjectHistory({
 		def: definitions[LwM2MObjectID.Environment_14205],
 		instance: 1,
 		aggregateFn: 'avg',
 		hours: 1,
-	})) as Array<Environment_14205['Resources'] & { deviceId: string }>
+	})) as Array<
+		{ [99]: number; deviceId: string } & Environment_14205['Resources']
+	>
 
-	console.log(JSON.stringify({ lwm2mTemps }))
+	groupLwM2MResult(
+		summaries,
+		'temp',
+		lwm2mTemps as Array<LwM2MResult>,
+		now,
+		(r) => r[0],
+	)
 
-	for (const { deviceId, ...resources } of lwm2mTemps) {
+	// Voltage
+
+	const lwm2mVoltage = (await binnedLwM2MObjectHistory({
+		def: definitions[LwM2MObjectID.BatteryAndPower_14202],
+		instance: 1,
+		aggregateFn: 'avg',
+		hours: 1,
+	})) as Array<
+		{ [99]: number; deviceId: string } & BatteryAndPower_14202['Resources']
+	>
+
+	groupLwM2MResult(
+		summaries,
+		'bat',
+		lwm2mVoltage as Array<LwM2MResult>,
+		now,
+		(r) => r[1],
+	)
+
+	return summaries
+}
+
+type LwM2MResult = Record<string, number> & {
+	[99]: number
+	deviceId: string
+}
+
+const groupLwM2MResult = <PartialInstance extends LwM2MResult>(
+	summaries: Summaries,
+	key: keyof Summary,
+	results: Array<PartialInstance>,
+	now: Date,
+	getValue: (r: PartialInstance) => number | undefined,
+) => {
+	for (const result of results) {
+		const { deviceId, ...resources } = result
 		if (summaries[deviceId] === undefined) {
 			summaries[deviceId] = {
 				base: now,
 			}
 		}
-		const temp = resources[0]
-		if (temp === undefined) continue
+		const v = getValue(result)
+		if (v === undefined) continue
 		const d = Math.max(
 			0,
 			Math.floor((now.getTime() - resources[99] * 1000) / 1000),
 		)
-		if (summaries[deviceId].temp === undefined) {
-			summaries[deviceId].temp = [[temp, d]]
+		if (summaries[deviceId][key] === undefined) {
+			;(summaries[deviceId][key] as unknown as Readings) = [[v, d]]
 		} else {
-			summaries[deviceId].temp.push([temp, d])
+			;(summaries[deviceId][key] as Readings).push([v, d])
 		}
 	}
-
-	return summaries
 }
