@@ -30,7 +30,7 @@ export const binResourceHistory = ({
 		hours,
 	}: {
 		def: LWM2MObjectInfo
-		instance: number
+		instance?: number
 		aggregateFn: string
 		hours: number
 	}): Promise<
@@ -66,7 +66,7 @@ export const binResourceHistory = ({
 		]
 
 		if (columns.length === 0) {
-			console.error(`No columns found for ${def.ObjectID}/${instance}!`)
+			console.error(`No columns found for ${def.ObjectID}/${instance ?? 0}!`)
 			console.error(`Available columns: ${availableColumns.join(', ')}`)
 			return []
 		}
@@ -75,10 +75,10 @@ export const binResourceHistory = ({
 			`SELECT `,
 			columns.join(','),
 			`FROM "${DatabaseName}"."${TableName}"`,
-			`WHERE measure_name = '${def.ObjectID}/${instance}'`,
+			`WHERE measure_name = '${def.ObjectID}/${instance ?? 0}'`,
 			`AND time > date_add('hour', -${hours}, now())`,
 			`AND ObjectID = '${def.ObjectID}'`,
-			`AND ObjectInstanceID = '${instance}'`,
+			`AND ObjectInstanceID = '${instance ?? 0}'`,
 			`AND ObjectVersion = '${def.ObjectVersion}'`,
 			`GROUP BY deviceId, bin(time, 1minute)`,
 			`ORDER BY bin(time, 1minute) DESC`,

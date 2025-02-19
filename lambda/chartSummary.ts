@@ -154,7 +154,6 @@ export const createChartSummary = async ({
 
 	const lwm2mTemps = (await binnedLwM2MObjectHistory({
 		def: definitions[LwM2MObjectID.Environment_14205],
-		instance: 1,
 		aggregateFn: 'avg',
 		hours: 1,
 	})) as Array<
@@ -165,6 +164,23 @@ export const createChartSummary = async ({
 		summaries,
 		'temp',
 		lwm2mTemps as Array<LwM2MResult>,
+		now,
+		(r) => r[0],
+	)
+
+	const lwm2mTempsInstance1 = (await binnedLwM2MObjectHistory({
+		def: definitions[LwM2MObjectID.Environment_14205],
+		instance: 1,
+		aggregateFn: 'avg',
+		hours: 1,
+	})) as Array<
+		{ [99]: number; deviceId: string } & Environment_14205['Resources']
+	>
+
+	groupLwM2MResult(
+		summaries,
+		'temp',
+		lwm2mTempsInstance1 as Array<LwM2MResult>,
 		now,
 		(r) => r[0],
 	)
@@ -186,6 +202,24 @@ export const createChartSummary = async ({
 		lwm2mVoltage as Array<LwM2MResult>,
 		now,
 		(r) => r[1],
+	)
+
+	// State of charge
+
+	const lwm2mSoC = (await binnedLwM2MObjectHistory({
+		def: definitions[LwM2MObjectID.BatteryAndPower_14202],
+		aggregateFn: 'avg',
+		hours: 1,
+	})) as Array<
+		{ [99]: number; deviceId: string } & BatteryAndPower_14202['Resources']
+	>
+
+	groupLwM2MResult(
+		summaries,
+		'fgSoC',
+		lwm2mSoC as Array<LwM2MResult>,
+		now,
+		(r) => r[0],
 	)
 
 	return summaries
