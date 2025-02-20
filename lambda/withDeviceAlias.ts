@@ -47,7 +47,7 @@ const getDeviceAttributes = (iot: IoTClient) => async (deviceId: string) => {
 		)
 		const { name, location } = attributes ?? {}
 		return {
-			alias: name,
+			alias: name?.replace(/__/g, ' '),
 			location,
 			type: thingTypeName,
 		}
