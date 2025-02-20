@@ -57,7 +57,7 @@ export const parse = (
 			// 1: SIM ICCID ?
 			2: '0.0.0-development', // Modem firmware version
 			3: '0.0.0-development', // Application firmware version
-			4: 'thingy91x',
+			4: 'keysight_demo',
 			99: tsInSeconds,
 		},
 	}
