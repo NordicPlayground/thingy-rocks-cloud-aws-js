@@ -77,7 +77,7 @@ export class PublishSummaries extends Construct {
 					],
 				}),
 				new IAM.PolicyStatement({
-					actions: ['iot:DescribeThing'],
+					actions: ['iot:DescribeThing', 'iot:ListThingsInThingGroup'],
 					resources: ['*'],
 				}),
 			],

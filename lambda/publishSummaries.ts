@@ -4,6 +4,7 @@ import { IoTClient } from '@aws-sdk/client-iot'
 import { TimestreamQueryClient } from '@aws-sdk/client-timestream-query'
 import { fromEnv } from '@bifravst/from-env'
 import { createChartSummary } from './chartSummary.ts'
+import { listThingsInGroup } from './listThingsInGroup.ts'
 import { getActiveConnections, notifyClients } from './notifyClients.ts'
 import { withDeviceAlias } from './withDeviceAlias.ts'
 
@@ -42,6 +43,8 @@ const timestream = new TimestreamQueryClient({})
 
 const getActive = getActiveConnections(db, connectionsTableName)
 
+const lwm2mHistoryDevices = await listThingsInGroup(iot)('lwm2m-history')
+
 export const handler = async (): Promise<void> => {
 	const connectionIds: string[] = await getActive()
 	if (connectionIds.length === 0) {
@@ -55,6 +58,7 @@ export const handler = async (): Promise<void> => {
 		lwm2mObjectHistoryDbName,
 		lwm2mObjectHistoryTableName,
 		timestream,
+		lwm2mHistoryDevices,
 	})
 
 	console.log(JSON.stringify({ summaries }))

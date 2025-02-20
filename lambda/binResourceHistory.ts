@@ -13,10 +13,12 @@ export const binResourceHistory = ({
 	DatabaseName,
 	TableName,
 	ts,
+	devices,
 }: {
 	DatabaseName: string
 	TableName: string
 	ts: TimestreamQueryClient
+	devices: Array<string>
 }) => {
 	const availableColumnsCache = getAvailableColumns(
 		ts,
@@ -80,6 +82,7 @@ export const binResourceHistory = ({
 			`AND ObjectID = '${def.ObjectID}'`,
 			`AND ObjectInstanceID = '${instance ?? 0}'`,
 			`AND ObjectVersion = '${def.ObjectVersion}'`,
+			`AND deviceId IN (${devices.map((d) => `'${d}'`).join(',')})`,
 			`GROUP BY deviceId, bin(time, 1minute)`,
 			`ORDER BY bin(time, 1minute) DESC`,
 		].join(' ')

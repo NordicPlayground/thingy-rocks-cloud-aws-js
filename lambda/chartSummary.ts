@@ -88,17 +88,20 @@ export const createChartSummary = async ({
 	historicaldataTableName,
 	lwm2mObjectHistoryDbName,
 	lwm2mObjectHistoryTableName,
+	lwm2mHistoryDevices,
 }: {
 	timestream: TimestreamQueryClient
 	historicaldataDatabaseName: string
 	historicaldataTableName: string
 	lwm2mObjectHistoryDbName: string
 	lwm2mObjectHistoryTableName: string
+	lwm2mHistoryDevices: Array<string>
 }): Promise<Summaries> => {
 	const binnedLwM2MObjectHistory = binResourceHistory({
 		DatabaseName: lwm2mObjectHistoryDbName,
 		TableName: lwm2mObjectHistoryTableName,
 		ts: timestream,
+		devices: lwm2mHistoryDevices,
 	})
 
 	const [bat, temp, fgSoC, fgI] = await Promise.all([
