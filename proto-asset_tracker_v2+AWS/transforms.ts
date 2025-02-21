@@ -20,6 +20,13 @@ export const Asset_tracker_v2_AWS: Model = {
 			transform:
 				'[\n    {"bn": "14201/0/", "n": "0", "v": state.reported.gnss.v.lat, "bt": $floor(state.reported.gnss.ts/1000) },\n    {"n": "1", "v": state.reported.gnss.v.lng },\n    {"n": "2", "v": state.reported.gnss.v.alt },\n    {"n": "3", "v": state.reported.gnss.v.acc },\n    {"n": "4", "v": state.reported.gnss.v.spd },\n    {"n": "5", "v": state.reported.gnss.v.hdg },\n    {"n": "6", "vs": "GNSS" }\n]',
 		},
+		// hellaPHY Location / LTE precision location (LPL)
+		{
+			type: TransformType.Shadow,
+			match: '$exists(state.reported.lpl)',
+			transform:
+				'[\n    {"bn": "14201/3/", "n": "0", "v": state.reported.lpl.v.lat, "bt": $floor(state.reported.lpl.ts/1000) },\n    {"n": "1", "v": state.reported.lpl.v.lng },\n    {"n": "2", "v": state.reported.lpl.v.alt },\n    {"n": "3", "v": state.reported.lpl.v.acc },\n    {"n": "4", "v": state.reported.lpl.v.spd },\n    {"n": "5", "v": state.reported.lpl.v.hdg },\n    {"n": "6", "vs": "LPL" }\n]',
+		},
 		{
 			type: TransformType.Shadow,
 			match: '$exists(state.reported.bat)',

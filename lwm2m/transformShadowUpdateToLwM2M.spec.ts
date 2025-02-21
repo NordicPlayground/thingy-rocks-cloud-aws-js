@@ -64,4 +64,38 @@ void describe('transformShadowUpdateToLwM2M()', () => {
 				},
 			],
 		))
+
+	void it('should transform hellaPHY Location updates', async () =>
+		assert.deepEqual(
+			await transformShadowUpdateToLwM2M(Asset_tracker_v2_AWS.transforms)({
+				state: {
+					reported: {
+						lpl: {
+							v: {
+								lng: 23.9,
+								lat: 61.5,
+								acc: 24.041,
+							},
+							ts: 1740125128379,
+						},
+					},
+				},
+			}),
+			[
+				{
+					ObjectID: 14201,
+					ObjectInstanceID: 3,
+					Resources: {
+						0: 61.5, // Latitude
+						1: 23.9, // Longitude
+						2: null,
+						3: 24.041, // Radius
+						4: null,
+						5: null,
+						6: 'LPL', // Source
+						'99': Math.floor(1740125128379 / 1000),
+					},
+				},
+			],
+		))
 })
