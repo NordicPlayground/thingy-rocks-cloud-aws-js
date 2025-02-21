@@ -32,5 +32,5 @@ export const handler = async (event: {
 		}),
 	)
 
-	void u(deviceId, objects)
+	await u(deviceId, objects)
 }
