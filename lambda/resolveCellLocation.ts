@@ -53,6 +53,7 @@ export const handler = async (event: {
 	const {
 		roam: {
 			v: { nw, area, mccmnc, cell },
+			ts,
 		},
 		deviceId,
 	} = event
@@ -77,6 +78,7 @@ export const handler = async (event: {
 			await notifier({
 				deviceId,
 				location: body,
+				ts,
 			})
 			break
 		default:

@@ -107,6 +107,7 @@ export const handler = async (event: {
 			accuracy,
 			source,
 		},
+		ts: Date.now(),
 	})
 
 	await iotData.send(

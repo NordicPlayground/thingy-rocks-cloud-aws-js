@@ -44,6 +44,7 @@ export type DeviceEvent = {
 	  }
 	| {
 			location: GeoLocation
+			ts: number
 	  }
 	| {
 			history: Summary

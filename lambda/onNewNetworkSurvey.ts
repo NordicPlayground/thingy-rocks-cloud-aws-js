@@ -78,6 +78,7 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 			await notifier({
 				deviceId,
 				location: { lat, lng, accuracy, source },
+				ts: Date.now(),
 			})
 			return
 		}
@@ -108,6 +109,7 @@ export const handler = async (event: DynamoDBStreamEvent): Promise<void> => {
 				await notifier({
 					deviceId,
 					location: { ...((body ?? {}) as GeoLocation), source },
+					ts: Date.now(),
 				})
 				break
 			default:
