@@ -7,11 +7,11 @@ import {
 	type Geolocation_14201,
 } from '@hello.nrfcloud.com/proto-map/lwm2m'
 import assert from 'node:assert'
-import test, { it } from 'node:test'
+import { describe, it } from 'node:test'
 import { findLwM2MObject } from './isNotEmpty.ts'
 import { parse } from './parse.ts'
 
-void test('parse()', () => {
+void describe('parse()', () => {
 	void it('should parse UDP payload into LwM2M objects', () => {
 		const example =
 			'359404230235476,,474,48,20,2,24201,61.366418,5.558781,10,84.00,24.68,100.06,18.71'
@@ -102,6 +102,19 @@ void test('parse()', () => {
 			findLwM2MObject(result, LwM2MObjectID.BatteryAndPower_14202),
 			battery,
 			'It should parse the battery',
+		)
+	})
+
+	void it('should detect skylo', () => {
+		const example =
+			'359404230235476,,474,48,20,2,90198,61.366418,5.558781,10,84.00,24.68,100.06,18.71'
+
+		const result = parse(example)
+
+		assert.equal(
+			findLwM2MObject(result, LwM2MObjectID.DeviceInformation_14204)
+				?.Resources[4],
+			'skylo_demo',
 		)
 	})
 })
