@@ -1,5 +1,5 @@
 {
-  "acknowledged-issue-numbers": [29483],
+  "acknowledged-issue-numbers": [29483, 32775],
   "vpc-provider:account=374216331074:filter.isDefault=true:region=us-west-2:returnAsymmetricSubnets=true": {
     "vpcId": "vpc-0f9cf64f72aba472e",
     "vpcCidrBlock": "172.31.0.0/16",
