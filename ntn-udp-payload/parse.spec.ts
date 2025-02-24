@@ -2,6 +2,7 @@ import {
 	LwM2MObjectID,
 	type BatteryAndPower_14202,
 	type ConnectionInformation_14203,
+	type ConnectionQuality_14501,
 	type DeviceInformation_14204,
 	type Environment_14205,
 	type Geolocation_14201,
@@ -78,6 +79,15 @@ void describe('parse()', () => {
 			},
 		}
 
+		const connectionQuality: ConnectionQuality_14501 = {
+			ObjectID: LwM2MObjectID.ConnectionQuality_14501,
+			ObjectVersion: '1.0',
+			Resources: {
+				0: 474, // Ping
+				99: ts,
+			},
+		}
+
 		assert.deepEqual(
 			findLwM2MObject(result!, LwM2MObjectID.DeviceInformation_14204),
 			deviceInfo,
@@ -102,6 +112,11 @@ void describe('parse()', () => {
 			findLwM2MObject(result!, LwM2MObjectID.BatteryAndPower_14202),
 			battery,
 			'It should parse the battery',
+		)
+		assert.deepEqual(
+			findLwM2MObject(result!, LwM2MObjectID.ConnectionQuality_14501),
+			connectionQuality,
+			'It should parse the connection quality report',
 		)
 	})
 

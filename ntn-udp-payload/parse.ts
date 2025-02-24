@@ -2,6 +2,7 @@ import {
 	LwM2MObjectID,
 	type BatteryAndPower_14202,
 	type ConnectionInformation_14203,
+	type ConnectionQuality_14501,
 	type DeviceInformation_14204,
 	type Environment_14205,
 	type Geolocation_14201,
@@ -62,7 +63,7 @@ export const parse = (
 		toFloat(parts[13]), //  humidity
 	]
 
-	void ping, ue_mode
+	void ue_mode
 
 	const tsInSeconds = ts ?? Math.floor(now.getTime() / 1000)
 
@@ -140,6 +141,18 @@ export const parse = (
 			},
 		}
 		objects.push(batteryInfo)
+	}
+
+	if (ping !== null) {
+		const connectionQuality: ConnectionQuality_14501 = {
+			ObjectID: LwM2MObjectID.ConnectionQuality_14501,
+			ObjectVersion: '1.0',
+			Resources: {
+				0: ping,
+				99: tsInSeconds,
+			},
+		}
+		objects.push(connectionQuality)
 	}
 
 	return objects
