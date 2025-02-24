@@ -2,22 +2,19 @@ import {
 	AddThingToThingGroupCommand,
 	AttachThingPrincipalCommand,
 	CreateThingCommand,
+	DescribeCertificateCommand,
 	IoTClient,
+	ListThingGroupsForThingCommand,
+	ListThingPrincipalsCommand,
 	ListThingsCommand,
 	RegisterCertificateCommand,
 } from '@aws-sdk/client-iot'
 import chalk from 'chalk'
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
 
-const FROM_REGION = 'eu-central-1'
+const FROM_REGION = 'us-west-2'
+const TO_REGION = 'eu-central-1'
 const fromIot = new IoTClient({ region: FROM_REGION })
-const toIot = new IoTClient({ region: 'us-west-2' })
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const toIot = new IoTClient({ region: TO_REGION })
 
 const listDevices = async (iot: IoTClient) =>
 	new Map(
@@ -48,22 +45,34 @@ const devicesToMigrate = new Set(
 
 for (const device of devicesToMigrate) {
 	try {
-		const { clientCert } = JSON.parse(
-			await readFile(
-				path.join(
-					__dirname,
-					'certificates',
-					FROM_REGION,
-					`device-${device}.json`,
-				),
-				'utf-8',
-			),
+		const { principals } = await fromIot.send(
+			new ListThingPrincipalsCommand({
+				thingName: device,
+			}),
 		)
 
-		const registeredCert = await toIot.send(
-			new RegisterCertificateCommand({
-				certificatePem: clientCert,
-				status: 'ACTIVE',
+		const certificates = await Promise.all(
+			(principals ?? []).map(async (principal) => {
+				const cert = await fromIot.send(
+					new DescribeCertificateCommand({
+						certificateId: principal.split('/')[1],
+					}),
+				)
+
+				return cert.certificateDescription?.certificatePem
+			}),
+		)
+
+		const certificateArns = await Promise.all(
+			certificates.map(async (cert) => {
+				const registeredCert = await toIot.send(
+					new RegisterCertificateCommand({
+						certificatePem: cert,
+						status: 'ACTIVE',
+					}),
+				)
+
+				return registeredCert.certificateArn
 			}),
 		)
 
@@ -76,18 +85,30 @@ for (const device of devicesToMigrate) {
 			}),
 		)
 
-		await toIot.send(
-			new AddThingToThingGroupCommand({
-				thingGroupName: 'nrf-asset-tracker',
-				thingName: device,
-			}),
+		const groups = await fromIot.send(
+			new ListThingGroupsForThingCommand({ thingName: device }),
 		)
 
-		await toIot.send(
-			new AttachThingPrincipalCommand({
-				thingName: device,
-				principal: registeredCert.certificateArn!,
-			}),
+		await Promise.all(
+			(groups.thingGroups ?? [])?.map(async (group) =>
+				toIot.send(
+					new AddThingToThingGroupCommand({
+						thingGroupName: group.groupName,
+						thingName: device,
+					}),
+				),
+			),
+		)
+
+		await Promise.all(
+			certificateArns.map(async (certArn) =>
+				toIot.send(
+					new AttachThingPrincipalCommand({
+						thingName: device,
+						principal: certArn,
+					}),
+				),
+			),
 		)
 
 		console.log(chalk.green(`Successfully migrated ${device}!`))
