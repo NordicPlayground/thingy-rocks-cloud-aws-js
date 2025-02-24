@@ -16,8 +16,6 @@ import {
 } from 'aws-cdk-lib'
 import { Table } from 'aws-cdk-lib/aws-dynamodb'
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
-import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53'
-import { LoadBalancerTarget } from 'aws-cdk-lib/aws-route53-targets'
 import { Queue } from 'aws-cdk-lib/aws-sqs'
 import { ContainerRepositoryId } from '../../aws/ecr.ts'
 import type { BackendLambdas } from '../BackendLambdas.js'
@@ -56,7 +54,7 @@ export class UDPIngestStack extends Stack {
 
 		const queue = new Queue(this, 'queue')
 
-		const updIngest = new UDPIngest(this, {
+		new UDPIngest(this, {
 			image: ECS.ContainerImage.fromEcrRepository(
 				ECR.Repository.fromRepositoryName(
 					this,
@@ -69,31 +67,6 @@ export class UDPIngestStack extends Stack {
 				udpIngestContainerTag,
 			),
 			queue,
-		})
-
-		new CfnOutput(this, 'NLBDnsName', {
-			exportName: `${this.stackName}:NLBDnsName`,
-			description: 'The DNS name of the NLB',
-			value: updIngest.nlb.loadBalancerDnsName,
-		})
-
-		const hostedZone = new HostedZone(this, 'zone', {
-			zoneName: 'ingress.thingy.rocks',
-		})
-
-		new ARecord(this, 'AliasRecord', {
-			zone: hostedZone,
-			target: RecordTarget.fromAlias(new LoadBalancerTarget(updIngest.nlb)),
-			recordName: 'udp',
-		})
-
-		new CfnOutput(this, 'hostedZoneName', {
-			value: hostedZone.zoneName,
-			description: 'The hosted zone name',
-		})
-		new CfnOutput(this, 'hostedZoneNameServers', {
-			value: Fn.join(',', hostedZone.hostedZoneNameServers!),
-			description: 'The hosted zone name servers',
 		})
 
 		// Make message conversion results available

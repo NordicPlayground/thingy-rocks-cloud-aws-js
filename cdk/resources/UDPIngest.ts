@@ -57,7 +57,6 @@ export class UDPIngest extends Construct {
 		)
 
 		this.taskRole = new Role(this, 'TaskRole', {
-			roleName: 'UDPIngestTaskRole',
 			assumedBy: new ServicePrincipal('ecs-tasks.amazonaws.com'),
 			managedPolicies: [
 				ManagedPolicy.fromAwsManagedPolicyName(
@@ -132,7 +131,9 @@ export class UDPIngest extends Construct {
 		const publicIpSubnet = Subnet.fromSubnetId(
 			this,
 			'subnetWithStaticIP',
-			'subnet-065fb207ddb235155',
+			this.node.getContext(
+				`publicIpSubnet:${Stack.of(this).account}:${Stack.of(this).region}`,
+			),
 		)
 
 		// No high-level API yet for SubnetMappings: https://github.com/aws/aws-cdk/issues/9696
@@ -140,7 +141,9 @@ export class UDPIngest extends Construct {
 
 		const subnetMapping1: CfnLoadBalancer.SubnetMappingProperty = {
 			subnetId: publicIpSubnet.subnetId,
-			allocationId: 'eipalloc-00a526f52277124a2',
+			allocationId: this.node.getContext(
+				`publicIpAllocation:${Stack.of(this).account}:${Stack.of(this).region}`,
+			),
 		}
 
 		cfnNLB.subnetMappings = [subnetMapping1]
