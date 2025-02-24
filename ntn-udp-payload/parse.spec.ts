@@ -79,27 +79,27 @@ void describe('parse()', () => {
 		}
 
 		assert.deepEqual(
-			findLwM2MObject(result, LwM2MObjectID.DeviceInformation_14204),
+			findLwM2MObject(result!, LwM2MObjectID.DeviceInformation_14204),
 			deviceInfo,
 			'It should parse the device info',
 		)
 		assert.deepEqual(
-			findLwM2MObject(result, LwM2MObjectID.ConnectionInformation_14203),
+			findLwM2MObject(result!, LwM2MObjectID.ConnectionInformation_14203),
 			connectionInfo,
 			'It should parse the connection info',
 		)
 		assert.deepEqual(
-			findLwM2MObject(result, LwM2MObjectID.Geolocation_14201),
+			findLwM2MObject(result!, LwM2MObjectID.Geolocation_14201),
 			geolocation,
 			'It should parse the geolocation',
 		)
 		assert.deepEqual(
-			findLwM2MObject(result, LwM2MObjectID.Environment_14205),
+			findLwM2MObject(result!, LwM2MObjectID.Environment_14205),
 			env,
 			'It should parse the environment',
 		)
 		assert.deepEqual(
-			findLwM2MObject(result, LwM2MObjectID.BatteryAndPower_14202),
+			findLwM2MObject(result!, LwM2MObjectID.BatteryAndPower_14202),
 			battery,
 			'It should parse the battery',
 		)
@@ -112,9 +112,18 @@ void describe('parse()', () => {
 		const result = parse(example)
 
 		assert.equal(
-			findLwM2MObject(result, LwM2MObjectID.DeviceInformation_14204)
+			findLwM2MObject(result!, LwM2MObjectID.DeviceInformation_14204)
 				?.Resources[4],
 			'skylo_demo',
 		)
+	})
+
+	void it('should ignore invalid payload', () => {
+		const example =
+			'INVITE sip:100@54.185.133.249 SIP/2.0\r\nVia: SIP/2.0/UDP 185.243.5.14:0;branch=z9hG4bK-4149951338;rport\r\nContent-Length: 0\r\nFrom: "Asterisk"<sip:100@1.1.1.1>;tag=3336623938356639316130610131303539333236343932\r\nAccept: application/sdp\r\nUser-Agent: PBX\r\nTo: "Asterisk"<sip:100@1.1.1.1>\r\nContact: sip:100@185.243.5.14:0\r\nCSeq: 1 INVITE\r\nCall-ID: 287496856761096475921154\r\nMax-Forwards: 70\r\n\r\n'
+
+		const result = parse(example)
+
+		assert.equal(result, null)
 	})
 })

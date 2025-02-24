@@ -50,7 +50,7 @@ export const handler = middy()
 			const messageId = ulid()
 			const ttl = Math.round(Date.now() / 1000) + 60 * 60 * 24 * 7
 			const maybeLwM2M = parse(record.body)
-			if (maybeLwM2M.length === 0) {
+			if (maybeLwM2M === null) {
 				console.debug(messageId, `Failed to parse record: ${record.body}`)
 				await db.send(
 					new PutItemCommand({
