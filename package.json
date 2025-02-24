@@ -84,7 +84,7 @@
   "dependencies": {
     "@bifravst/from-env": "3.0.2",
     "@bifravst/timestream-helpers": "6.1.0",
-    "@hello.nrfcloud.com/lambda-helpers": "2.0.83",
+    "@hello.nrfcloud.com/lambda-helpers": "2.0.84",
     "@hello.nrfcloud.com/proto-map": "16.3.0",
     "@middy/core": "6.0.0",
     "@middy/input-output-logger": "6.0.0",
