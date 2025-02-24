@@ -8,6 +8,7 @@ import {
 	definitions,
 	LwM2MObjectID,
 	type BatteryAndPower_14202,
+	type ConnectionQuality_14501,
 	type Environment_14205,
 } from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { binResourceHistory } from './binResourceHistory.ts'
@@ -53,6 +54,8 @@ export type Summary = {
 	// Fuel gauge readings, see https://github.com/NordicSemiconductor/asset-tracker-cloud-docs/blob/4713549af719a7e119324853aa117d752ac856e3/docs/cloud-protocol/Reported.ts#L111
 	fgSoC?: Readings
 	fgI?: Readings
+	// Connection Quality: Latency
+	cqLatency?: Readings
 	base: Date
 }
 
@@ -221,6 +224,24 @@ export const createChartSummary = async ({
 		summaries,
 		'fgSoC',
 		lwm2mSoC as Array<LwM2MResult>,
+		now,
+		(r) => r[0],
+	)
+
+	// Latency
+
+	const lwm2mLatency = (await binnedLwM2MObjectHistory({
+		def: definitions[LwM2MObjectID.ConnectionQuality_14501],
+		aggregateFn: 'avg',
+		hours: 1,
+	})) as Array<
+		{ [99]: number; deviceId: string } & ConnectionQuality_14501['Resources']
+	>
+
+	groupLwM2MResult(
+		summaries,
+		'cqLatency',
+		lwm2mLatency as Array<LwM2MResult>,
 		now,
 		(r) => r[0],
 	)
