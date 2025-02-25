@@ -18,7 +18,7 @@ import { Table } from 'aws-cdk-lib/aws-dynamodb'
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
 import { Queue } from 'aws-cdk-lib/aws-sqs'
 import { ContainerRepositoryId } from '../../aws/ecr.ts'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import type { BackendLambdas } from '../BackendLambdas.ts'
 import { UDPIngest } from '../resources/UDPIngest.ts'
 import { STACK_NAME, UDP_INGEST_STACK_NAME } from './stackName.ts'
 

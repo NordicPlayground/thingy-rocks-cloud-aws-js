@@ -6,7 +6,7 @@ import {
 	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import type { BackendLambdas } from '../BackendLambdas.ts'
 import type { WebsocketAPI } from './WebsocketAPI.ts'
 
 /**

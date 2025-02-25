@@ -10,7 +10,7 @@ import {
 	aws_timestream as Timestream,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
-import type { BackendLambdas } from '../BackendLambdas.js'
+import type { BackendLambdas } from '../BackendLambdas.ts'
 
 /**
  * Store history of LwM2M objects

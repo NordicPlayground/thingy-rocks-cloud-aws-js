@@ -134,6 +134,14 @@ export class WebsocketAPI extends Construct {
 			...new LambdaLogGroup(this, 'onMessageLogs'),
 			initialPolicy: [
 				new IAM.PolicyStatement({
+					actions: ['iot:Publish'],
+					resources: [
+						`arn:aws:iot:${Stack.of(parent).region}:${
+							Stack.of(parent).account
+						}:topic/*/nrplus-ctrl`,
+					],
+				}),
+				new IAM.PolicyStatement({
 					actions: ['execute-api:ManageConnections'],
 					resources: [this.websocketAPIArn],
 				}),

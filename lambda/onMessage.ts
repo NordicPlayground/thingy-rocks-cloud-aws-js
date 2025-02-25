@@ -1,6 +1,10 @@
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { DescribeThingCommand, IoTClient } from '@aws-sdk/client-iot'
+import {
+	IoTDataPlaneClient,
+	PublishCommand,
+} from '@aws-sdk/client-iot-data-plane'
 import { fromEnv } from '@bifravst/from-env'
 import { Type } from '@sinclair/typebox'
 import type {
@@ -23,10 +27,16 @@ const deviceControl = Type.Object({
 
 const message = Type.Object({
 	message: Type.Literal('sendmessage'),
-	data: deviceControl,
+	data: Type.Intersect([
+		deviceControl,
+		Type.Object({
+			nrplusCtrl: Type.String({ minLength: 1 }),
+		}),
+	]),
 })
 const validateMessage = validateWithTypeBox(message)
 
+const iotData = new IoTDataPlaneClient({})
 const iot = new IoTClient({})
 const db = new DynamoDBClient({})
 
@@ -126,6 +136,16 @@ export const handler = async (
 				statusCode: 403,
 				body: `Code ${code} not valid for device ${deviceId}!`,
 			}
+		}
+		if ('nrplusCtrl' in msg) {
+			await iotData.send(
+				new PublishCommand({
+					topic: `${deviceId}/nrplus-ctrl`,
+					payload: Buffer.from(msg.nrplusCtrl, 'utf-8'),
+					qos: 1,
+				}),
+			)
+			console.log(`>`, `${deviceId}/nrplus-ctrl`, msg.nrplusCtrl)
 		}
 		return {
 			statusCode: 202,

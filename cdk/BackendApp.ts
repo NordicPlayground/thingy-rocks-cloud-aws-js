@@ -2,6 +2,7 @@ import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
 import { App, type Environment } from 'aws-cdk-lib'
 import type { BackendLambdas } from './BackendLambdas.ts'
 import { BackendStack } from './stacks/BackendStack.ts'
+import { NRPlusStack } from './stacks/NRPlusStack.ts'
 import { UDPIngestStack } from './stacks/UDPIngestStack.ts'
 
 export class BackendApp extends App {
@@ -37,6 +38,10 @@ export class BackendApp extends App {
 			env,
 			lambdaSources,
 			layer,
+		})
+
+		new NRPlusStack(this, {
+			lambdaSources,
 		})
 	}
 }
