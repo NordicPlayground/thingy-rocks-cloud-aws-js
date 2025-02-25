@@ -6,42 +6,22 @@ import {
 	IoTClient,
 	ListThingGroupsForThingCommand,
 	ListThingPrincipalsCommand,
-	ListThingsCommand,
 	RegisterCertificateCommand,
 } from '@aws-sdk/client-iot'
 import chalk from 'chalk'
+import { listDevices } from './aws/listDevices.ts'
 
 const FROM_REGION = 'us-west-2'
 const TO_REGION = 'eu-central-1'
 const fromIot = new IoTClient({ region: FROM_REGION })
 const toIot = new IoTClient({ region: TO_REGION })
 
-const listDevices = async (iot: IoTClient) =>
-	new Map(
-		(
-			(
-				await iot.send(
-					new ListThingsCommand({
-						maxResults: 250,
-					}),
-				)
-			).things ?? []
-		)
-			.filter(
-				(device) =>
-					device.thingTypeName !== 'mesh-node' &&
-					device.thingTypeName !== 'wirepas-5g-mesh-gateway' &&
-					device.thingTypeName !== 'nrplus-gateway',
-			)
-			.map((device) => [device.thingName, device]),
-	)
-
 const fromDevices = await listDevices(fromIot)
 const toDevices = await listDevices(toIot)
 
 const devicesToMigrate = new Set(
-	fromDevices.values().map((device) => device.thingName),
-).difference(new Set(toDevices.values().map((device) => device.thingName)))
+	fromDevices.values().map((device) => device.thingName!),
+).difference(new Set(toDevices.values().map((device) => device.thingName!)))
 
 for (const device of devicesToMigrate) {
 	try {
