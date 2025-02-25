@@ -2,6 +2,8 @@ import {
 	IoTDataPlaneClient,
 	UpdateThingShadowCommand,
 } from '@aws-sdk/client-iot-data-plane'
+import { requestLogger } from '@hello.nrfcloud.com/lambda-helpers/requestLogger'
+import middy from '@middy/core'
 import type { KinesisStreamEvent } from 'aws-lambda'
 import { parser } from '../nrplus/messageStreamParser.ts'
 import { PCCLines, PDCLines, isPCCInfo, isPDCInfo } from '../nrplus/messages.ts'
@@ -35,7 +37,6 @@ const updateNodeData = (
 
 const parserInstance = parser([PCCLines, PDCLines])
 parserInstance.onMessage((deviceId, message) => {
-	console.log(JSON.stringify({ deviceId, message }))
 	if (isPCCInfo(message)) {
 		void updateNodeData(deviceId, message.transmitterId, {
 			pccStatus: {
@@ -69,28 +70,30 @@ parserInstance.onMessage((deviceId, message) => {
 	}
 })
 
-export const handler = (event: KinesisStreamEvent): void => {
-	const buffer: Record<string, string[]> = {}
-	for (const {
-		kinesis: { data, partitionKey },
-	} of event.Records) {
-		const message = Buffer.from(data, 'base64').toString('utf-8').trim()
-		const clientId = partitionKey.split('/')[0] as string // <client id>/nrplus-sink
-		if (buffer[clientId] === undefined) {
-			buffer[clientId] = [message]
-		} else {
-			buffer[clientId]?.push(message)
+export const handler = middy()
+	.use(requestLogger())
+	.handler((event: KinesisStreamEvent): void => {
+		const buffer: Record<string, string[]> = {}
+		for (const {
+			kinesis: { data, partitionKey },
+		} of event.Records) {
+			const message = Buffer.from(data, 'base64').toString('utf-8').trim()
+			const clientId = partitionKey.split('/')[0] as string // <client id>/nrplus-sink
+			if (buffer[clientId] === undefined) {
+				buffer[clientId] = [message]
+			} else {
+				buffer[clientId]?.push(message)
+			}
 		}
-	}
 
-	for (const [clientId, lines] of Object.entries(buffer)) {
-		for (const line of lines.sort(ascending))
-			parserInstance.addLine(
-				clientId,
-				// line is prefixed with counter + tab
-				line.split('\t', 2)[1] as string,
-			)
-	}
-}
+		for (const [clientId, lines] of Object.entries(buffer)) {
+			for (const line of lines.sort(ascending))
+				parserInstance.addLine(
+					clientId,
+					// line is prefixed with counter + tab
+					line.split('\t', 2)[1] as string,
+				)
+		}
+	})
 
 const ascending = (a: string, b: string) => a.localeCompare(b)
