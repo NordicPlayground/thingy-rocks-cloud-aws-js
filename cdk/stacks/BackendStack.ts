@@ -14,7 +14,6 @@ import { LwM2MDataGateway } from '../resources/LwM2MDataGateway.ts'
 import { LwM2MObjectsHistory } from '../resources/LwM2MObjectsHistory.ts'
 import { Map } from '../resources/Map.ts'
 import { Memfault } from '../resources/Memfault.ts'
-import { NRPlusGateway } from '../resources/NRPlusGateway.ts'
 import { PublishSummaries } from '../resources/PublishSummaries.ts'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.ts'
 import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.ts'
@@ -106,10 +105,6 @@ export class BackendStack extends Stack {
 			historicaldataTableArn: Fn.importValue(
 				`${assetTrackerStackName}:historicaldataTableArn`,
 			),
-		})
-
-		new NRPlusGateway(this, {
-			lambdaSources,
 		})
 
 		new LwM2M(this, {

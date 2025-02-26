@@ -42,6 +42,7 @@ export class BackendApp extends App {
 
 		new NRPlusStack(this, {
 			lambdaSources,
+			layer,
 		})
 	}
 }

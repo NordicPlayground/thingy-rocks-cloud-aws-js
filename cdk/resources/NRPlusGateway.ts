@@ -1,23 +1,28 @@
 import {
 	LambdaLogGroup,
-	LambdaSource,
+	PackedLambdaFn,
 } from '@bifravst/aws-cdk-lambda-helpers/cdk'
 import { Duration, Stack } from 'aws-cdk-lib'
 import IAM from 'aws-cdk-lib/aws-iam'
 import Iot from 'aws-cdk-lib/aws-iot'
 import Kinesis, { StreamMode } from 'aws-cdk-lib/aws-kinesis'
-import Lambda, { StartingPosition } from 'aws-cdk-lib/aws-lambda'
+import type Lambda from 'aws-cdk-lib/aws-lambda'
+import { StartingPosition } from 'aws-cdk-lib/aws-lambda'
 import { KinesisEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
 import { Construct } from 'constructs'
 import type { BackendLambdas } from '../BackendLambdas.ts'
 
 export class NRPlusGateway extends Construct {
+	public readonly parseSinkMessagesFn: PackedLambdaFn
+
 	constructor(
 		parent: Construct,
 		{
 			lambdaSources,
+			layer,
 		}: {
 			lambdaSources: Pick<BackendLambdas, 'parseSinkMessages'>
+			layer: Lambda.ILayerVersion
 		},
 	) {
 		super(parent, 'nrplus-gateway')
@@ -71,16 +76,13 @@ export class NRPlusGateway extends Construct {
 			},
 		})
 
-		const parseSinkMessagesFn = new Lambda.Function(
+		this.parseSinkMessagesFn = new PackedLambdaFn(
 			this,
 			'parseSinkMessagesFn',
+			lambdaSources.parseSinkMessages,
 			{
-				handler: lambdaSources.parseSinkMessages.handler,
-				architecture: Lambda.Architecture.ARM_64,
-				runtime: Lambda.Runtime.NODEJS_20_X,
 				timeout: Duration.minutes(15),
 				memorySize: 1792,
-				code: new LambdaSource(this, lambdaSources.parseSinkMessages).code,
 				description: 'Parse sink messages',
 				environment: {
 					VERSION: this.node.tryGetContext('version'),
@@ -93,10 +95,11 @@ export class NRPlusGateway extends Construct {
 				],
 				...new LambdaLogGroup(this, 'parseSinkMessagesFnLogs'),
 				reservedConcurrentExecutions: 1,
+				layers: [layer],
 			},
 		)
 
-		parseSinkMessagesFn.addEventSource(
+		this.parseSinkMessagesFn.fn.addEventSource(
 			new KinesisEventSource(stream, {
 				startingPosition: StartingPosition.TRIM_HORIZON,
 				batchSize: 100,
