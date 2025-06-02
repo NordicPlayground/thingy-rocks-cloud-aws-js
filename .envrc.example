@@ -1,6 +1,14 @@
-export AWS_REGION=...                   # AWS region to use, e.g. eu-west-2
-export AWS_PROFILE=...
+export AWS_REGION=...                   # AWS region to use, e.g. eu-west-1
+export AWS_DEFAULT_REGION=$AWS_REGION
+export AWS_ACCESS_KEY_ID= ...           # Your AWS Access Key ID
+export AWS_SECRET_ACCESS_KEY=...        # Your AWS Secret Acces Key
 
 # Silence Warnings
 export JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=1
 export NODE_NO_WARNINGS=1
+
+# Wirepas Gateway settings
+export WIREPAS_GATEWAY_MQTT_ENDPOINT=...                 # e.g. mqtts://<user>:<password>@wirepas.com:8883
+export WIREPAS_GATEWAY_REGION=...                        # AWS region to use, e.g. eu-west-1
+export WIREPAS_GATEWAY_AWS_ACCESS_KEY_ID=...             # Value of thingy-rocks-backend.wirepasGatewayUserAccessKeyId
+export WIREPAS_GATEWAY_AWS_SECRET_ACCESS_KEY=...         # Value of thingy-rocks-backend.wirepasGatewayUserSecretAccessKey

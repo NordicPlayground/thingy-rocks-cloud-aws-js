@@ -24,6 +24,14 @@ Install the dependencies:
 npm ci
 ```
 
+### Configure
+
+Set the Wirepas 5G Mesh Gateway endpoint:
+
+```bash
+aws ssm put-parameter --name thingy-rocks-backend-Wirepas5GMeshGatewayEndpoint --type String --value $WIREPAS_GATEWAY_MQTT_ENDPOINT
+```
+
 ### Deploy
 
 ```bash
@@ -35,6 +43,25 @@ npx cdk deploy
 ### Enable AWS IoT Thing Index
 
 Enable AWS IoT Thing indexing for the lwm2m named shadow and Thing connectivity.
+
+### Running the Wirepas 5G Mesh Gateway
+
+Create a thing type `wirepas-5g-mesh-gateway`.
+
+Configure the gateway settings using the `.envrc` (see
+[the example](./envrc.example)).
+
+Run:
+
+```bash
+npx tsx wirepas-5g-mesh-gateway/gateway.ts
+```
+
+Run as a service using systemd:
+
+```bash
+systemd-run -E WIREPAS_GATEWAY_MQTT_ENDPOINT=${WIREPAS_GATEWAY_MQTT_ENDPOINT} -E WIREPAS_GATEWAY_AWS_ACCESS_KEY_ID=${WIREPAS_GATEWAY_AWS_ACCESS_KEY_ID} -E WIREPAS_GATEWAY_REGION=${WIREPAS_GATEWAY_REGION} -E WIREPAS_GATEWAY_AWS_SECRET_ACCESS_KEY=${WIREPAS_GATEWAY_AWS_SECRET_ACCESS_KEY} --working-directory ${PWD} npx tsx wirepas-5g-mesh-gateway/gateway.ts
+```
 
 ### Memfault integration
 

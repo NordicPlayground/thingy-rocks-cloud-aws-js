@@ -4,6 +4,8 @@ import { DescribeThingCommand, IoTClient } from '@aws-sdk/client-iot'
 import {
 	IoTDataPlaneClient,
 	PublishCommand,
+	UpdateThingShadowCommand,
+	type UpdateThingShadowCommandInput,
 } from '@aws-sdk/client-iot-data-plane'
 import { fromEnv } from '@bifravst/from-env'
 import { Type } from '@sinclair/typebox'
@@ -27,11 +29,32 @@ const deviceControl = Type.Object({
 
 const message = Type.Object({
 	message: Type.Literal('sendmessage'),
-	data: Type.Intersect([
-		deviceControl,
-		Type.Object({
-			nrplusCtrl: Type.String({ minLength: 1 }),
-		}),
+	data: Type.Union([
+		Type.Intersect([
+			deviceControl,
+			Type.Object({
+				nrplusCtrl: Type.String({ minLength: 1 }),
+			}),
+		]),
+		Type.Intersect([
+			deviceControl,
+			Type.Object({
+				wirepasCtrl: Type.Object({
+					nodes: Type.Record(
+						Type.String({ minLength: 1 }),
+						Type.Object({
+							payload: Type.Object({
+								led: Type.Object({
+									r: Type.Boolean(),
+									g: Type.Boolean(),
+									b: Type.Boolean(),
+								}),
+							}),
+						}),
+					),
+				}),
+			}),
+		]),
 	]),
 })
 const validateMessage = validateWithTypeBox(message)
@@ -146,6 +169,18 @@ export const handler = async (
 				}),
 			)
 			console.log(`>`, `${deviceId}/nrplus-ctrl`, msg.nrplusCtrl)
+		}
+		if ('wirepasCtrl' in msg) {
+			const update: UpdateThingShadowCommandInput = {
+				thingName: deviceId,
+				payload: JSON.stringify({
+					state: {
+						desired: msg.wirepasCtrl,
+					},
+				}),
+			}
+			await iotData.send(new UpdateThingShadowCommand(update))
+			console.log(JSON.stringify({ update }))
 		}
 		return {
 			statusCode: 202,

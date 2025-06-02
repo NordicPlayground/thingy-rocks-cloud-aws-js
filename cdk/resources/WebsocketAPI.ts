@@ -10,6 +10,7 @@ import {
 	aws_iot as IoT,
 	aws_lambda as Lambda,
 	RemovalPolicy,
+	aws_ssm as SSM,
 	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
@@ -129,6 +130,11 @@ export class WebsocketAPI extends Construct {
 				VERSION: this.node.tryGetContext('version'),
 				CONNECTIONS_TABLE_NAME: this.connectionsTable.tableName,
 				WEBSOCKET_MANAGEMENT_API_URL: this.websocketManagementAPIURL,
+				WIREPAS_GATEWAY_MQTT_ENDPOINT:
+					SSM.StringParameter.valueForStringParameter(
+						this,
+						`${Stack.of(parent).stackName}-Wirepas5GMeshGatewayEndpoint`,
+					),
 			},
 			layers: [baseLayer],
 			...new LambdaLogGroup(this, 'onMessageLogs'),

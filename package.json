@@ -43,6 +43,7 @@
     "@bifravst/run": "1.2.0",
     "@commitlint/config-conventional": "19.8.1",
     "@types/aws-lambda": "8.10.149",
+    "@types/lodash-es": "^4.17.12",
     "@types/node": "22.15.29",
     "aws-cdk": "2.1017.1",
     "aws-cdk-lib": "2.199.0",
@@ -90,10 +91,15 @@
     "@middy/input-output-logger": "6.3.1",
     "@nordicsemiconductor/from-env": "3.0.1",
     "@nordicsemiconductor/timestream-helpers": "6.0.2",
+    "@protobuf-ts/runtime": "2.11.0",
     "@sinclair/typebox": "0.34.33",
     "ajv": "8.17.1",
+    "aws-iot-device-sdk-v2": "1.21.4",
     "jsonata": "2.0.6",
+    "lodash-es": "4.17.21",
+    "mqtt": "5.13.0",
     "p-retry": "6.2.1",
+    "p-throttle": "7.0.0",
     "ulidx": "2.4.1"
   }
 }

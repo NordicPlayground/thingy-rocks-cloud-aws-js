@@ -14,11 +14,13 @@ import { LwM2MDataGateway } from '../resources/LwM2MDataGateway.ts'
 import { LwM2MObjectsHistory } from '../resources/LwM2MObjectsHistory.ts'
 import { Map } from '../resources/Map.ts'
 import { Memfault } from '../resources/Memfault.ts'
+import { NRPlusGateway } from '../resources/NRPlusGateway.ts'
 import { PublishSummaries } from '../resources/PublishSummaries.ts'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.ts'
 import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.ts'
 import { UserAuthentication } from '../resources/UserAuthentication.ts'
 import { WebsocketAPI } from '../resources/WebsocketAPI.ts'
+import { Wirepas5GMeshGateway } from '../resources/Wirepas5GMeshGateway.ts'
 import { STACK_NAME } from './stackName.ts'
 
 export class BackendStack extends Stack {
@@ -107,12 +109,19 @@ export class BackendStack extends Stack {
 			),
 		})
 
+		new NRPlusGateway(this, {
+			lambdaSources,
+			layer: baseLayer,
+		})
+
 		new LwM2M(this, {
 			lambdaSources,
 			baseLayer,
 		})
 
-		new Memfault(this, {
+		const wirepasGateway = new Wirepas5GMeshGateway(this)
+
+		const memfault = new Memfault(this, {
 			assetTrackerStackName,
 			baseLayer,
 			lambdaSources,
@@ -163,6 +172,21 @@ export class BackendStack extends Stack {
 		new CfnOutput(this, 'identityPoolId', {
 			value: userAuthentication.identityPool.ref,
 			exportName: `${this.stackName}:identityPoolId`,
+		})
+
+		new CfnOutput(this, 'wirepasGatewayUserAccessKeyId', {
+			value: wirepasGateway.accessKey.ref,
+			exportName: `${this.stackName}:wirepasGatewayUserAccessKeyId`,
+		})
+
+		new CfnOutput(this, 'wirepasGatewayUserSecretAccessKey', {
+			value: wirepasGateway.accessKey.attrSecretAccessKey,
+			exportName: `${this.stackName}:wirepasGatewayUserSecretAccessKey`,
+		})
+
+		new CfnOutput(this, 'memfaultBucketURL', {
+			value: `https://${memfault.bucket.bucketDomainName}/`,
+			exportName: `${this.stackName}:memfaultBucketURL`,
 		})
 	}
 }
