@@ -30,73 +30,73 @@ const client = new TimestreamWriteClient({})
 /**
  * Store updates to LwM2M objects in Timestream
  */
-const h = async (event: {
+export const handler = middy<{
 	deviceId: string
 	reported: LwM2MShadow
-}): Promise<void> => {
-	const Records: _Record[] = []
-	for (const [ObjectIDAndVersion, Instances] of Object.entries(
-		event.reported,
-	)) {
-		const [ObjectIDString, ObjectVersion] = ObjectIDAndVersion.split(':')
-		const ObjectID = parseInt(ObjectIDString ?? '0', 10)
-		if (!isLwM2MObjectID(ObjectID)) continue
-		// Do not store GeoLocation objects
-		if (ObjectID === LwM2MObjectID.Geolocation_14201) continue
-		for (const [InstanceIDString, Resources] of Object.entries(Instances)) {
-			const ObjectInstanceID = parseInt(InstanceIDString ?? '0', 10)
+}>()
+	.use(requestLogger())
+	.handler(async (event): Promise<void> => {
+		const Records: _Record[] = []
+		for (const [ObjectIDAndVersion, Instances] of Object.entries(
+			event.reported,
+		)) {
+			const [ObjectIDString, ObjectVersion] = ObjectIDAndVersion.split(':')
+			const ObjectID = parseInt(ObjectIDString ?? '0', 10)
+			if (!isLwM2MObjectID(ObjectID)) continue
+			// Do not store GeoLocation objects
+			if (ObjectID === LwM2MObjectID.Geolocation_14201) continue
+			for (const [InstanceIDString, Resources] of Object.entries(Instances)) {
+				const ObjectInstanceID = parseInt(InstanceIDString ?? '0', 10)
 
-			const maybeRecord = instanceMeasuresToRecord({
-				ObjectID,
-				ObjectInstanceID,
-				ObjectVersion,
-				Resources,
-			})
+				const maybeRecord = instanceMeasuresToRecord({
+					ObjectID,
+					ObjectInstanceID,
+					ObjectVersion,
+					Resources,
+				})
 
-			if ('error' in maybeRecord) {
-				if (maybeRecord.error instanceof NoHistoryMeasuresError) {
-					console.debug(`No history measures for ${ObjectID}!`)
-				} else {
-					console.error(maybeRecord.error)
+				if ('error' in maybeRecord) {
+					if (maybeRecord.error instanceof NoHistoryMeasuresError) {
+						console.debug(`No history measures for ${ObjectID}!`)
+					} else {
+						console.error(maybeRecord.error)
+					}
+					continue
 				}
-				continue
+
+				Records.push(maybeRecord.record)
 			}
-
-			Records.push(maybeRecord.record)
 		}
-	}
 
-	console.log(JSON.stringify({ Records }))
+		console.log(JSON.stringify({ Records }))
 
-	if (Records.length === 0) {
-		console.debug('No records to store')
-		return
-	}
-
-	try {
-		await client.send(
-			new WriteRecordsCommand({
-				DatabaseName,
-				TableName,
-				Records,
-				CommonAttributes: {
-					Dimensions: [
-						{
-							Name: 'deviceId',
-							Value: event.deviceId,
-						},
-					],
-				},
-			}),
-		)
-	} catch (err) {
-		console.debug(`Failed to persist records!`, err)
-		if (err instanceof RejectedRecordsException) {
-			console.debug(`Rejected records`, JSON.stringify(err.RejectedRecords))
-		} else {
-			console.error(err)
+		if (Records.length === 0) {
+			console.debug('No records to store')
+			return
 		}
-	}
-}
 
-export const handler = middy().use(requestLogger()).handler(h)
+		try {
+			await client.send(
+				new WriteRecordsCommand({
+					DatabaseName,
+					TableName,
+					Records,
+					CommonAttributes: {
+						Dimensions: [
+							{
+								Name: 'deviceId',
+								Value: event.deviceId,
+							},
+						],
+					},
+				}),
+			)
+		} catch (err) {
+			console.debug(`Failed to persist records!`, err)
+			if (err instanceof RejectedRecordsException) {
+				console.debug(`Rejected records`, JSON.stringify(err.RejectedRecords))
+			} else {
+				console.error(err)
+			}
+		}
+	})

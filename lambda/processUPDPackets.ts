@@ -43,9 +43,9 @@ const notifier = withDeviceAlias(iot)(
 	}),
 )
 
-export const handler = middy()
+export const handler = middy<SQSEvent>()
 	.use(requestLogger())
-	.handler(async (event: SQSEvent) => {
+	.handler(async (event) => {
 		for (const record of event.Records) {
 			const messageId = ulid()
 			const ttl = Math.round(Date.now() / 1000) + 60 * 60 * 24 * 7

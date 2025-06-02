@@ -70,9 +70,9 @@ parserInstance.onMessage((deviceId, message) => {
 	}
 })
 
-export const handler = middy()
+export const handler = middy<KinesisStreamEvent>()
 	.use(requestLogger())
-	.handler((event: KinesisStreamEvent): void => {
+	.handler((event): void => {
 		const buffer: Record<string, string[]> = {}
 		for (const {
 			kinesis: { data, partitionKey },

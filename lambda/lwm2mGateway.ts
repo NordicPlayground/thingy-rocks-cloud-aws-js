@@ -39,76 +39,71 @@ const notifier = withDeviceAlias(iot)(
 	}),
 )
 
-export const handler = middy()
+export const handler = middy<{
+	gatewayId: string
+	deviceId: string
+	timestamp: number
+	messageId: string
+	senML: SenMLType
+}>()
 	.use(requestLogger())
-	.handler(
-		async (event: {
-			gatewayId: string
-			deviceId: string
-			timestamp: number
-			messageId: string
-			senML: SenMLType
-		}) => {
-			const { deviceId, senML, gatewayId, timestamp, messageId } = event
+	.handler(async (event) => {
+		const { deviceId, senML, gatewayId, timestamp, messageId } = event
 
-			const maybeObjects = senMLtoLwM2M(Array.isArray(senML) ? senML : [])
+		const maybeObjects = senMLtoLwM2M(Array.isArray(senML) ? senML : [])
 
-			if ('error' in maybeObjects) {
-				console.error(
-					`[${deviceId}]`,
-					JSON.stringify(maybeObjects.error.message),
-				)
-				await iotData.send(
-					new PublishCommand({
-						topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/rejected`,
-						payload: JSON.stringify({
-							error: maybeObjects.error.message,
-							messageId,
-							timestamp,
-							senML,
-						}),
-					}),
-				)
-				return
-			}
-
-			const objects = maybeObjects.lwm2m
-			console.debug(`[${deviceId}]`, JSON.stringify(maybeObjects))
-
-			if (objects.length === 0) {
-				console.debug(`No LwM2M objects found.`)
-				await iotData.send(
-					new PublishCommand({
-						topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/rejected`,
-						payload: JSON.stringify({
-							error: 'No LwM2M objects found.',
-							messageId,
-							timestamp,
-							senML,
-						}),
-					}),
-				)
-				return
-			}
-
-			await u(deviceId, objects)
-
-			await notifier({
-				'@context': new URL('https://thingy.rocks/lwm2m-update'),
-				deviceId,
-				objects,
-			})
-
+		if ('error' in maybeObjects) {
+			console.error(`[${deviceId}]`, JSON.stringify(maybeObjects.error.message))
 			await iotData.send(
 				new PublishCommand({
-					topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/accepted`,
+					topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/rejected`,
 					payload: JSON.stringify({
+						error: maybeObjects.error.message,
 						messageId,
 						timestamp,
 						senML,
-						lwm2m: objects,
 					}),
 				}),
 			)
-		},
-	)
+			return
+		}
+
+		const objects = maybeObjects.lwm2m
+		console.debug(`[${deviceId}]`, JSON.stringify(maybeObjects))
+
+		if (objects.length === 0) {
+			console.debug(`No LwM2M objects found.`)
+			await iotData.send(
+				new PublishCommand({
+					topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/rejected`,
+					payload: JSON.stringify({
+						error: 'No LwM2M objects found.',
+						messageId,
+						timestamp,
+						senML,
+					}),
+				}),
+			)
+			return
+		}
+
+		await u(deviceId, objects)
+
+		await notifier({
+			'@context': new URL('https://thingy.rocks/lwm2m-update'),
+			deviceId,
+			objects,
+		})
+
+		await iotData.send(
+			new PublishCommand({
+				topic: `${gatewayId}/lwm2m-gateway/senml/${deviceId}/accepted`,
+				payload: JSON.stringify({
+					messageId,
+					timestamp,
+					senML,
+					lwm2m: objects,
+				}),
+			}),
+		)
+	})

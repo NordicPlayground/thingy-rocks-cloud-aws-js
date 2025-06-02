@@ -3,7 +3,7 @@ import { packLambdaFromPath } from '@bifravst/aws-cdk-lambda-helpers'
 import { packLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
 import { fromEnv } from '@bifravst/from-env'
 import { env } from '../aws/env.ts'
-import pJson from '../package.json' assert { type: 'json' }
+import pJson from '../package.json' with { type: 'json' }
 import { BackendApp } from './BackendApp.ts'
 import { ASSET_TRACKER_STACK_NAME } from './stacks/stackName.ts'
 
