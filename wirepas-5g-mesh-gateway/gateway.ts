@@ -106,6 +106,10 @@ client.on('connect', () => {
 	}
 })
 
+client.on('disconnect', () => {
+	console.log('Disconnected from MQTT broker.')
+})
+
 let nodes: Record<string, Record<string, any>> = {}
 const ledState: Record<string, Record<string, boolean>> = {}
 
