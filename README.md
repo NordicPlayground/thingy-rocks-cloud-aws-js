@@ -49,18 +49,18 @@ Enable AWS IoT Thing indexing for the lwm2m named shadow and Thing connectivity.
 Create a thing type `wirepas-5g-mesh-gateway`.
 
 Configure the gateway settings using the `.envrc` (see
-[the example](./envrc.example)).
+[the example](./.envrc.example)).
 
 Run:
 
 ```bash
-npx tsx wirepas-5g-mesh-gateway/gateway.ts
+node --experimental-transform-types --no-warnings wirepas-5g-mesh-gateway/gateway.ts
 ```
 
 Run as a service using systemd:
 
 ```bash
-systemd-run -E WIREPAS_GATEWAY_MQTT_ENDPOINT=${WIREPAS_GATEWAY_MQTT_ENDPOINT} -E WIREPAS_GATEWAY_AWS_ACCESS_KEY_ID=${WIREPAS_GATEWAY_AWS_ACCESS_KEY_ID} -E WIREPAS_GATEWAY_REGION=${WIREPAS_GATEWAY_REGION} -E WIREPAS_GATEWAY_AWS_SECRET_ACCESS_KEY=${WIREPAS_GATEWAY_AWS_SECRET_ACCESS_KEY} --working-directory ${PWD} npx tsx wirepas-5g-mesh-gateway/gateway.ts
+systemd-run -E WIREPAS_GATEWAY_MQTT_ENDPOINT=${WIREPAS_GATEWAY_MQTT_ENDPOINT} -E WIREPAS_GATEWAY_AWS_ACCESS_KEY_ID=${WIREPAS_GATEWAY_AWS_ACCESS_KEY_ID} -E WIREPAS_GATEWAY_REGION=${WIREPAS_GATEWAY_REGION} -E WIREPAS_GATEWAY_AWS_SECRET_ACCESS_KEY=${WIREPAS_GATEWAY_AWS_SECRET_ACCESS_KEY} --working-directory ${PWD} node --experimental-transform-types --no-warnings wirepas-5g-mesh-gateway/gateway.ts
 ```
 
 ### Memfault integration

@@ -85,17 +85,24 @@ console.log(`Connecting to`, parsedEndpoint.hostname)
 
 const client = mqtt.connect(gatewayEndpoint)
 
-const topics = ['gw-event/#']
-
 client.on('connect', () => {
 	console.log(`Connected.`)
-	for (const topic of topics) {
-		client.subscribe(topic, (err, grants) => {
-			if (err !== null) {
-				throw err
-			}
-			for (const { topic } of grants ?? []) console.log(`Subscribed to`, topic)
-		})
+
+	for (const gwId of Object.keys(existingGws)) {
+		for (const topic of [
+			`gw-event/status/${gwId}`,
+			`gw-response/get_configs/${gwId}`,
+			`gw-event/received_data/${gwId}/#`,
+			`gw-response/send_data/${gwId}/#`,
+		]) {
+			client.subscribe(topic, (err, grants) => {
+				if (err !== null) {
+					throw err
+				}
+				for (const { topic } of grants ?? [])
+					console.log(`Subscribed to`, topic)
+			})
+		}
 	}
 })
 
