@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --experimental-transform-types --test ./**/*.spec.ts",
-    "prepare": "husky && check-node-version --package",
-    "build:container": "node --experimental-transform-types --no-warnings ./build-container.ts"
+    "prepare": "husky && check-node-version --package"
   },
   "repository": {
     "type": "git",

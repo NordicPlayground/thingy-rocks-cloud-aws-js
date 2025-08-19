@@ -1,7 +1,6 @@
 import { STS } from '@aws-sdk/client-sts'
 import { packLambdaFromPath } from '@bifravst/aws-cdk-lambda-helpers'
 import { packLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
-import { fromEnv } from '@bifravst/from-env'
 import { env } from '../aws/env.ts'
 import pJson from '../package.json' with { type: 'json' }
 import { BackendApp } from './BackendApp.ts'
@@ -26,11 +25,6 @@ const packagesInLayer: Array<keyof (typeof pJson)['dependencies']> = [
 const pack = async (id: string) =>
 	packLambdaFromPath({ id, sourceFilePath: `lambda/${id}.ts` })
 
-// Ensure needed container images exist
-const { udpIngestContainerTag } = fromEnv({
-	udpIngestContainerTag: 'UDP_INGEST_CONTAINER_TAG',
-})(process.env)
-
 const accountEnv = await env({ sts })
 
 new BackendApp({
@@ -49,8 +43,6 @@ new BackendApp({
 		lwm2mGateway: await pack('lwm2mGateway'),
 		memfaultPublishReboots: await pack('memfaultPublishReboots'),
 		memfaultPollForReboots: await pack('memfaultPollForReboots'),
-		processUPDPackets: await pack('processUPDPackets'),
-		udpDatagramsLogs: await pack('udpDatagramsLogs'),
 		storeObjectsInTimestream: await pack('storeObjectsInTimestream'),
 	},
 	layer: await packLayer({
@@ -58,7 +50,6 @@ new BackendApp({
 		dependencies: packagesInLayer,
 	}),
 	assetTrackerStackName: ASSET_TRACKER_STACK_NAME,
-	udpIngestContainerTag,
 	// Needed for VPC
 	env: accountEnv,
 	version: process.env.VERSION ?? '0.0.0',

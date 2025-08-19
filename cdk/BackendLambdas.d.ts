@@ -15,7 +15,5 @@ type BackendLambdas = {
 	lwm2mGateway: PackedLambda
 	memfaultPublishReboots: PackedLambda
 	memfaultPollForReboots: PackedLambda
-	processUPDPackets: PackedLambda
-	udpDatagramsLogs: PackedLambda
 	storeObjectsInTimestream: PackedLambda
 }
