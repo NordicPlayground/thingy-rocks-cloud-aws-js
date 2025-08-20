@@ -52,6 +52,7 @@ new BackendApp({
 		processUPDPackets: await pack('processUPDPackets'),
 		udpDatagramsLogs: await pack('udpDatagramsLogs'),
 		storeObjectsInTimestream: await pack('storeObjectsInTimestream'),
+		webhookHandler: await pack('webhookHandler'),
 	},
 	layer: await packLayer({
 		id: 'baseLayer',

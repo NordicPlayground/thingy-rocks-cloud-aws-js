@@ -18,4 +18,5 @@ type BackendLambdas = {
 	processUPDPackets: PackedLambda
 	udpDatagramsLogs: PackedLambda
 	storeObjectsInTimestream: PackedLambda
+	webhookHandler: PackedLambda
 }
