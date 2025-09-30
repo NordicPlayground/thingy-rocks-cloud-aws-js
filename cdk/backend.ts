@@ -22,6 +22,7 @@ const packagesInLayer: Array<keyof (typeof pJson)['dependencies']> = [
 	'@hello.nrfcloud.com/lambda-helpers',
 	'ulidx',
 	'@bifravst/from-env',
+	'cbor',
 ]
 const pack = async (id: string) =>
 	packLambdaFromPath({ id, sourceFilePath: `lambda/${id}.ts` })
