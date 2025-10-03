@@ -11,11 +11,19 @@ import {
 
 const isNonEmpty = (s?: string): s is string =>
 	s !== undefined && typeof s === 'string' && s !== ''
-const toInt = (s?: string): number | null =>
-	isNonEmpty(s) ? parseInt(s, 10) : null
+const toInt = (s?: string): number | null => {
+	const n = isNonEmpty(s) ? parseInt(s, 10) : null
+	if (n === null) return null
+	if (isNaN(n)) return null
+	return n
+}
 const notEmptyString = (s?: string): string | null => (isNonEmpty(s) ? s : null)
-const toFloat = (s?: string): number | null =>
-	isNonEmpty(s) ? parseFloat(s) : null
+const toFloat = (s?: string): number | null => {
+	const f = isNonEmpty(s) ? parseFloat(s) : null
+	if (f === null) return null
+	if (isNaN(f)) return null
+	return f
+}
 /**
  * Parse simple UDP payload into LwM2M objects.
  *

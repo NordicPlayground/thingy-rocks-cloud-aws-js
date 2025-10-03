@@ -141,4 +141,45 @@ void describe('parse()', () => {
 
 		assert.equal(result, null)
 	})
+
+	void it('should handle missing optional fields', () => {
+		const example = '359404235474245,,9999,na,256,ntn,amari,63,10,5,na,na,na,na'
+
+		const now = new Date()
+		const ts = Math.floor(now.getTime() / 1000)
+		const result = parse(example, now)
+
+		assert.partialDeepStrictEqual(result, [
+			{
+				ObjectID: 14204,
+				ObjectVersion: '1.0',
+				Resources: {
+					'0': '359404235474245',
+					'2': '0.0.0-development',
+					'3': '0.0.0-development',
+					'4': 'keysight_demo',
+					'99': ts,
+				},
+			},
+			{
+				ObjectID: 14201,
+				ObjectVersion: '1.0',
+				Resources: {
+					'0': 63,
+					'1': 10,
+					'3': 5,
+					'6': 'GNSS',
+					'99': ts,
+				},
+			},
+			{
+				ObjectID: 14501,
+				ObjectVersion: '1.0',
+				Resources: {
+					'0': 9999,
+					'99': ts,
+				},
+			},
+		])
+	})
 })
