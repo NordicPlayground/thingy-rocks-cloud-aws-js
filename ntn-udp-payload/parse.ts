@@ -80,6 +80,10 @@ export const parse = (
 
 	const objects: Array<LwM2MObjectInstance> = []
 
+	let brdV = 'keysight_demo'
+	if (operator === 90198) brdV = 'skylo_demo'
+	if (operator === 90197) brdV = 'sateliot'
+
 	const deviceInfo: DeviceInformation_14204 = {
 		ObjectID: LwM2MObjectID.DeviceInformation_14204,
 		ObjectVersion: '1.0',
@@ -88,7 +92,7 @@ export const parse = (
 			// 1: SIM ICCID ?
 			2: '0.0.0-development', // Modem firmware version
 			3: '0.0.0-development', // Application firmware version
-			4: operator === 90198 ? 'skylo_demo' : 'keysight_demo',
+			4: brdV,
 			99: tsInSeconds,
 		},
 	}
