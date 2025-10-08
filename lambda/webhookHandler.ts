@@ -119,21 +119,20 @@ export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 		for (const message of validatedInput.messages) {
 			const { teamId, deviceId } = message
 			const thingName = `${teamId}-${deviceId}`
+			//check if thing exists, if not create it
 			if ((await thingExists(iotClient, thingName)) === false) {
-				//if no Thing exists, create it
 				await iotClient.send(
 					new CreateThingCommand({
-						//remember to add permission to cdk
 						thingName,
 						thingTypeName: 'nordic-nrplus',
 					}),
 				)
 			}
+			// --- CASE 1: Shadow update ---
 			const lwm2m = message.message.current?.state?.reported?.lwm2m
 			if (lwm2m !== undefined && Object.keys(lwm2m).length > 0) {
-				console.log('Shadow LwM2M data:', lwm2m)
 				const transformed = shadowToObjects(lwm2m)
-				console.log('Transformed LwM2M:', transformed)
+				console.log('LwM2M update to shadow:', transformed)
 				await u(thingName, transformed)
 				continue
 			}
@@ -143,16 +142,12 @@ export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 				message.message.response?.body !== undefined &&
 				message.coapRequestUrl === 'FETCH /loc/ground-fix'
 			) {
-				try {
-					const base64 = message.message.response.body
-					const parsed = parseCbor(base64)
-					const ts = Date.parse(message.receivedAt ?? '') || Date.now()
-					const lwm2mObject = locationDataFromCOAPToLwm2m(parsed, ts)
-					console.log('CoAP → LwM2M object:', lwm2mObject)
-					await u(thingName, [lwm2mObject])
-				} catch (err) {
-					console.error('Failed to parse CoAP body:', err)
-				}
+				const base64 = message.message.response.body
+				const parsed = parseCbor(base64)
+				const ts = Date.parse(message.receivedAt ?? '') || Date.now()
+				const lwm2mObject = locationDataFromCOAPToLwm2m(parsed, ts)
+				console.log('CoAP location LwM2M object to shadow:', lwm2mObject)
+				await u(thingName, [lwm2mObject])
 				continue
 			}
 
