@@ -36,13 +36,18 @@ export class NRPlusDemoStack extends Stack {
 			lambdaSources.webhookHandler,
 			{
 				runtime: Lambda.Runtime.NODEJS_22_X,
-				description: '',
+				description:
+					'Webhook handler for LwM2M messages coming from nRF Cloud MRS',
 				layers: [baseLayer],
 				timeout: CloudFormation.Duration.seconds(60),
 				initialPolicy: [
 					new IAM.PolicyStatement({
-						actions: ['iot:UpdateThingShadow'],
-						resources: ['*'],
+						actions: [
+							'iot:UpdateThingShadow',
+							'iot:DescribeThing',
+							'iot:CreateThing',
+						],
+						resources: ['arn:aws:iot:eu-central-1:374216331074:thing/*'],
 					}),
 				],
 			},

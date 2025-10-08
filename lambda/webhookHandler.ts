@@ -1,3 +1,4 @@
+import { CreateThingCommand, IoTClient } from '@aws-sdk/client-iot'
 import { IoTDataPlaneClient } from '@aws-sdk/client-iot-data-plane'
 import { validateInput } from '@hello.nrfcloud.com/lambda-helpers/validateInput'
 import { shadowToObjects } from '@hello.nrfcloud.com/proto-map/lwm2m/aws'
@@ -10,9 +11,11 @@ import type {
 } from 'aws-lambda'
 import { locationDataFromCOAPToLwm2m } from '../nordicNRPlus/locationDataFromCOAPToLwm2m.ts'
 import { parseCbor } from '../nordicNRPlus/parseCbor.ts'
+import { thingExists } from '../nordicNRPlus/thingExists.ts'
 import { updateShadow } from './updateShadow.ts'
 
 export const iotData = new IoTDataPlaneClient({})
+const iotClient = new IoTClient({})
 
 const u = updateShadow(iotData)
 
@@ -68,15 +71,7 @@ const shadowMessageSchema = Type.Object({
 	),
 })
 
-// 2. Application data
-const appDataMessageSchema = Type.Object({
-	messageType: Type.String(),
-	appId: Type.String(),
-	data: Type.Any(),
-	ts: Type.Number(),
-})
-
-// 3. CoAP request/response
+// 2. CoAP request/response
 const coapMessageSchema = Type.Object({
 	request: Type.Object({
 		body: Type.String(), // base64
@@ -90,8 +85,8 @@ const coapMessageSchema = Type.Object({
 
 const messageSchema = Type.Union([
 	shadowMessageSchema,
-	appDataMessageSchema,
 	coapMessageSchema,
+	Type.Any(),
 ])
 
 export const inputSchemaLwm2mMessage = Type.Object({
@@ -112,64 +107,59 @@ export const inputSchemaLwm2mMessage = Type.Object({
 
 export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 	.use(inputOutputLogger())
-	.use(
-		validateInput(inputSchemaLwm2mMessage, (event) =>
-			JSON.parse(event.body ?? '{}'),
-		),
-	)
+	.use(validateInput(inputSchemaLwm2mMessage))
 	.handler(async (event, context): Promise<APIGatewayProxyResultV2> => {
-		console.log('context:', context.validInput)
-		if (event.requestContext.http.method === 'POST') {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			const body = JSON.parse(event.body ?? '{}')
-			for (const message of body.messages) {
-				const { teamId, deviceId } = message
-				const thingName = `${teamId}-${deviceId}`
-				const lwm2m = message.message.current?.state?.reported?.lwm2m
-				if (lwm2m !== undefined && Object.keys(lwm2m).length > 0) {
-					console.log('Shadow LwM2M data:', lwm2m)
-					const transformed = shadowToObjects(lwm2m)
-					console.log('Transformed LwM2M:', transformed)
-					await u(thingName, transformed)
-					continue
-				}
-
-				// --- CASE 2: CoAP request/response ---
-				if (
-					message.message.response?.body !== undefined &&
-					message.coapRequestUrl === 'FETCH /loc/ground-fix'
-				) {
-					try {
-						const base64 = message.message.response.body
-						const parsed = parseCbor(base64)
-						const ts = Date.parse(message.receivedAt ?? '') || Date.now()
-						const lwm2mObject = locationDataFromCOAPToLwm2m(parsed, ts)
-						console.log('CoAP → LwM2M object:', lwm2mObject)
-						await u(thingName, [lwm2mObject])
-					} catch (err) {
-						console.error('Failed to parse CoAP body:', err)
-					}
-					continue
-				}
-
-				// --- CASE 3: Application DATA messages ---
-				if (message.message.messageType === 'DATA') {
-					console.log('App data message:', message.message)
-					// You could forward or transform these differently
-					continue
-				}
-
-				// --- CASE 4: Fallback ---
-				console.log('Unhandled message shape:', message)
-			}
+		if (event.requestContext.http.method !== 'POST') {
 			return {
-				statusCode: 200,
-				body: JSON.stringify({ message: 'Received' }),
+				statusCode: 405,
+				body: 'Method Not Allowed',
 			}
 		}
+		const validatedInput = context.decodedInput
+		for (const message of validatedInput.messages) {
+			const { teamId, deviceId } = message
+			const thingName = `${teamId}-${deviceId}`
+			if ((await thingExists(iotClient, thingName)) === false) {
+				//if no Thing exists, create it
+				await iotClient.send(
+					new CreateThingCommand({
+						//remember to add permission to cdk
+						thingName,
+						thingTypeName: 'nordic-nrplus',
+					}),
+				)
+			}
+			const lwm2m = message.message.current?.state?.reported?.lwm2m
+			if (lwm2m !== undefined && Object.keys(lwm2m).length > 0) {
+				console.log('Shadow LwM2M data:', lwm2m)
+				const transformed = shadowToObjects(lwm2m)
+				console.log('Transformed LwM2M:', transformed)
+				await u(thingName, transformed)
+				continue
+			}
 
+			// --- CASE 2: CoAP request/response ---
+			if (
+				message.message.response?.body !== undefined &&
+				message.coapRequestUrl === 'FETCH /loc/ground-fix'
+			) {
+				try {
+					const base64 = message.message.response.body
+					const parsed = parseCbor(base64)
+					const ts = Date.parse(message.receivedAt ?? '') || Date.now()
+					const lwm2mObject = locationDataFromCOAPToLwm2m(parsed, ts)
+					console.log('CoAP → LwM2M object:', lwm2mObject)
+					await u(thingName, [lwm2mObject])
+				} catch (err) {
+					console.error('Failed to parse CoAP body:', err)
+				}
+				continue
+			}
+
+			// --- CASE 3: Fallback ---
+			console.log('Unhandled message shape:', message)
+		}
 		return {
-			statusCode: 405,
-			body: 'Method Not Allowed',
+			statusCode: 200,
 		}
 	})
