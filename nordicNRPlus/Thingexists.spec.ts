@@ -29,17 +29,12 @@ void describe('thingExists', () => {
 		assert.equal(result, true)
 		assert.equal(icSend.mock.calls.length, 1)
 
-		// robust extraction of the first argument:
 		const firstCall = icSend.mock.calls[0]
 		const cmd = Array.isArray(firstCall)
 			? firstCall[0]
 			: (firstCall as any).arguments?.[0]
 		assert.ok(cmd !== undefined, 'no command recorded in mock calls')
-
-		// Preferred: check the input shape
 		assert.equal(cmd.input?.thingName, 'myDevice123')
-
-		// Optional: fallback type check (less reliable than shape check)
 		assert.equal(cmd.constructor?.name, 'DescribeThingCommand')
 	})
 	void it('should handle non-existing thing in Iot Core', async () => {
