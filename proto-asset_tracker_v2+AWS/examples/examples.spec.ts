@@ -1,10 +1,14 @@
 import { type LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { senMLtoLwM2M } from '@hello.nrfcloud.com/proto-map/senml'
 import jsonata from 'jsonata'
+import assert from 'node:assert'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { describe, it } from 'node:test'
-import { arrayContaining, check } from 'tsmatchers'
 import { Asset_tracker_v2_AWS } from '../transforms.ts'
 import { TransformType, type Transform } from '../types.ts'
+
+const __dirname = new URL('.', import.meta.url).pathname
 
 void describe('asset_tracker_v2+AWS examples', () => {
 	for (const [input, expected] of [
@@ -130,14 +134,10 @@ void describe('asset_tracker_v2+AWS examples', () => {
 				(Asset_tracker_v2_AWS.transforms ?? []).filter(
 					({ type }) => type === TransformType.Shadow,
 				),
-			)(
-				await import(input, {
-					assert: { type: 'json' },
-				}),
-			)
+			)(JSON.parse(await readFile(path.join(__dirname, input), 'utf-8')))
 
 			for (const expectedObject of expected) {
-				check(result).is(arrayContaining(expectedObject))
+				assert.partialDeepStrictEqual(result, [expectedObject])
 			}
 		})
 	}

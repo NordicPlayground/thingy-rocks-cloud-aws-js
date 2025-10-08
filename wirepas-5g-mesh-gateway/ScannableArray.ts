@@ -1,3 +1,7 @@
+type RelativeIndexable<T> = {
+	at(index: number): T | undefined
+}
+
 export class ScannableArray {
 	public readonly array: RelativeIndexable<number>
 	private index = 0
