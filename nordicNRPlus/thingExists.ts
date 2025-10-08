@@ -5,14 +5,10 @@ export const thingExists = async (
 	thingName: string,
 ): Promise<boolean> => {
 	try {
-		const response = await iotClient.send(
-			new DescribeThingCommand({ thingName }),
-		)
-		console.log('Thing exists:', response)
+		await iotClient.send(new DescribeThingCommand({ thingName }))
 		return true
 	} catch (err: any) {
 		if (err.name === 'ResourceNotFoundException') {
-			console.log('Thing does not exist')
 			return false
 		} else {
 			return false
