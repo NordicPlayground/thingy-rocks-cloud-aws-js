@@ -47,7 +47,9 @@ export class NRPlusDemoStack extends Stack {
 							'iot:DescribeThing',
 							'iot:CreateThing',
 						],
-						resources: ['arn:aws:iot:eu-central-1:374216331074:thing/*'],
+						resources: [
+							'arn:aws:iot:eu-central-1:374216331074:thing/*/shadow/lwm2m',
+						],
 					}),
 				],
 			},
