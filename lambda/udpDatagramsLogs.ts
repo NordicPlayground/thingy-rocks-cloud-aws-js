@@ -45,7 +45,7 @@ const logDb = {
 		return (
 			Items?.map((i) => {
 				const { ttl, deviceId, ...rest } = unmarshall(i)
-				void ttl, deviceId
+				;(void ttl, deviceId)
 				return {
 					...rest,
 					ts: new Date(decodeTime(rest.messageId)).toISOString(),
