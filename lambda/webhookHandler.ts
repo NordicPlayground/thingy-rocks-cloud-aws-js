@@ -121,12 +121,17 @@ export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 			const thingName = `${teamId}-${deviceId}`
 			//check if thing exists, if not create it
 			if ((await thingExists(iotClient, thingName)) === false) {
-				await iotClient.send(
-					new CreateThingCommand({
-						thingName,
-						thingTypeName: 'nordic-nrplus',
-					}),
-				)
+				try {
+					await iotClient.send(
+						new CreateThingCommand({
+							thingName,
+							thingTypeName: 'nordic-nrplus',
+						}),
+					)
+				} catch (error) {
+					console.error('Error creating thing:', error)
+					continue
+				}
 			}
 			// --- CASE 1: Shadow update ---
 			const lwm2m = message.message.current?.state?.reported?.lwm2m
