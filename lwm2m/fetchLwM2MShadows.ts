@@ -27,12 +27,13 @@ export const fetchLwM2MShadows = (
 		return (
 			await Promise.all<LwM2MShadow>(
 				(things ?? []).map(async ({ thingName, shadow }) => {
-					const alias = (await deviceInfo(thingName as string)).alias
+					const { alias, type } = await deviceInfo(thingName as string)
 					const reported = JSON.parse(shadow ?? '{}').name.lwm2m.reported
 					if (reported === undefined)
 						return {
 							deviceId: thingName as string,
 							alias,
+							deviceType: type,
 							objects: [],
 						}
 
@@ -40,6 +41,7 @@ export const fetchLwM2MShadows = (
 						return {
 							deviceId: thingName as string,
 							alias,
+							deviceType: type,
 							objects: shadowToObjects(reported).filter((instance) => {
 								const updateTs = instanceTs(instance)
 								return (
@@ -62,6 +64,7 @@ export const fetchLwM2MShadows = (
 						return {
 							deviceId: thingName as string,
 							alias,
+							deviceType: type,
 							objects: [],
 						}
 					}
