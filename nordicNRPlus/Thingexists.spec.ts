@@ -7,21 +7,7 @@ void describe('thingExists', () => {
 	void it('should check if thing exists in Iot Core', async () => {
 		const icSend = mock.fn(async () =>
 			Promise.resolve({
-				$metadata: {
-					httpStatusCode: 200,
-					requestId: '',
-					extendedRequestId: undefined,
-					cfId: undefined,
-					attempts: 1,
-					totalRetryDelay: 0,
-				},
 				attributes: { name: 'myDevice123' },
-				defaultClientId: '',
-				thingArn: '',
-				thingId: '',
-				thingName: '',
-				thingTypeName: '',
-				version: 3,
 			}),
 		)
 		const iotClient: IoTClient = { send: icSend } as unknown as IoTClient
