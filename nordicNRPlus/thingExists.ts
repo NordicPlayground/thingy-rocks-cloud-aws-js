@@ -8,10 +8,6 @@ export const thingExists = async (
 		await iotClient.send(new DescribeThingCommand({ thingName }))
 		return true
 	} catch (err: any) {
-		if (err.name === 'ResourceNotFoundException') {
-			return false
-		} else {
-			return false
-		}
+		return false
 	}
 }
