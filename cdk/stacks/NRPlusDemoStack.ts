@@ -62,7 +62,7 @@ export class NRPlusDemoStack extends Stack {
 		new CfnOutput(this, 'WebhookFunctionURL', {
 			exportName: 'WebhookFunctionURL',
 			description: 'The URL for the webhook function',
-			value: `${functionUrl.url}`,
+			value: functionUrl.url,
 		})
 	}
 }
