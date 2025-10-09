@@ -6,7 +6,7 @@ export type LocationData = {
 	uncertainty: number
 	src: string
 }
-export const parseCbor = (cborData: string): LocationData => {
+export const parseCBORLocationData = (cborData: string): LocationData => {
 	const buf = Buffer.from(cborData, 'base64')
 	const decoded = cbor.decodeAllSync(buf)
 	const keyMap: Record<number, string> = {
