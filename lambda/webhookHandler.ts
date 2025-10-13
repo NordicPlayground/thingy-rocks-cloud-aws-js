@@ -1,7 +1,6 @@
-import { CreateThingCommand, IoTClient } from '@aws-sdk/client-iot'
+import { IoTClient } from '@aws-sdk/client-iot'
 import { IoTDataPlaneClient } from '@aws-sdk/client-iot-data-plane'
 import { validateInput } from '@hello.nrfcloud.com/lambda-helpers/validateInput'
-import { shadowToObjects } from '@hello.nrfcloud.com/proto-map/lwm2m/aws'
 import middy from '@middy/core'
 import inputOutputLogger from '@middy/input-output-logger'
 import { Type } from '@sinclair/typebox'
@@ -9,9 +8,8 @@ import type {
 	APIGatewayProxyEventV2,
 	APIGatewayProxyResultV2,
 } from 'aws-lambda'
-import { locationDataFromCOAPToLwm2m } from '../nordicNRPlus/locationDataFromCOAPToLwm2m.ts'
-import { parseCbor } from '../nordicNRPlus/parseCbor.ts'
-import { thingExists } from '../nordicNRPlus/thingExists.ts'
+import { ensureThingExists } from './ensureThingExists.ts'
+import { processMessage } from './processMessage.ts'
 import { updateShadow } from './updateShadow.ts'
 
 export const iotData = new IoTDataPlaneClient({})
@@ -71,7 +69,6 @@ const shadowMessageSchema = Type.Object({
 	),
 })
 
-// 2. CoAP request/response
 const coapMessageSchema = Type.Object({
 	request: Type.Object({
 		body: Type.String(), // base64
@@ -105,6 +102,8 @@ export const inputSchemaLwm2mMessage = Type.Object({
 	timestamp: Type.String(),
 })
 
+const ensureThing = ensureThingExists(iotClient)
+
 export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 	.use(inputOutputLogger())
 	.use(validateInput(inputSchemaLwm2mMessage))
@@ -119,45 +118,25 @@ export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 		for (const message of validatedInput.messages) {
 			const { teamId, deviceId } = message
 			const thingName = `${teamId}-${deviceId}`
-			//check if thing exists, if not create it
-			if ((await thingExists(iotClient, thingName)) === false) {
-				try {
-					await iotClient.send(
-						new CreateThingCommand({
-							thingName,
-							thingTypeName: 'nordic-nrplus',
-						}),
-					)
-				} catch (error) {
-					console.error('Error creating thing:', error)
-					continue
-				}
+			try {
+				await ensureThing(thingName)
+			} catch (error) {
+				throw new Error(
+					`Failed to ensure thing exists: ${thingName} with the error: ${(error as Error).message}`,
+				)
 			}
-			// --- CASE 1: Shadow update ---
-			const lwm2m = message.message.current?.state?.reported?.lwm2m
-			if (lwm2m !== undefined && Object.keys(lwm2m).length > 0) {
-				const transformed = shadowToObjects(lwm2m)
-				console.log('LwM2M update to shadow:', transformed)
-				await u(thingName, transformed)
+			const maybeProcessedMessage = processMessage(message)
+			if (maybeProcessedMessage === undefined) {
+				console.log('Unhandled message:', message)
 				continue
 			}
-
-			// --- CASE 2: CoAP request/response ---
-			if (
-				message.message.response?.body !== undefined &&
-				message.coapRequestUrl === 'FETCH /loc/ground-fix'
-			) {
-				const base64 = message.message.response.body
-				const parsed = parseCbor(base64)
-				const ts = Date.parse(message.receivedAt ?? '') || Date.now()
-				const lwm2mObject = locationDataFromCOAPToLwm2m(parsed, ts)
-				console.log('CoAP location LwM2M object to shadow:', lwm2mObject)
-				await u(thingName, [lwm2mObject])
-				continue
-			}
-
-			// --- CASE 3: Fallback ---
-			console.log('Unhandled message shape:', message)
+			await u(thingName, maybeProcessedMessage)
+			console.log(
+				'Updated shadow for',
+				thingName,
+				'with the message',
+				JSON.stringify(maybeProcessedMessage),
+			)
 		}
 		return {
 			statusCode: 200,

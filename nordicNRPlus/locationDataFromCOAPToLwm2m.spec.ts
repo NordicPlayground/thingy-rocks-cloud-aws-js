@@ -9,18 +9,20 @@ void describe('locationToLwm2m', () => {
 		uncertainty: 20,
 		src: 'WIFI',
 	}
-	const expectedResult = {
-		ObjectID: 14201,
-		ObjectVersion: '1.0',
-		ObjectInstanceID: 1,
-		Resources: {
-			'0': 63.431703,
-			'1': 10.396597,
-			'3': 20,
-			'6': 'WIFI',
-			'99': 1699217657,
+	const expectedResult = [
+		{
+			ObjectID: 14201,
+			ObjectVersion: '1.0',
+			ObjectInstanceID: 1,
+			Resources: {
+				'0': 63.431703,
+				'1': 10.396597,
+				'3': 20,
+				'6': 'WIFI',
+				'99': 1699217657,
+			},
 		},
-	}
+	]
 	assert.deepEqual(
 		locationDataFromCOAPToLwm2m(locationObject, 1699217657000),
 		expectedResult,
