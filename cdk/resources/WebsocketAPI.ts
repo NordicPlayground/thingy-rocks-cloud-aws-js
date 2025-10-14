@@ -340,32 +340,6 @@ export class WebsocketAPI extends Construct {
 			},
 		)
 
-		const publishLwm2mShadowUpdatesRule = new IoT.CfnTopicRule(
-			this,
-			'publishLwm2mShadowUpdatesRule',
-			{
-				topicRulePayload: {
-					description: `Publish lwm2m shadow updates to the Websocket API`,
-					ruleDisabled: false,
-					awsIotSqlVersion: '2016-03-23',
-					sql: `SELECT current.state.reported AS reported, topic(3) as deviceId FROM '$aws/things/+/shadow/name/lwm2m/update/documents'`,
-					actions: [
-						{
-							lambda: {
-								functionArn: publishToWebsocketClients.functionArn,
-							},
-						},
-					],
-					errorAction: {
-						republish: {
-							roleArn: publishToWebsocketClientsRuleRole.roleArn,
-							topic: 'errors',
-						},
-					},
-				},
-			},
-		)
-
 		publishToWebsocketClients.addPermission(
 			'invokeByPublishShadowUpdatesRulePermission',
 			{
@@ -373,15 +347,6 @@ export class WebsocketAPI extends Construct {
 					'iot.amazonaws.com',
 				) as IAM.IPrincipal,
 				sourceArn: publishShadowUpdatesRule.attrArn,
-			},
-		)
-		publishToWebsocketClients.addPermission(
-			'invokeByPublishLwm2mShadowUpdatesRulePermission',
-			{
-				principal: new IAM.ServicePrincipal(
-					'iot.amazonaws.com',
-				) as IAM.IPrincipal,
-				sourceArn: publishLwm2mShadowUpdatesRule.attrArn,
 			},
 		)
 
