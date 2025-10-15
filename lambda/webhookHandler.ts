@@ -8,14 +8,15 @@ import type {
 	APIGatewayProxyEventV2,
 	APIGatewayProxyResultV2,
 } from 'aws-lambda'
+import { processNrplusMessagesAndUpdateThingShadow } from '../nordicNRPlus/processNrplusMessagesAndUpdateThingShadow.ts'
 import { ensureThingExists } from './ensureThingExists.ts'
-import { processMessage } from './processMessage.ts'
 import { updateShadow } from './updateShadow.ts'
 
 export const iotData = new IoTDataPlaneClient({})
 const iotClient = new IoTClient({})
 
 const u = updateShadow(iotData)
+const ensureThing = ensureThingExists(iotClient)
 
 const neighborsInputSchema = Type.Object({
 	0: Type.Number(),
@@ -101,8 +102,11 @@ export const inputSchemaLwm2mMessage = Type.Object({
 	),
 	timestamp: Type.String(),
 })
-
-const ensureThing = ensureThingExists(iotClient)
+const handle = processNrplusMessagesAndUpdateThingShadow({
+	ensureThing,
+	updateShadow: u,
+	log: (...args) => console.log('[nordicNRPlusHandler]', ...args),
+})
 
 export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 	.use(inputOutputLogger())
@@ -114,30 +118,7 @@ export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 				body: 'Method Not Allowed',
 			}
 		}
-		const validatedInput = context.decodedInput
-		for (const message of validatedInput.messages) {
-			const { teamId, deviceId } = message
-			const thingName = `${teamId}-${deviceId}`
-			try {
-				await ensureThing(thingName)
-			} catch (error) {
-				throw new Error(
-					`Failed to ensure thing exists: ${thingName} with the error: ${(error as Error).message}`,
-				)
-			}
-			const maybeProcessedMessage = processMessage(message)
-			if (maybeProcessedMessage === undefined) {
-				console.log('Unhandled message:', message)
-				continue
-			}
-			await u(thingName, maybeProcessedMessage)
-			console.log(
-				'Updated shadow for',
-				thingName,
-				'with the message',
-				JSON.stringify(maybeProcessedMessage),
-			)
-		}
+		await handle(context.decodedInput)
 		return {
 			statusCode: 200,
 		}

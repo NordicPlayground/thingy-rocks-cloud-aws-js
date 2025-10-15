@@ -1,0 +1,36 @@
+{
+  "current": {
+    "state": {
+      "desired": {
+        "nrfcloud_mqtt_topic_prefix": "prod/teamId/",
+        "pairing": {
+          "state": "paired",
+          "topics": {
+            "d2c": "prod/teamId/m/d/deviceId/d2c",
+            "c2d": "prod/teamId/m/d/deviceId/+/r"
+          }
+        }
+      },
+      "reported": {
+        "lwm2m": {
+          "14503:1.0": {
+            "0": {
+              "0": 1592461780,
+              "1": 703710,
+              "2": "FT",
+              "99": 1760514064
+            }
+          },
+          "14502:1.0": {
+            "0": {
+              "0": 696113427,
+              "1": 0,
+              "99": 1760524760
+            }
+          }
+        }
+      }
+    }
+  },
+  "timestamp": 1760524761
+}
