@@ -4,8 +4,7 @@ import type { LocationData } from './parseCbor.ts'
 export const locationDataFromCOAPToLwm2m = (
 	location: LocationData,
 	ts: number,
-): LwM2MObjectInstance[] => {
-	return [
+): LwM2MObjectInstance[] => [
 		{
 			ObjectID: 14201,
 			ObjectVersion: '1.0',
@@ -19,4 +18,3 @@ export const locationDataFromCOAPToLwm2m = (
 			},
 		},
 	]
-}
