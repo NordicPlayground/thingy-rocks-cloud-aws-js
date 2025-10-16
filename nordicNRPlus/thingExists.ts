@@ -1,7 +1,7 @@
 import { type IoTClient, DescribeThingCommand } from '@aws-sdk/client-iot'
 
-export const thingExists = async (
-	iotClient: IoTClient,
+export const thingExists = (
+	iotClient: IoTClient) => async (
 	thingName: string,
 ): Promise<boolean> => {
 	try {
