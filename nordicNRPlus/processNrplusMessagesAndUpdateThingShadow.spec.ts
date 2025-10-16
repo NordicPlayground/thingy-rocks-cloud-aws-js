@@ -215,4 +215,49 @@ void describe('processNrplusMessagesAndUpdateThingShadow', () => {
 			'updateShadow is not called',
 		)
 	})
+	void it('should call ensureThing only once per thingName', async () => {
+		const thingName = 'team1'
+		const deviceId1 = 'device1'
+		const deviceId2 = 'device2'
+		const ensureThing = mock.fn(async () => {})
+		const updateShadow = mock.fn(async () => {})
+		const process = processNrplusMessagesAndUpdateThingShadow({
+			ensureThing,
+			updateShadow,
+		})
+		await process({
+			messages: [
+				{
+					teamId: thingName,
+					deviceId: deviceId1,
+					messageId: '',
+					message: { test: 'message1' },
+				},
+				{
+					teamId: thingName,
+					deviceId: deviceId1,
+					messageId: '',
+					message: { test: 'message2' },
+				},
+				{
+					teamId: thingName,
+					deviceId: deviceId2,
+					messageId: '',
+					message: { test: 'message3' },
+				},
+			],
+			type: 'device.messages',
+			timestamp: '',
+		})
+		assert.equal(
+			ensureThing.mock.calls.length,
+			2,
+			'ensureThing is called twice',
+		)
+		assert.equal(
+			updateShadow.mock.calls.length,
+			0,
+			'updateShadow is not called',
+		)
+	})
 })

@@ -15,16 +15,23 @@ export const processNrplusMessagesAndUpdateThingShadow =
 	async (
 		validatedInput: Static<typeof inputSchemaLwm2mMessage>,
 	): Promise<void> => {
+		const ensuredThings = new Map<string, Promise<void>>()
 		for (const message of validatedInput.messages) {
 			const { teamId, deviceId } = message
 			const thingName = `${teamId}-${deviceId}`
-			try {
-				await ensureThing(thingName)
-			} catch (error) {
-				throw new Error(
-					`Failed to ensure thing exists: ${thingName} with the error: ${(error as Error).message}`,
-				)
+			let ensurePromise = ensuredThings.get(thingName)
+			if (!ensurePromise) {
+				ensurePromise = ensureThing(thingName).catch((error) => {
+					// If it fails, remove it from cache to allow retries
+					ensuredThings.delete(thingName)
+					throw new Error(
+						`Failed to ensure thing exists: ${thingName} with the error: ${(error as Error).message}`,
+					)
+				})
+				ensuredThings.set(thingName, ensurePromise)
 			}
+			await ensurePromise
+
 			const maybeProcessedMessage = processMessage(message)
 			if (maybeProcessedMessage === undefined) {
 				log?.('Unhandled message:', message)
