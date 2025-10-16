@@ -7,7 +7,7 @@ export const thingExists = async (
 	try {
 		await iotClient.send(new DescribeThingCommand({ thingName }))
 		return true
-	} catch (err: any) {
+	} catch {
 		return false
 	}
 }
