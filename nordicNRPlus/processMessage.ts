@@ -1,8 +1,8 @@
 import type { LwM2MObjectInstance } from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { shadowToObjects } from '@hello.nrfcloud.com/proto-map/lwm2m/aws'
-import type { inputSchemaLwm2mMessage } from '../lambda/webhookHandler.ts'
 import { locationDataFromCOAPToLwm2m } from './locationDataFromCOAPToLwm2m.ts'
 import { parseCBORLocationData } from './parseCbor.ts'
+import type { inputSchemaLwm2mMessage } from './processNrplusMessagesAndUpdateThingShadow.ts'
 
 type messageType = (typeof inputSchemaLwm2mMessage.messages)[0]
 
