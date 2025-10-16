@@ -51,8 +51,12 @@ void describe('processNrplusMessagesAndUpdateThingShadow', () => {
 			type: 'device.messages',
 			timestamp: '',
 		})
-		assert.equal(ensureThing.mock.calls.length, 1) // ensureThing is called
-		assert.equal(updateShadow.mock.calls.length, 0) // updateShadow is not called because message is undefined
+		assert.equal(ensureThing.mock.calls.length, 1, 'ensureThing is called')
+		assert.equal(
+			updateShadow.mock.calls.length,
+			0,
+			'updateShadow is not called because message is undefined',
+		)
 	})
 	void it('should process a location message and update shadow when thing exists and format is correct', async () => {
 		const thingName = 'team1'
@@ -83,27 +87,31 @@ void describe('processNrplusMessagesAndUpdateThingShadow', () => {
 			type: 'device.messages',
 			timestamp: '',
 		})
-		assert.equal(ensureThing.mock.calls.length, 1) // ensureThing is called
-		assert.equal(updateShadow.mock.calls.length, 1) // updateShadow is called
+		assert.equal(ensureThing.mock.calls.length, 1, 'ensureThing is called')
+		assert.equal(updateShadow.mock.calls.length, 1, 'updateShadow is called')
 
 		const firstCallUpdate = updateShadow.mock.calls[0]
 		const secondArgumentUpdate = Array.isArray(firstCallUpdate)
 			? firstCallUpdate[1]
 			: (firstCallUpdate as any).arguments?.[1]
-		assert.deepEqual(secondArgumentUpdate, [
-			{
-				ObjectID: 14201,
-				ObjectVersion: '1.0',
-				ObjectInstanceID: 1,
-				Resources: {
-					'0': 63.4317043,
-					'1': 10.4711207,
-					'3': 17.245,
-					'6': 'WIFI',
-					'99': Date.parse(receivedAt) / 1000,
+		assert.deepEqual(
+			secondArgumentUpdate,
+			[
+				{
+					ObjectID: 14201,
+					ObjectVersion: '1.0',
+					ObjectInstanceID: 1,
+					Resources: {
+						'0': 63.4317043,
+						'1': 10.4711207,
+						'3': 17.245,
+						'6': 'WIFI',
+						'99': Date.parse(receivedAt) / 1000,
+					},
 				},
-			},
-		]) // updateShadow is called with correct message
+			],
+			'updateShadow is called with correct message',
+		)
 	})
 	void it('should not update shadow if message is unhandled', async () => {
 		const thingName = 'team1'
@@ -131,41 +139,53 @@ void describe('processNrplusMessagesAndUpdateThingShadow', () => {
 			type: 'device.messages',
 			timestamp: '',
 		})
-		assert.equal(ensureThing.mock.calls.length, 1) // ensureThing is called
-		assert.equal(updateShadow.mock.calls.length, 1) // updateShadow is called
+		assert.equal(ensureThing.mock.calls.length, 1, 'ensureThing is called')
+		assert.equal(updateShadow.mock.calls.length, 1, 'updateShadow is called')
 
 		const firstCall = ensureThing.mock.calls[0]
 		const firstArgument = Array.isArray(firstCall)
 			? firstCall[0]
 			: (firstCall as any).arguments?.[0]
-		assert.equal(firstArgument, thingName + '-' + deviceId) // ensureThing is called with correct thingName
+		assert.equal(
+			firstArgument,
+			thingName + '-' + deviceId,
+			'ensureThing is called with correct thingName',
+		)
 
 		const firstCallUpdate = updateShadow.mock.calls[0]
 		const firstArgumentUpdate = Array.isArray(firstCallUpdate)
 			? firstCallUpdate[0]
 			: (firstCallUpdate as any).arguments?.[0]
-		assert.equal(firstArgumentUpdate, thingName + '-' + deviceId) // updateShadow is called with correct thingName
+		assert.equal(
+			firstArgumentUpdate,
+			thingName + '-' + deviceId,
+			'updateShadow is called with correct thingName',
+		)
 
 		const secondArgumentUpdate = Array.isArray(firstCallUpdate)
 			? firstCallUpdate[1]
 			: (firstCallUpdate as any).arguments?.[1]
-		assert.deepEqual(secondArgumentUpdate, [
-			{
-				ObjectID: 14503,
-				ObjectVersion: '1.0',
-				Resources: {
-					'0': 1592461780,
-					'1': 703710,
-					'2': 'FT',
-					'99': 1760514064,
+		assert.deepEqual(
+			secondArgumentUpdate,
+			[
+				{
+					ObjectID: 14503,
+					ObjectVersion: '1.0',
+					Resources: {
+						'0': 1592461780,
+						'1': 703710,
+						'2': 'FT',
+						'99': 1760514064,
+					},
 				},
-			},
-			{
-				ObjectID: 14502,
-				ObjectVersion: '1.0',
-				Resources: { '0': 696113427, '1': 0, '99': 1760524760 },
-			},
-		]) // updateShadow is called with correct message
+				{
+					ObjectID: 14502,
+					ObjectVersion: '1.0',
+					Resources: { '0': 696113427, '1': 0, '99': 1760524760 },
+				},
+			],
+			'updateShadow is called with correct message',
+		)
 	})
 	void it('should not update shadow if message is unhandled', async () => {
 		const thingName = 'team1'
@@ -188,7 +208,11 @@ void describe('processNrplusMessagesAndUpdateThingShadow', () => {
 			type: 'device.messages',
 			timestamp: '',
 		})
-		assert.equal(ensureThing.mock.calls.length, 1) // ensureThing is called
-		assert.equal(updateShadow.mock.calls.length, 0) // updateShadow is not called
+		assert.equal(ensureThing.mock.calls.length, 1, 'ensureThing is called')
+		assert.equal(
+			updateShadow.mock.calls.length,
+			0,
+			'updateShadow is not called',
+		)
 	})
 })

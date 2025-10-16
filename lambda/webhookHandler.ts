@@ -9,6 +9,7 @@ import type {
 	APIGatewayProxyResultV2,
 } from 'aws-lambda'
 import { processNrplusMessagesAndUpdateThingShadow } from '../nordicNRPlus/processNrplusMessagesAndUpdateThingShadow.ts'
+import { thingExists } from '../nordicNRPlus/thingExists.ts'
 import { ensureThingExists } from './ensureThingExists.ts'
 import { updateShadow } from './updateShadow.ts'
 
@@ -16,7 +17,7 @@ export const iotData = new IoTDataPlaneClient({})
 const iotClient = new IoTClient({})
 
 const u = updateShadow(iotData)
-const ensureThing = ensureThingExists(iotClient)
+const ensureThing = ensureThingExists(iotClient, thingExists)
 
 const neighborsInputSchema = Type.Object({
 	0: Type.Number(),

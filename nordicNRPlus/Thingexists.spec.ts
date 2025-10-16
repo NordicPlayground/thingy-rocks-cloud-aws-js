@@ -11,7 +11,8 @@ void describe('thingExists', () => {
 			}),
 		)
 		const iotClient: IoTClient = { send: icSend } as unknown as IoTClient
-		const result = await thingExists(iotClient, 'myDevice123')
+		const e = thingExists(iotClient)
+		const result = await e('myDevice123')
 		assert.equal(result, true)
 		assert.equal(icSend.mock.calls.length, 1)
 
@@ -30,7 +31,8 @@ void describe('thingExists', () => {
 			throw error
 		})
 		const iotClient: IoTClient = { send: icSend } as unknown as IoTClient
-		const result = await thingExists(iotClient, 'mySecondDevice123')
+		const e = thingExists(iotClient)
+		const result = await e('mySecondDevice123')
 
 		assert.equal(result, false)
 		assert.equal(icSend.mock.calls.length, 1)
