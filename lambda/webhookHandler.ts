@@ -111,7 +111,7 @@ const handle = processNrplusMessagesAndUpdateThingShadow({
 export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 	.use(inputOutputLogger())
 	.use(validateInput(inputSchemaLwm2mMessage))
-	.handler(async (event, context): Promise<APIGatewayProxyResultV2> => {
+	.handler(async (event, context) => {
 		if (event.requestContext.http.method !== 'POST') {
 			return {
 				statusCode: 405,
