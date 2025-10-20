@@ -5,3 +5,5 @@ export const ASSET_TRACKER_STACK_NAME =
 	process.env.ASSET_TRACKER_STACK_NAME ?? 'nrf-asset-tracker'
 export const NRPLUS_STACK_NAME =
 	process.env.NRPLUS_STACK_NAME ?? `${STACK_NAME}-nrplus`
+export const NRPLUS_DEMO_STACK_NAME =
+	process.env.NRPLUS_DEMO_STACK_NAME ?? `${STACK_NAME}-nrplus-demo`
