@@ -32,7 +32,7 @@ void describe('processNrplusMessagesAndUpdateThingShadow', () => {
 			})
 		}, /Failed to ensure thing exists/)
 	})
-	void it('should process the message when thing exists', async () => {
+	void it('should not update shadow if message is unknown', async () => {
 		const ensureThing = mock.fn(async () => {})
 		const updateShadow = mock.fn(async () => {})
 		const process = processNrplusMessagesAndUpdateThingShadow({
@@ -113,7 +113,7 @@ void describe('processNrplusMessagesAndUpdateThingShadow', () => {
 			'updateShadow is called with correct message',
 		)
 	})
-	void it('should not update shadow if message is unhandled', async () => {
+	void it('should update shadow for lwm2m update if message is in correct format', async () => {
 		const thingName = 'team1'
 		const deviceId = 'device1'
 		const ensureThing = mock.fn(async () => {})

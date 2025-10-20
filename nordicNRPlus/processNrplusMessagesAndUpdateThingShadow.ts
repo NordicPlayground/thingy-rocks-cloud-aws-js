@@ -1,4 +1,5 @@
 import { Type, type Static } from '@sinclair/typebox'
+import { ensureThingPromise } from './ensureThingPromise.ts'
 import { processMessage } from './processMessage.ts'
 
 const neighborsInputSchema = Type.Object({
@@ -103,19 +104,7 @@ export const processNrplusMessagesAndUpdateThingShadow =
 		for (const message of validatedInput.messages) {
 			const { teamId, deviceId } = message
 			const thingName = `${teamId}-${deviceId}`
-			let ensurePromise = ensuredThings.get(thingName)
-			if (!ensurePromise) {
-				ensurePromise = ensureThing(thingName).catch((error) => {
-					// If it fails, remove it from cache to allow retries
-					ensuredThings.delete(thingName)
-					throw new Error(
-						`Failed to ensure thing exists: ${thingName} with the error: ${(error as Error).message}`,
-					)
-				})
-				ensuredThings.set(thingName, ensurePromise)
-			}
-			await ensurePromise
-
+			await ensureThingPromise(ensuredThings, ensureThing, thingName)
 			const maybeProcessedMessage = processMessage(message)
 			if (maybeProcessedMessage === undefined) {
 				log?.('Unhandled message:', message)
