@@ -10,6 +10,7 @@ import {
 } from '@hello.nrfcloud.com/proto-map/lwm2m'
 import { shadowToObjects } from '@hello.nrfcloud.com/proto-map/lwm2m/aws'
 import { getDeviceInfo } from '../lambda/withDeviceAlias.ts'
+import { lastUpdate } from './lastUpdate.ts'
 
 type LwM2MShadow = {
 	deviceId: string
@@ -39,49 +40,61 @@ export const fetchLwM2MShadows = (
 
 		return (
 			await Promise.all<LwM2MShadow>(
-				(things ?? []).map(async ({ thingName, shadow }) => {
-					const { alias, type } = await deviceInfo(thingName as string)
-					const reported = JSON.parse(shadow ?? '{}').name.lwm2m.reported
-					if (reported === undefined)
-						return {
-							deviceId: thingName as string,
-							alias,
-							deviceType: type,
-							objects: [],
-						}
+				(things ?? [])
+					// Ignore shadows which have not been updated recently
+					.filter(({ shadow }) => {
+						const metadata =
+							JSON.parse(shadow ?? '{}').name.lwm2m.metadata?.reported ?? {}
 
-					try {
-						return {
-							deviceId: thingName as string,
-							alias,
-							deviceType: type,
-							objects: shadowToObjects(reported).filter((instance) => {
-								const updateTs = instanceTs(instance)
-								return (
-									Date.now() - updateTs * 1000 <
-									notOlderThanDays * 24 * 60 * 60 * 1000
-								)
-							}),
+						const ageInDays =
+							(Date.now() - lastUpdate(metadata) * 1000) / 1000 / 60 / 60 / 24
+
+						return ageInDays <= notOlderThanDays
+					})
+					.map(async ({ thingName, shadow }) => {
+						const { alias, type } = await deviceInfo(thingName as string)
+						const reported = JSON.parse(shadow ?? '{}').name.lwm2m.reported
+
+						if (reported === undefined)
+							return {
+								deviceId: thingName as string,
+								alias,
+								deviceType: type,
+								objects: [],
+							}
+
+						try {
+							return {
+								deviceId: thingName as string,
+								alias,
+								deviceType: type,
+								objects: shadowToObjects(reported).filter((instance) => {
+									const updateTs = instanceTs(instance)
+									return (
+										Date.now() - updateTs * 1000 <
+										notOlderThanDays * 24 * 60 * 60 * 1000
+									)
+								}),
+							}
+						} catch (err) {
+							console.error(`Failed to convert shadow for thing ${thingName}`)
+							console.log(
+								JSON.stringify({
+									thingName,
+									shadow: {
+										reported,
+									},
+								}),
+							)
+							console.error(err)
+							return {
+								deviceId: thingName as string,
+								alias,
+								deviceType: type,
+								objects: [],
+							}
 						}
-					} catch (err) {
-						console.error(`Failed to convert shadow for thing ${thingName}`)
-						console.log(
-							JSON.stringify({
-								thingName,
-								shadow: {
-									reported,
-								},
-							}),
-						)
-						console.error(err)
-						return {
-							deviceId: thingName as string,
-							alias,
-							deviceType: type,
-							objects: [],
-						}
-					}
-				}),
+					}),
 			)
 		).filter(({ objects }) => objects.length > 0)
 	}
