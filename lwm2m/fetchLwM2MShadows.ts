@@ -1,4 +1,8 @@
-import type { IoTClient } from '@aws-sdk/client-iot'
+import type {
+	IoTClient,
+	SearchIndexCommandOutput,
+	ThingDocument,
+} from '@aws-sdk/client-iot'
 import { SearchIndexCommand } from '@aws-sdk/client-iot'
 import {
 	instanceTs,
@@ -18,12 +22,21 @@ export const fetchLwM2MShadows = (
 ): ((notOlderThanDays?: number) => Promise<LwM2MShadow[]>) => {
 	const deviceInfo = getDeviceInfo(iot)
 	return async (notOlderThanDays = 30) => {
-		const { things } = await iot.send(
-			new SearchIndexCommand({
-				// Find all things which have an LwM2M shadow
-				queryString: 'shadow.name.lwm2m.hasDelta:*',
-			}),
-		)
+		const things: Array<ThingDocument> = []
+		let nextToken: string | undefined = undefined
+		do {
+			const res: SearchIndexCommandOutput = await iot.send(
+				new SearchIndexCommand({
+					// Find all things which have an LwM2M shadow
+					queryString: 'shadow.name.lwm2m.hasDelta:*',
+					nextToken,
+					maxResults: 250,
+				}),
+			)
+			nextToken = res.nextToken
+			things.push(...(res.things ?? []))
+		} while (nextToken !== undefined)
+
 		return (
 			await Promise.all<LwM2MShadow>(
 				(things ?? []).map(async ({ thingName, shadow }) => {
