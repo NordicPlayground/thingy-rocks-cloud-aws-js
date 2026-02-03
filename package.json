@@ -47,7 +47,7 @@
     "@types/node": "25.2.0",
     "@typescript/native-preview": "7.0.0-dev.20260203.1",
     "aws-cdk": "2.1104.0",
-    "aws-cdk-lib": "2.237.0",
+    "aws-cdk-lib": "2.237.1",
     "cdk": "2.1104.0",
     "chalk": "5.6.2",
     "check-node-version": "4.2.1",
