@@ -64,7 +64,7 @@ export class Memfault extends Construct {
 		const fn = new Lambda.Function(this, 'fn', {
 			handler: lambdaSources.memfaultPublishReboots.handler,
 			architecture: Lambda.Architecture.ARM_64,
-			runtime: Lambda.Runtime.NODEJS_22_X,
+			runtime: Lambda.Runtime.NODEJS_24_X,
 			timeout: Duration.seconds(60),
 			memorySize: 1792,
 			code: new LambdaSource(this, lambdaSources.memfaultPublishReboots).code,
@@ -114,7 +114,7 @@ export class Memfault extends Construct {
 		const pollForRebootsFn = new Lambda.Function(this, 'pollForRebootsFn', {
 			handler: lambdaSources.memfaultPollForReboots.handler,
 			architecture: Lambda.Architecture.ARM_64,
-			runtime: Lambda.Runtime.NODEJS_22_X,
+			runtime: Lambda.Runtime.NODEJS_24_X,
 			timeout: Duration.seconds(120),
 			memorySize: 1792,
 			code: new LambdaSource(this, lambdaSources.memfaultPollForReboots).code,
