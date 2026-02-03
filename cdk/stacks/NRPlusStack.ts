@@ -22,7 +22,7 @@ export class NRPlusStack extends Stack {
 			layerVersionName: `${Stack.of(this).stackName}-baseLayer`,
 			code: Lambda.Code.fromAsset(layer.layerZipFilePath),
 			compatibleArchitectures: [Lambda.Architecture.ARM_64],
-			compatibleRuntimes: [Lambda.Runtime.NODEJS_22_X],
+			compatibleRuntimes: [Lambda.Runtime.NODEJS_24_X],
 		})
 
 		new NRPlusGateway(this, {
