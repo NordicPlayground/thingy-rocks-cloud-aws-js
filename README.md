@@ -75,7 +75,12 @@ aws ssm put-parameter --name /thingy-rocks-backend/memfault/projectId --type Str
 
 ### UDP ingress
 
-`udp.ingress.thingy.rocks` receives UDP packages on port `6666`.
+`udp.ingress.thingy.rocks` receives UDP packages on the following ports:
+
+- Port `6666`: Plain text CSV format (IMEI, timestamp, ping, rsrp, band,
+  ue_mode, operator, latitude, longitude, accuracy, battery, temp, pressure,
+  humidity)
+- Port `6667`: CBOR-encoded SenML containing LwM2M objects
 
 ### API domain
 

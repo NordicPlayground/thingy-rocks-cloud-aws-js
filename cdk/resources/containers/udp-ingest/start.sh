@@ -8,6 +8,7 @@ for interface in $ipv4_interfaces; do
     IP=$(ip -o -4 addr show $interface | awk '{print $4}' | cut -d'/' -f1)
     echo "Interface: $interface, Assigned IP: $IP"
     nohup /home/udp-ingest/udp-ingest -address $IP:6666 &
+    nohup /home/udp-ingest/udp-ingest -address $IP:6667 &
     nohup /home/udp-ingest/health -address $IP:8080 &
 done
 
