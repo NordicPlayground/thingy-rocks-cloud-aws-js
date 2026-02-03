@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"net"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -40,7 +43,11 @@ func main() {
 	check(err)
 	defer conn.Close()
 
-	fmt.Printf("Listening on %s\n", *address)
+	// Extract port from address
+	addressParts := strings.Split(*address, ":")
+	sourcePort := addressParts[len(addressParts)-1]
+
+	fmt.Printf("Listening on %s (port %s)\n", *address, sourcePort)
 
 	buffer := make([]byte, 1024)
 
@@ -51,13 +58,28 @@ func main() {
 			continue
 		}
 
-		fmt.Printf("Received %s from %s\n", string(buffer[:n]), addr)
-
-		messageBody := string(buffer[:n])
+		// Determine message body format based on port
+		var messageBody string
+		port, _ := strconv.Atoi(sourcePort)
+		if port == 6667 {
+			// For port 6667, encode binary CBOR data as base64
+			messageBody = base64.StdEncoding.EncodeToString(buffer[:n])
+			fmt.Printf("Received %d bytes (CBOR) from %s on port %s\n", n, addr, sourcePort)
+		} else {
+			// For other ports, treat as text
+			messageBody = string(buffer[:n])
+			fmt.Printf("Received %s from %s on port %s\n", messageBody, addr, sourcePort)
+		}
 
 		sendMessageInput := &sqs.SendMessageInput{
 			MessageBody: aws.String(messageBody),
 			QueueUrl:    aws.String(queueURL),
+			MessageAttributes: map[string]*sqs.MessageAttributeValue{
+				"sourcePort": {
+					DataType:    aws.String("Number"),
+					StringValue: aws.String(sourcePort),
+				},
+			},
 		}
 
 		_, err = sqsClient.SendMessage(sendMessageInput)

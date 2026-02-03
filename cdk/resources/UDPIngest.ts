@@ -20,6 +20,7 @@ import { Construct } from 'constructs'
 
 const HEALTH_CHECK_PORT = 8080
 const UDP_PORT = 6666
+const UDP_PORT_LWM2M = 6667
 
 export class UDPIngest extends Construct {
 	public readonly nlb: NetworkLoadBalancer
@@ -48,6 +49,12 @@ export class UDPIngest extends Construct {
 			EC2.Peer.anyIpv4(),
 			EC2.Port.udp(UDP_PORT),
 			'allow UDP',
+		)
+
+		securityGroup.addIngressRule(
+			EC2.Peer.anyIpv4(),
+			EC2.Port.udp(UDP_PORT_LWM2M),
+			'allow UDP LwM2M',
 		)
 
 		securityGroup.addIngressRule(
@@ -104,6 +111,12 @@ export class UDPIngest extends Construct {
 		container.addPortMappings({
 			containerPort: UDP_PORT,
 			hostPort: UDP_PORT,
+			protocol: ECS.Protocol.UDP,
+		})
+
+		container.addPortMappings({
+			containerPort: UDP_PORT_LWM2M,
+			hostPort: UDP_PORT_LWM2M,
 			protocol: ECS.Protocol.UDP,
 		})
 
@@ -178,9 +191,30 @@ export class UDPIngest extends Construct {
 			protocol: Protocol.UDP,
 			defaultTargetGroups: [forwardUDP],
 		})
+
+		const forwardUDPLwM2M = new NetworkTargetGroup(this, 'udpIngressLwM2MTG', {
+			targets: [service],
+			port: UDP_PORT_LWM2M,
+			protocol: Protocol.UDP,
+			vpc,
+			// All targets must have TCP health check
+			healthCheck: {
+				port: `${HEALTH_CHECK_PORT}`,
+			},
+		})
+
+		this.nlb.addListener('udpLwM2MListener', {
+			port: UDP_PORT_LWM2M,
+			protocol: Protocol.UDP,
+			defaultTargetGroups: [forwardUDPLwM2M],
+		})
 		;(service.node.defaultChild as CfnService).addPropertyOverride(
 			'LoadBalancers.1.ContainerPort',
 			UDP_PORT,
+		)
+		;(service.node.defaultChild as CfnService).addPropertyOverride(
+			'LoadBalancers.2.ContainerPort',
+			UDP_PORT_LWM2M,
 		)
 	}
 }
