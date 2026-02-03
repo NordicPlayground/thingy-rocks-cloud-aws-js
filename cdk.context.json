@@ -1,5 +1,5 @@
 {
-  "acknowledged-issue-numbers": [29483, 32775],
+  "acknowledged-issue-numbers": [29483, 32775, 34892],
   "publicIpSubnet:374216331074:us-west-2": "subnet-065fb207ddb235155",
   "publicIpAllocation:374216331074:us-west-2": "eipalloc-00a526f52277124a2",
   "publicIpSubnet:374216331074:eu-central-1": "subnet-05c1ec3b112acce0f",
