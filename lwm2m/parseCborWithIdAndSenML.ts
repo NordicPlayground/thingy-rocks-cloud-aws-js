@@ -18,7 +18,6 @@ export const parseCborWithIdAndSenML = (
 	try {
 		const buffer = Buffer.from(base64Payload, 'base64')
 		const decoded = cbor.decodeAllSync(buffer)
-		console.log(decoded)
 		// CBOR decoded result is an array of arrays, we need to flatten it
 		const [deviceId, cborRecords] = decoded[0] as [
 			string,
