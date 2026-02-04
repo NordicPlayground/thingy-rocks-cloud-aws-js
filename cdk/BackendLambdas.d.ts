@@ -7,6 +7,7 @@ type BackendLambdas = {
 	onDisconnect: PackedLambda
 	onCellGeoLocationResolved: PackedLambda
 	resolveCellLocation: PackedLambda
+	resolveCellLocationFromLwM2M: PackedLambda
 	publishSummaries: PackedLambda
 	onNewNetworkSurvey: PackedLambda
 	onNetworkSurveyLocated: PackedLambda

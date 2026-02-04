@@ -17,6 +17,7 @@ import { Memfault } from '../resources/Memfault.ts'
 import { NRPlusGateway } from '../resources/NRPlusGateway.ts'
 import { PublishSummaries } from '../resources/PublishSummaries.ts'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.ts'
+import { ResolveCellLocationFromLwM2M } from '../resources/ResolveCellLocationFromLwM2M.ts'
 import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.ts'
 import { UserAuthentication } from '../resources/UserAuthentication.ts'
 import { WebsocketAPI } from '../resources/WebsocketAPI.ts'
@@ -58,6 +59,15 @@ export class BackendStack extends Stack {
 			),
 			websocketAPI: api,
 			cellGeoStateMachineARN: `arn:aws:states:${this.region}:${this.account}:stateMachine:${assetTrackerStackName}-cellGeo`,
+		})
+
+		new ResolveCellLocationFromLwM2M(this, {
+			lambdaSources,
+			baseLayer,
+			geolocationApiUrl: Fn.importValue(
+				`${assetTrackerStackName}:geolocationApiUrl`,
+			),
+			websocketAPI: api,
 		})
 
 		new ResolveNetworkSurveyGeoLocation(this, {

@@ -1,6 +1,11 @@
 import { ApiGatewayManagementApi } from '@aws-sdk/client-apigatewaymanagementapi'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { IoTClient, SearchIndexCommand } from '@aws-sdk/client-iot'
+import {
+	IoTClient,
+	SearchIndexCommand,
+	type SearchIndexCommandOutput,
+	type ThingDocument,
+} from '@aws-sdk/client-iot'
 import {
 	IoTDataPlaneClient,
 	UpdateThingShadowCommand,
@@ -109,15 +114,22 @@ export const handler = async (event: {
 		},
 	})
 
-	for (const { shadow, thingName } of (
-		await iot.send(
+	const things: Array<ThingDocument> = []
+	let nextToken: string | undefined = undefined
+	do {
+		const res: SearchIndexCommandOutput = await iot.send(
 			new SearchIndexCommand({
-				queryString: `connectivity.timestamp > ${
-					Date.now() - 24 * 60 * 60 * 1000
-				}`,
+				// Find all things which have an LwM2M shadow
+				queryString: 'shadow.name.lwm2m.hasDelta:*',
+				nextToken,
+				maxResults: 250,
 			}),
 		)
-	).things ?? []) {
+		nextToken = res.nextToken
+		things.push(...(res.things ?? []))
+	} while (nextToken !== undefined)
+
+	for (const { shadow, thingName } of things) {
 		if (shadow === undefined) continue
 		if (shadow === null) continue
 		const connRes =
@@ -132,14 +144,12 @@ export const handler = async (event: {
 		}
 
 		const thingCell = {
-			nw: connection.Resources[0],
 			cell: connection.Resources['4'],
 			mccmnc: connection.Resources['5'],
 			area: connection.Resources['3'],
 		}
 
 		if (
-			thingCell.nw === nw &&
 			thingCell.cell === cell &&
 			thingCell.mccmnc === mccmnc &&
 			thingCell.area === area
@@ -168,8 +178,9 @@ export const handler = async (event: {
 					}),
 				}),
 			)
+			console.debug(`Matched`, thingName, thingCell)
 		} else {
-			console.debug(`No match`, thingCell)
+			console.debug(`No match`, thingName, thingCell)
 		}
 	}
 }

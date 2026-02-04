@@ -42,6 +42,7 @@ new BackendApp({
 		onDisconnect: await pack('onDisconnect'),
 		onCellGeoLocationResolved: await pack('onCellGeoLocationResolved'),
 		resolveCellLocation: await pack('resolveCellLocation'),
+		resolveCellLocationFromLwM2M: await pack('resolveCellLocationFromLwM2M'),
 		publishSummaries: await pack('publishSummaries'),
 		onNewNetworkSurvey: await pack('onNewNetworkSurvey'),
 		onNetworkSurveyLocated: await pack('onNetworkSurveyLocated'),
