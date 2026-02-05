@@ -48,6 +48,13 @@ export const handler = async (event: {
 		'6': string // IP address, e.g. '10.126.17.185'
 		'99': number // Timestamp, e.g. 1770242101
 	}
+	scellLocation: {
+		'0': number // lat, e.g. -34.9221747
+		'1': number // lng, e.g. 138.605534
+		'3': number // accuracy, e.g. 163.164
+		'6': string // source, e.g. 'SCELL'
+		'99': number // ts, e.g.  1770275198
+	}
 	deviceId: string // '355025930008394'
 }): Promise<void> => {
 	console.log(JSON.stringify({ event, geolocationApiUrl }))
@@ -66,6 +73,12 @@ export const handler = async (event: {
 			['5']: mccmnc,
 			['99']: ts,
 		},
+		scellLocation: {
+			['0']: SCELLlat,
+			['1']: SCELLlng,
+			['3']: SCELLaccuracy,
+			['6']: SCELLsource,
+		},
 		deviceId,
 	} = event
 
@@ -77,7 +90,7 @@ export const handler = async (event: {
 	}
 
 	const query = new URLSearchParams(request)
-	console.log({ request })
+	console.log(`[${deviceId}]`, { request })
 	const res = await fetch(`${geolocationApiUrl}cell?${query.toString()}`)
 	const body = await res.json()
 	const { lat, lng, accuracy, source } = body
@@ -93,12 +106,23 @@ export const handler = async (event: {
 			3: accuracy,
 		},
 	}
+
+	if (
+		SCELLsource === source &&
+		SCELLlat === lat &&
+		SCELLlng === lng &&
+		SCELLaccuracy === accuracy
+	) {
+		console.log(`[${deviceId}]`, `No change`)
+		return
+	}
+
 	switch (res.status) {
 		case 409:
-			console.log(`Processing ...`)
+			console.log(`[${deviceId}]`, `Processing ...`)
 			break
 		case 200:
-			console.log({ result: JSON.stringify(body) })
+			console.log(`[${deviceId}]`, { result: JSON.stringify(body) })
 
 			// Persist in shadow
 			await update(deviceId, [location])
@@ -111,7 +135,7 @@ export const handler = async (event: {
 			})
 			break
 		default:
-			console.error(JSON.stringify(body))
+			console.error(`[${deviceId}]`, JSON.stringify(body))
 			throw new Error(`Request failed!`)
 	}
 }

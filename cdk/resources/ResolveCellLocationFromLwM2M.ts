@@ -53,6 +53,7 @@ export class ResolveCellLocationFromLwM2M extends Construct {
 					WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
 					GEOLOCATION_API_URL: geolocationApiUrl,
 				},
+				maxEventAge: Duration.hours(1),
 				initialPolicy: [
 					new IAM.PolicyStatement({
 						actions: ['execute-api:ManageConnections'],
@@ -106,7 +107,9 @@ export class ResolveCellLocationFromLwM2M extends Construct {
 					ruleDisabled: false,
 					awsIotSqlVersion: '2016-03-23',
 					sql: [
-						`SELECT get(get(current.state.reported, '14203:1.0'), '0') AS connectionInformation,`,
+						`SELECT`,
+						`get(get(current.state.reported, '14203:1.0'), '0') AS connectionInformation,`,
+						`get(get(current.state.reported, '14201:1.0'), '2') AS scellLocation,`,
 						`topic(3) as deviceId`,
 						`FROM '$aws/things/+/shadow/name/lwm2m/update/documents'`,
 						`WHERE`,
