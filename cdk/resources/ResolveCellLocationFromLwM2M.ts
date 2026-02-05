@@ -53,7 +53,6 @@ export class ResolveCellLocationFromLwM2M extends Construct {
 					WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
 					GEOLOCATION_API_URL: geolocationApiUrl,
 				},
-				maxEventAge: Duration.hours(1),
 				initialPolicy: [
 					new IAM.PolicyStatement({
 						actions: ['execute-api:ManageConnections'],
