@@ -51,6 +51,7 @@ type Readings = Reading[]
 export type Summary = {
 	bat?: Readings
 	temp?: Readings
+	hPa?: Readings
 	// Fuel gauge readings, see https://github.com/NordicSemiconductor/asset-tracker-cloud-docs/blob/4713549af719a7e119324853aa117d752ac856e3/docs/cloud-protocol/Reported.ts#L111
 	fgSoC?: Readings
 	fgI?: Readings
@@ -189,6 +190,24 @@ export const createChartSummary = async ({
 		lwm2mTempsInstance1 as Array<LwM2MResult>,
 		now,
 		(r) => r[0],
+	)
+
+	// Atmospheric pressure
+
+	const lwm2mPressure = (await binnedLwM2MObjectHistory({
+		def: definitions[LwM2MObjectID.Environment_14205],
+		aggregateFn: 'avg',
+		hours: 1,
+	})) as Array<
+		{ [99]: number; deviceId: string } & Environment_14205['Resources']
+	>
+
+	groupLwM2MResult(
+		summaries,
+		'hPa',
+		lwm2mPressure as Array<LwM2MResult>,
+		now,
+		(r) => r[2],
 	)
 
 	// Voltage
