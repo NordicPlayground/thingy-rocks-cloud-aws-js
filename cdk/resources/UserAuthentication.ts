@@ -123,24 +123,7 @@ export class UserAuthentication extends Construct {
 					},
 					'sts:AssumeRoleWithWebIdentity',
 				) as IAM.IPrincipal,
-				inlinePolicies: {
-					kinesisVideo: new IAM.PolicyDocument({
-						statements: [
-							new IAM.PolicyStatement({
-								actions: [
-									'kinesisvideo:GetDataEndpoint',
-									'kinesisvideo:GetImages',
-									'kinesisvideo:GetHLSStreamingSessionURL',
-									'kinesisvideo:GetDASHStreamingSessionURL',
-									'kinesisvideo:DescribeStream',
-								],
-								resources: [
-									`arn:aws:kinesisvideo:*:${Stack.of(this).account}:stream/*`,
-								],
-							}),
-						],
-					}),
-				},
+				inlinePolicies: {},
 			},
 		) as IAM.IRole
 
