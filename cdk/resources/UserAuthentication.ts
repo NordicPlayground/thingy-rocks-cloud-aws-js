@@ -6,14 +6,38 @@ import {
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 
+export type UserAuthenticationProps = {
+	/**
+	 * OAuth callback and logout URLs for the Hosted UI.
+	 * Must include the URLs where your web app runs (e.g. https://app.example.com/ and http://localhost:8080/ for local dev).
+	 */
+	redirectUrls?: string[]
+}
+
+const DEFAULT_REDIRECT_URLS = [
+	'http://localhost:8080/',
+	'https://world.thingy.rocks/',
+]
+
 export class UserAuthentication extends Construct {
 	public readonly authenticatedUserRole: IAM.IRole
 	public readonly unauthenticatedUserRole: IAM.IRole
 	public readonly identityPool: Cognito.CfnIdentityPool
 	public readonly userPool: Cognito.UserPool
 	public readonly userPoolClient: Cognito.UserPoolClient
-	constructor(parent: Construct, id: string) {
+	public readonly domain: Cognito.UserPoolDomain
+
+	constructor(
+		parent: Construct,
+		id: string,
+		props: UserAuthenticationProps = {},
+	) {
 		super(parent, id)
+
+		const redirectUrls =
+			(props.redirectUrls?.length ?? 0) > 0
+				? props.redirectUrls!
+				: DEFAULT_REDIRECT_URLS
 
 		this.userPool = new Cognito.UserPool(this, 'userPool', {
 			signInAliases: {
@@ -22,12 +46,19 @@ export class UserAuthentication extends Construct {
 			autoVerify: {
 				email: true,
 			},
-			selfSignUpEnabled: false,
+			selfSignUpEnabled: true,
 			passwordPolicy: {
 				requireSymbols: false,
 			},
 			accountRecovery: Cognito.AccountRecovery.EMAIL_ONLY,
 			removalPolicy: RemovalPolicy.DESTROY,
+		})
+
+		this.domain = new Cognito.UserPoolDomain(this, 'userPoolDomain', {
+			userPool: this.userPool,
+			cognitoDomain: {
+				domainPrefix: `thingy-rocks-${Stack.of(this).account}`,
+			},
 		})
 
 		this.userPoolClient = new Cognito.UserPoolClient(this, 'userPoolClient', {
@@ -36,6 +67,18 @@ export class UserAuthentication extends Construct {
 				userPassword: true,
 				userSrp: true,
 				adminUserPassword: true,
+			},
+			oAuth: {
+				flows: {
+					authorizationCodeGrant: true,
+				},
+				scopes: [
+					Cognito.OAuthScope.EMAIL,
+					Cognito.OAuthScope.PROFILE,
+					Cognito.OAuthScope.OPENID,
+				],
+				callbackUrls: redirectUrls,
+				logoutUrls: redirectUrls,
 			},
 		})
 		this.identityPool = new Cognito.CfnIdentityPool(this, 'identityPool', {

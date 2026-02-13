@@ -90,6 +90,11 @@ export class BackendStack extends Stack {
 		const userAuthentication = new UserAuthentication(
 			this,
 			'userAuthentication',
+			{
+				redirectUrls: process.env.COGNITO_REDIRECT_URLS?.split(',')
+					.map((s) => s.trim())
+					.filter(Boolean),
+			},
 		)
 
 		/**
@@ -199,6 +204,12 @@ export class BackendStack extends Stack {
 			value: userAuthentication.userPool.userPoolProviderName,
 			description: 'Cognito User Pool Provider Name',
 			exportName: `${Stack.of(this).stackName}:userPoolProviderName`,
+		})
+
+		new CfnOutput(this, 'cognitoDomainUrl', {
+			value: userAuthentication.domain.baseUrl(),
+			description: 'Cognito Hosted UI domain URL for managed login',
+			exportName: `${Stack.of(this).stackName}:cognitoDomainUrl`,
 		})
 
 		new CfnOutput(this, 'wirepasGatewayUserAccessKeyId', {
