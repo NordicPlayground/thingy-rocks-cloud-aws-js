@@ -12,7 +12,6 @@ import { IotLifeCycleEvents } from '../resources/IotLifeCycleEvents.ts'
 import { LwM2M } from '../resources/LwM2M.ts'
 import { LwM2MDataGateway } from '../resources/LwM2MDataGateway.ts'
 import { LwM2MObjectsHistory } from '../resources/LwM2MObjectsHistory.ts'
-import { Map } from '../resources/Map.ts'
 import { Memfault } from '../resources/Memfault.ts'
 import { NRPlusGateway } from '../resources/NRPlusGateway.ts'
 import { PublishSummaries } from '../resources/PublishSummaries.ts'
@@ -93,10 +92,6 @@ export class BackendStack extends Stack {
 			'userAuthentication',
 		)
 
-		const map = new Map(this, 'map', {
-			userAuthentication,
-		})
-
 		/**
 		 * This is the history of LwM2M shadow updates.
 		 */
@@ -174,14 +169,36 @@ export class BackendStack extends Stack {
 			value: api.connectionsTable.tableName,
 		})
 
-		new CfnOutput(this, 'mapName', {
-			value: map.map.mapName,
-			exportName: `${this.stackName}:mapName`,
-		})
-
 		new CfnOutput(this, 'identityPoolId', {
 			value: userAuthentication.identityPool.ref,
 			exportName: `${this.stackName}:identityPoolId`,
+		})
+
+		new CfnOutput(this, 'authenticatedUserRoleArn', {
+			value: userAuthentication.authenticatedUserRole.roleArn,
+			exportName: `${this.stackName}:authenticatedUserRoleArn`,
+		})
+		new CfnOutput(this, 'unauthenticatedUserRoleArn', {
+			value: userAuthentication.unauthenticatedUserRole.roleArn,
+			exportName: `${this.stackName}:unauthenticatedUserRoleArn`,
+		})
+
+		new CfnOutput(this, 'userPoolClientId', {
+			value: userAuthentication.userPoolClient.userPoolClientId,
+			description: 'Cognito User Pool Client ID',
+			exportName: `${Stack.of(this).stackName}:userPoolClientId`,
+		})
+
+		new CfnOutput(this, 'userPoolId', {
+			value: userAuthentication.userPool.userPoolId,
+			description: 'Cognito User Pool ID',
+			exportName: `${Stack.of(this).stackName}:userPoolId`,
+		})
+
+		new CfnOutput(this, 'userPoolProviderName', {
+			value: userAuthentication.userPool.userPoolProviderName,
+			description: 'Cognito User Pool Provider Name',
+			exportName: `${Stack.of(this).stackName}:userPoolProviderName`,
 		})
 
 		new CfnOutput(this, 'wirepasGatewayUserAccessKeyId', {
@@ -205,6 +222,7 @@ export type StackOutputs = {
 	WebSocketURI: string
 	firmwareCIUserAccessKeyId: string
 	firmwareCIUserSecretAccessKey: string
-	mapName: string
 	identityPoolId: string
+	authenticatedUserRoleArn: string
+	unauthenticatedUserRoleArn: string
 }

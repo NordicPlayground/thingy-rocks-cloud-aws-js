@@ -52,7 +52,9 @@ export const fetchLwM2MShadows = (
 						return ageInDays <= notOlderThanDays
 					})
 					.map(async ({ thingName, shadow }) => {
-						const { alias, type } = await deviceInfo(thingName as string)
+						const { alias, type, kinesisVideoStreamArn } = await deviceInfo(
+							thingName as string,
+						)
 						const reported = JSON.parse(shadow ?? '{}').name.lwm2m.reported
 
 						if (reported === undefined)
@@ -60,6 +62,7 @@ export const fetchLwM2MShadows = (
 								deviceId: thingName as string,
 								alias,
 								deviceType: type,
+								kinesisVideoStreamArn,
 								objects: [],
 							}
 
@@ -68,6 +71,7 @@ export const fetchLwM2MShadows = (
 								deviceId: thingName as string,
 								alias,
 								deviceType: type,
+								kinesisVideoStreamArn,
 								objects: shadowToObjects(reported).filter((instance) => {
 									const updateTs = instanceTs(instance)
 									return (
@@ -91,6 +95,7 @@ export const fetchLwM2MShadows = (
 								deviceId: thingName as string,
 								alias,
 								deviceType: type,
+								kinesisVideoStreamArn,
 								objects: [],
 							}
 						}

@@ -17,14 +17,14 @@ export const withDeviceAlias = <N extends ReturnType<typeof notifyClients>>(
 				alias: deviceAlias,
 				location,
 				type,
-				kinesisVideoStream,
+				kinesisVideoStreamArn,
 			} = await info(event.deviceId)
 			return notifier({
 				...event,
 				deviceAlias,
 				deviceLocation: location,
 				deviceType: type,
-				kinesisVideoStream,
+				kinesisVideoStreamArn,
 			})
 		}
 }
@@ -42,7 +42,7 @@ export const getDeviceInfo =
 		alias?: string
 		location?: string
 		type?: string
-		kinesisVideoStream?: string
+		kinesisVideoStreamArn?: string
 	}> => {
 		const info =
 			deviceInfo[deviceId] ?? (await getDeviceAttributes(iot)(deviceId))
@@ -59,13 +59,13 @@ const getDeviceAttributes = (iot: IoTClient) => async (deviceId: string) => {
 		const {
 			name,
 			location,
-			['kinesis-video-stream']: kinesisVideoStream,
+			['kinesis-video-stream']: kinesisVideoStreamArn,
 		} = attributes ?? {}
 		return {
 			alias: name?.replace(/__/g, ' '),
 			location,
 			type: thingTypeName,
-			kinesisVideoStream,
+			kinesisVideoStreamArn,
 		}
 	} catch (e) {
 		console.error('Failed to get device info', e)

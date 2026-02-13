@@ -2,6 +2,7 @@ import {
 	aws_cognito as Cognito,
 	aws_iam as IAM,
 	RemovalPolicy,
+	Stack,
 } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 
@@ -10,6 +11,7 @@ export class UserAuthentication extends Construct {
 	public readonly unauthenticatedUserRole: IAM.IRole
 	public readonly identityPool: Cognito.CfnIdentityPool
 	public readonly userPool: Cognito.UserPool
+	public readonly userPoolClient: Cognito.UserPoolClient
 	constructor(parent: Construct, id: string) {
 		super(parent, id)
 
@@ -28,7 +30,7 @@ export class UserAuthentication extends Construct {
 			removalPolicy: RemovalPolicy.DESTROY,
 		})
 
-		const userPoolClient = new Cognito.UserPoolClient(this, 'userPoolClient', {
+		this.userPoolClient = new Cognito.UserPoolClient(this, 'userPoolClient', {
 			userPool: this.userPool,
 			authFlows: {
 				userPassword: true,
@@ -40,7 +42,7 @@ export class UserAuthentication extends Construct {
 			allowUnauthenticatedIdentities: true,
 			cognitoIdentityProviders: [
 				{
-					clientId: userPoolClient.userPoolClientId,
+					clientId: this.userPoolClient.userPoolClientId,
 					providerName: this.userPool.userPoolProviderName,
 				},
 			],
@@ -78,6 +80,24 @@ export class UserAuthentication extends Construct {
 					},
 					'sts:AssumeRoleWithWebIdentity',
 				) as IAM.IPrincipal,
+				inlinePolicies: {
+					kinesisVideo: new IAM.PolicyDocument({
+						statements: [
+							new IAM.PolicyStatement({
+								actions: [
+									'kinesisvideo:GetDataEndpoint',
+									'kinesisvideo:GetImages',
+									'kinesisvideo:GetHLSStreamingSessionURL',
+									'kinesisvideo:GetDASHStreamingSessionURL',
+									'kinesisvideo:DescribeStream',
+								],
+								resources: [
+									`arn:aws:kinesisvideo:*:${Stack.of(this).account}:stream/*`,
+								],
+							}),
+						],
+					}),
+				},
 			},
 		) as IAM.IRole
 
