@@ -15,8 +15,8 @@ export type UserAuthenticationProps = {
 }
 
 const DEFAULT_REDIRECT_URLS = [
-	'http://localhost:8080/',
-	'https://world.thingy.rocks/',
+	'http://localhost:8080',
+	'https://world.thingy.rocks',
 ]
 
 export class UserAuthentication extends Construct {
