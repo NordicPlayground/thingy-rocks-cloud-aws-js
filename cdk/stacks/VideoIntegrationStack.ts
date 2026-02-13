@@ -31,6 +31,7 @@ export class VideoIntegrationStack extends Stack {
 						'kinesisvideo:GetDASHStreamingSessionURL',
 						'kinesisvideo:GetDataEndpoint',
 						'kinesisvideo:GetHLSStreamingSessionURL',
+						'kinesisvideo:GetImages',
 					],
 					resources: [`arn:aws:kinesisvideo:*:${this.account}:stream/*`],
 				}),
