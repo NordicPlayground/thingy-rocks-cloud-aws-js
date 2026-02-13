@@ -33,6 +33,7 @@ export class VideoIntegrationStack extends Stack {
 						'kinesisvideo:GetDataEndpoint',
 						'kinesisvideo:GetHLSStreamingSessionURL',
 						'kinesisvideo:GetImages',
+						'kinesisvideo:ListFragments',
 					],
 					resources: [`arn:aws:kinesisvideo:*:${this.account}:stream/*`],
 				}),
