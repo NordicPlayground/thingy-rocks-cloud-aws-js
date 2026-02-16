@@ -5,6 +5,7 @@ import { BackendStack } from './stacks/BackendStack.ts'
 import { NRPlusDemoStack } from './stacks/NRPlusDemoStack.ts'
 import { NRPlusStack } from './stacks/NRPlusStack.ts'
 import { UDPIngestStack } from './stacks/UDPIngestStack.ts'
+import { UserStack } from './stacks/UserStack.ts'
 import { VideoIntegrationStack } from './stacks/VideoIntegrationStack.ts'
 
 export class BackendApp extends App {
@@ -29,7 +30,7 @@ export class BackendApp extends App {
 				isTest: false,
 			},
 		})
-		const backend = new BackendStack(this, {
+		new BackendStack(this, {
 			lambdaSources,
 			layer,
 			assetTrackerStackName,
@@ -51,6 +52,8 @@ export class BackendApp extends App {
 			layer,
 		})
 
-		new VideoIntegrationStack(this).node.addDependency(backend)
+		const user = new UserStack(this)
+
+		new VideoIntegrationStack(this).node.addDependency(user)
 	}
 }

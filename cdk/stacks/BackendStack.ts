@@ -18,7 +18,6 @@ import { PublishSummaries } from '../resources/PublishSummaries.ts'
 import { ResolveCellLocation } from '../resources/ResolveCellLocation.ts'
 import { ResolveCellLocationFromLwM2M } from '../resources/ResolveCellLocationFromLwM2M.ts'
 import { ResolveNetworkSurveyGeoLocation } from '../resources/ResolveNetworkSurveyGeoLocation.ts'
-import { UserAuthentication } from '../resources/UserAuthentication.ts'
 import { WebsocketAPI } from '../resources/WebsocketAPI.ts'
 import { Wirepas5GMeshGateway } from '../resources/Wirepas5GMeshGateway.ts'
 import { STACK_NAME } from './stackName.ts'
@@ -86,16 +85,6 @@ export class BackendStack extends Stack {
 			}),
 			networkSurveyGeoStateMachineARN: `arn:aws:states:${this.region}:${this.account}:stateMachine:${assetTrackerStackName}-networkSurveyGeo`,
 		})
-
-		const userAuthentication = new UserAuthentication(
-			this,
-			'userAuthentication',
-			{
-				redirectUrls: process.env.COGNITO_REDIRECT_URLS?.split(',')
-					.map((s) => s.trim())
-					.filter(Boolean),
-			},
-		)
 
 		/**
 		 * This is the history of LwM2M shadow updates.
@@ -174,44 +163,6 @@ export class BackendStack extends Stack {
 			value: api.connectionsTable.tableName,
 		})
 
-		new CfnOutput(this, 'identityPoolId', {
-			value: userAuthentication.identityPool.ref,
-			exportName: `${this.stackName}:identityPoolId`,
-		})
-
-		new CfnOutput(this, 'authenticatedUserRoleArn', {
-			value: userAuthentication.authenticatedUserRole.roleArn,
-			exportName: `${this.stackName}:authenticatedUserRoleArn`,
-		})
-		new CfnOutput(this, 'unauthenticatedUserRoleArn', {
-			value: userAuthentication.unauthenticatedUserRole.roleArn,
-			exportName: `${this.stackName}:unauthenticatedUserRoleArn`,
-		})
-
-		new CfnOutput(this, 'userPoolClientId', {
-			value: userAuthentication.userPoolClient.userPoolClientId,
-			description: 'Cognito User Pool Client ID',
-			exportName: `${Stack.of(this).stackName}:userPoolClientId`,
-		})
-
-		new CfnOutput(this, 'userPoolId', {
-			value: userAuthentication.userPool.userPoolId,
-			description: 'Cognito User Pool ID',
-			exportName: `${Stack.of(this).stackName}:userPoolId`,
-		})
-
-		new CfnOutput(this, 'userPoolProviderName', {
-			value: userAuthentication.userPool.userPoolProviderName,
-			description: 'Cognito User Pool Provider Name',
-			exportName: `${Stack.of(this).stackName}:userPoolProviderName`,
-		})
-
-		new CfnOutput(this, 'cognitoDomainUrl', {
-			value: userAuthentication.domain.baseUrl(),
-			description: 'Cognito Hosted UI domain URL for managed login',
-			exportName: `${Stack.of(this).stackName}:cognitoDomainUrl`,
-		})
-
 		new CfnOutput(this, 'wirepasGatewayUserAccessKeyId', {
 			value: wirepasGateway.accessKey.ref,
 			exportName: `${this.stackName}:wirepasGatewayUserAccessKeyId`,
@@ -233,7 +184,4 @@ export type StackOutputs = {
 	WebSocketURI: string
 	firmwareCIUserAccessKeyId: string
 	firmwareCIUserSecretAccessKey: string
-	identityPoolId: string
-	authenticatedUserRoleArn: string
-	unauthenticatedUserRoleArn: string
 }

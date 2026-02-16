@@ -1,9 +1,15 @@
 import {
 	aws_cognito as Cognito,
+	Duration,
 	aws_iam as IAM,
 	RemovalPolicy,
 	Stack,
 } from 'aws-cdk-lib'
+import {
+	CfnManagedLoginBranding,
+	PasskeyUserVerification,
+	VerificationEmailStyle,
+} from 'aws-cdk-lib/aws-cognito'
 import { Construct } from 'constructs'
 
 export type UserAuthenticationProps = {
@@ -26,13 +32,11 @@ export class UserAuthentication extends Construct {
 	public readonly userPool: Cognito.UserPool
 	public readonly userPoolClient: Cognito.UserPoolClient
 	public readonly domain: Cognito.UserPoolDomain
+	/** Base URL for Cognito Hosted UI (Managed UI). Use this to redirect users to sign-in/sign-up. */
+	public readonly hostedUiUrl: string
 
-	constructor(
-		parent: Construct,
-		id: string,
-		props: UserAuthenticationProps = {},
-	) {
-		super(parent, id)
+	constructor(parent: Construct, props: UserAuthenticationProps = {}) {
+		super(parent, UserAuthentication.name)
 
 		const redirectUrls =
 			(props.redirectUrls?.length ?? 0) > 0
@@ -40,18 +44,36 @@ export class UserAuthentication extends Construct {
 				: DEFAULT_REDIRECT_URLS
 
 		this.userPool = new Cognito.UserPool(this, 'userPool', {
-			signInAliases: {
-				email: true,
+			selfSignUpEnabled: true,
+			standardAttributes: {
+				email: {
+					required: true,
+					mutable: true,
+				},
+				fullname: {
+					required: true,
+					mutable: true,
+				},
 			},
 			autoVerify: {
 				email: true,
 			},
-			selfSignUpEnabled: true,
-			passwordPolicy: {
-				requireSymbols: false,
+			signInPolicy: {
+				allowedFirstAuthFactors: {
+					// The password authentication cannot be disabled right now.
+					password: true,
+					emailOtp: true,
+					passkey: true,
+				},
 			},
-			accountRecovery: Cognito.AccountRecovery.EMAIL_ONLY,
+			passkeyUserVerification: PasskeyUserVerification.PREFERRED,
 			removalPolicy: RemovalPolicy.DESTROY,
+			featurePlan: Cognito.FeaturePlan.ESSENTIALS,
+			userVerification: {
+				emailSubject: '[world.thingy.rocks] Verify your email',
+				emailBody: 'Your verification code is {####}.',
+				emailStyle: VerificationEmailStyle.CODE,
+			},
 		})
 
 		this.domain = new Cognito.UserPoolDomain(this, 'userPoolDomain', {
@@ -59,14 +81,20 @@ export class UserAuthentication extends Construct {
 			cognitoDomain: {
 				domainPrefix: `thingy-rocks-${Stack.of(this).account}`,
 			},
+			// Passwordless flows (e.g. email OTP) only work with newer managed login, not classic Hosted UI.
+			managedLoginVersion: Cognito.ManagedLoginVersion.NEWER_MANAGED_LOGIN,
 		})
+		this.hostedUiUrl = this.domain.baseUrl()
 
 		this.userPoolClient = new Cognito.UserPoolClient(this, 'userPoolClient', {
 			userPool: this.userPool,
+			generateSecret: false,
 			authFlows: {
-				userPassword: true,
-				userSrp: true,
-				adminUserPassword: true,
+				userPassword: false,
+				userSrp: false,
+				custom: false,
+				user: true,
+				adminUserPassword: false,
 			},
 			oAuth: {
 				flows: {
@@ -80,6 +108,12 @@ export class UserAuthentication extends Construct {
 				callbackUrls: redirectUrls,
 				logoutUrls: redirectUrls,
 			},
+			supportedIdentityProviders: [
+				Cognito.UserPoolClientIdentityProvider.COGNITO,
+			],
+			accessTokenValidity: Duration.days(1),
+			idTokenValidity: Duration.days(1),
+			refreshTokenValidity: Duration.days(30),
 		})
 		this.identityPool = new Cognito.CfnIdentityPool(this, 'identityPool', {
 			allowUnauthenticatedIdentities: true,
@@ -133,6 +167,13 @@ export class UserAuthentication extends Construct {
 				authenticated: this.authenticatedUserRole.roleArn,
 				unauthenticated: this.unauthenticatedUserRole.roleArn,
 			},
+		})
+
+		// Create Managed Login Branding
+		new CfnManagedLoginBranding(this, 'ManagedLoginBranding', {
+			userPoolId: this.userPool.userPoolId,
+			clientId: this.userPoolClient.userPoolClientId,
+			useCognitoProvidedValues: true,
 		})
 	}
 }
