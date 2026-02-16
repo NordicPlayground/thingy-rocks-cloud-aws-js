@@ -40,7 +40,7 @@ console.log(
 	chalk.cyan(metNoClientId),
 )
 
-do {
+const sendTemperature = async () => {
 	const res = await fetch(
 		`https://frost.met.no/observations/v0.jsonld?${new URLSearchParams({
 			sources: args['met-station'],
@@ -59,7 +59,7 @@ do {
 
 	if (temp === undefined) {
 		console.error(chalk.red(`Failed to fetch temperature data from MET.no`))
-		process.exit(1)
+		return
 	}
 
 	console.log(
@@ -100,7 +100,7 @@ do {
 			maybeSenML.errors.forEach((err) =>
 				console.error(chalk.red(`- ${err.message}`)),
 			)
-			process.exit(1)
+			return
 		}
 		senml.push(...maybeSenML.senML)
 	}
@@ -112,7 +112,7 @@ do {
 	client.send(cborData, 6667, 'udp.thingy.rocks', (err) => {
 		if (err) {
 			console.error(chalk.red(`Failed to send UDP packet: ${err.message}`))
-			process.exit(1)
+			return
 		}
 		console.log(
 			chalk.green(`CBOR data sent to`),
@@ -123,9 +123,12 @@ do {
 
 	client.on('error', (err) => {
 		console.error(chalk.red(`UDP socket error: ${err.message}`))
-		process.exit(1)
+		return
 	})
+}
 
-	await new Promise((resolve) => setTimeout(resolve, 1000 * 60))
+do {
+	await sendTemperature()
+	await new Promise((resolve) => setTimeout(resolve, 1000 * 60 * 15)) // 15 minutes
 	// eslint-disable-next-line no-constant-condition
 } while (true)
