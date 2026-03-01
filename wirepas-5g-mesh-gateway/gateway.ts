@@ -97,6 +97,7 @@ client.on('connect', () => {
 		]) {
 			client.subscribe(topic, (err, grants) => {
 				if (err !== null) {
+					console.error(`Failed to subscribe to topic ${topic}:`, err)
 					throw err
 				}
 				for (const { topic } of grants ?? [])
