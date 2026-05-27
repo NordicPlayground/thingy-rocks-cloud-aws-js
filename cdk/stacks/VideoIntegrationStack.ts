@@ -50,7 +50,7 @@ export class VideoIntegrationStack extends Stack {
 		const videoStreamMetaDataTable = Table.fromTableArn(
 			this,
 			'VideoStreamMetaDataTable',
-			Fn.importValue(`video-streaming:StreamMetadataTableArn`),
+			Fn.importValue(`video-streaming-2026-05:StreamMetadataTableArn`),
 		)
 		videoStreamMetaDataTable.grantReadData(authRole)
 		videoStreamMetaDataTable.grantReadData(unauthRole)
