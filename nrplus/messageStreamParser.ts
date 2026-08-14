@@ -62,9 +62,7 @@ export const parser = (
 	const listeners: MessageListener[] = []
 	return {
 		addLine: (device, line) => {
-			if (parser[device] === undefined) {
-				parser[device] = StreamParser(messageDefinitions)
-			}
+			parser[device] ??= StreamParser(messageDefinitions)
 			const maybeResult = parser[device]?.add(line) ?? null
 			if (maybeResult !== null) {
 				listeners.map((fn) => fn(device, maybeResult))

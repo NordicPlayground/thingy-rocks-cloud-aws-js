@@ -231,25 +231,19 @@ export class WebsocketAPI extends Construct {
 		deployment.node.addDependency(disconnectRoute)
 
 		onMessage.addPermission('invokeByAPI', {
-			principal: new IAM.ServicePrincipal(
-				'apigateway.amazonaws.com',
-			) as IAM.IPrincipal,
+			principal: new IAM.ServicePrincipal('apigateway.amazonaws.com'),
 			sourceArn: `arn:aws:execute-api:${Stack.of(parent).region}:${
 				Stack.of(parent).account
 			}:${api.ref}/${stage.stageName}/sendmessage`,
 		})
 		onConnect.addPermission('invokeByAPI', {
-			principal: new IAM.ServicePrincipal(
-				'apigateway.amazonaws.com',
-			) as IAM.IPrincipal,
+			principal: new IAM.ServicePrincipal('apigateway.amazonaws.com'),
 			sourceArn: `arn:aws:execute-api:${Stack.of(parent).region}:${
 				Stack.of(parent).account
 			}:${api.ref}/${stage.stageName}/$connect`,
 		})
 		onDisconnect.addPermission('invokeByAPI', {
-			principal: new IAM.ServicePrincipal(
-				'apigateway.amazonaws.com',
-			) as IAM.IPrincipal,
+			principal: new IAM.ServicePrincipal('apigateway.amazonaws.com'),
 			sourceArn: `arn:aws:execute-api:${Stack.of(parent).region}:${
 				Stack.of(parent).account
 			}:${api.ref}/${stage.stageName}/$disconnect`,
@@ -294,9 +288,7 @@ export class WebsocketAPI extends Construct {
 			this,
 			'publishToWebsocketClientsRuleRole',
 			{
-				assumedBy: new IAM.ServicePrincipal(
-					'iot.amazonaws.com',
-				) as IAM.IPrincipal,
+				assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com'),
 				inlinePolicies: {
 					rootPermissions: new IAM.PolicyDocument({
 						statements: [
@@ -343,9 +335,7 @@ export class WebsocketAPI extends Construct {
 		publishToWebsocketClients.addPermission(
 			'invokeByPublishShadowUpdatesRulePermission',
 			{
-				principal: new IAM.ServicePrincipal(
-					'iot.amazonaws.com',
-				) as IAM.IPrincipal,
+				principal: new IAM.ServicePrincipal('iot.amazonaws.com'),
 				sourceArn: publishShadowUpdatesRule.attrArn,
 			},
 		)
@@ -379,9 +369,7 @@ export class WebsocketAPI extends Construct {
 		publishToWebsocketClients.addPermission(
 			'invokeByPublishMessagesRulePermission',
 			{
-				principal: new IAM.ServicePrincipal(
-					'iot.amazonaws.com',
-				) as IAM.IPrincipal,
+				principal: new IAM.ServicePrincipal('iot.amazonaws.com'),
 				sourceArn: publishMessagesRule.attrArn,
 			},
 		)

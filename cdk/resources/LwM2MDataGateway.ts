@@ -101,9 +101,7 @@ export class LwM2MDataGateway extends Construct {
 		websocketAPI.connectionsTable.grantReadWriteData(lwm2mGatewayFn.fn)
 
 		const ruleRole = new IAM.Role(this, 'ruleRole', {
-			assumedBy: new IAM.ServicePrincipal(
-				'iot.amazonaws.com',
-			) as IAM.IPrincipal,
+			assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com'),
 			inlinePolicies: {
 				rootPermissions: new IAM.PolicyDocument({
 					statements: [
@@ -150,9 +148,7 @@ export class LwM2MDataGateway extends Construct {
 		})
 
 		lwm2mGatewayFn.fn.addPermission('invokeByRule', {
-			principal: new IAM.ServicePrincipal(
-				'iot.amazonaws.com',
-			) as IAM.IPrincipal,
+			principal: new IAM.ServicePrincipal('iot.amazonaws.com'),
 			sourceArn: rule.attrArn,
 		})
 	}

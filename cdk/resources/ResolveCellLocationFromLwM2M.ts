@@ -77,9 +77,7 @@ export class ResolveCellLocationFromLwM2M extends Construct {
 			this,
 			'resolveCellLocationRuleRole',
 			{
-				assumedBy: new IAM.ServicePrincipal(
-					'iot.amazonaws.com',
-				) as IAM.IPrincipal,
+				assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com'),
 				inlinePolicies: {
 					rootPermissions: new IAM.PolicyDocument({
 						statements: [
@@ -134,9 +132,7 @@ export class ResolveCellLocationFromLwM2M extends Construct {
 		resolveCellLocationFromLwM2M.addPermission(
 			'invokeByResolveCellLocationRulePermission',
 			{
-				principal: new IAM.ServicePrincipal(
-					'iot.amazonaws.com',
-				) as IAM.IPrincipal,
+				principal: new IAM.ServicePrincipal('iot.amazonaws.com'),
 				sourceArn: resolveCellLocationRule.attrArn,
 			},
 		)

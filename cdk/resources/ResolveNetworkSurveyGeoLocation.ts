@@ -138,9 +138,7 @@ export class ResolveNetworkSurveyGeoLocation extends Construct {
 		onNetworkSurveyLocated.addPermission(
 			'invokeBypublishNetworkSurveyGeolocationSuccessEventsRulePermission',
 			{
-				principal: new IAM.ServicePrincipal(
-					'events.amazonaws.com',
-				) as IAM.IPrincipal,
+				principal: new IAM.ServicePrincipal('events.amazonaws.com'),
 				sourceArn: publishNetworkSurveyGeolocationSuccessEventsRule.ruleArn,
 			},
 		)

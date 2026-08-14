@@ -104,9 +104,7 @@ export class Memfault extends Construct {
 		})
 
 		fn.addPermission('InvokeByEvents', {
-			principal: new IAM.ServicePrincipal(
-				'events.amazonaws.com',
-			) as IAM.IPrincipal,
+			principal: new IAM.ServicePrincipal('events.amazonaws.com'),
 			sourceArn: rule.ruleArn,
 		})
 

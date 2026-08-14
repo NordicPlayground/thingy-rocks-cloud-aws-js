@@ -83,7 +83,7 @@ export const handler = async (
 	let message: Record<string, any> | undefined = undefined
 	try {
 		message = JSON.parse(event.body ?? '{}')
-	} catch (err) {
+	} catch {
 		console.error(`Failed to parse message as JSON.`)
 	}
 

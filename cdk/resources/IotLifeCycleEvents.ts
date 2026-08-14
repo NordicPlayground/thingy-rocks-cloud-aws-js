@@ -25,9 +25,7 @@ export class IotLifeCycleEvents extends Construct {
 		})
 
 		const ruleRole = new IAM.Role(this, 'ruleRole', {
-			assumedBy: new IAM.ServicePrincipal(
-				'iot.amazonaws.com',
-			) as IAM.IPrincipal,
+			assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com'),
 		})
 
 		this.logGroup.grantWrite(ruleRole)

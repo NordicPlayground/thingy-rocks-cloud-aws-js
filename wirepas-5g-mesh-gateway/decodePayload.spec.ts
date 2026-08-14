@@ -57,7 +57,6 @@ void describe('decodePayload()', () => {
 		const decoded = decodePayload(payload, undefined, () => now)
 
 		assert.deepEqual(decoded, {
-			// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
 			temp: {
 				v: 24.479999542236328,
 				ts: now,

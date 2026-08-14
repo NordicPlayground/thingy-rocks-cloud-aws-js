@@ -77,9 +77,7 @@ export class ResolveCellLocation extends Construct {
 			this,
 			'resolveCellLocationRuleRole',
 			{
-				assumedBy: new IAM.ServicePrincipal(
-					'iot.amazonaws.com',
-				) as IAM.IPrincipal,
+				assumedBy: new IAM.ServicePrincipal('iot.amazonaws.com'),
 				inlinePolicies: {
 					rootPermissions: new IAM.PolicyDocument({
 						statements: [
@@ -135,9 +133,7 @@ export class ResolveCellLocation extends Construct {
 		resolveCellLocation.addPermission(
 			'invokeByResolveCellLocationRulePermission',
 			{
-				principal: new IAM.ServicePrincipal(
-					'iot.amazonaws.com',
-				) as IAM.IPrincipal,
+				principal: new IAM.ServicePrincipal('iot.amazonaws.com'),
 				sourceArn: resolveCellLocationRule.attrArn,
 			},
 		)
@@ -198,9 +194,7 @@ export class ResolveCellLocation extends Construct {
 		onCellGeoLocationResolved.addPermission(
 			'invokeByPublishCellGeolocationSuccessEventsRulePermission',
 			{
-				principal: new IAM.ServicePrincipal(
-					'events.amazonaws.com',
-				) as IAM.IPrincipal,
+				principal: new IAM.ServicePrincipal('events.amazonaws.com'),
 				sourceArn: publishCellGeolocationSuccessEventsRule.ruleArn,
 			},
 		)

@@ -44,11 +44,14 @@ const logDb = {
 		)
 		return (
 			Items?.map((i) => {
-				const { ttl, deviceId, ...rest } = unmarshall(i)
-				;(void ttl, deviceId)
+				const data = unmarshall(i)
+
+				delete data.ttl
+				delete data.deviceId
+
 				return {
-					...rest,
-					ts: new Date(decodeTime(rest.messageId)).toISOString(),
+					...data,
+					ts: new Date(decodeTime(data.messageId)).toISOString(),
 				}
 			}) ?? []
 		)

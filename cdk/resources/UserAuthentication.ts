@@ -137,9 +137,9 @@ export class UserAuthentication extends Construct {
 					},
 				},
 				'sts:AssumeRoleWithWebIdentity',
-			) as IAM.IPrincipal,
+			),
 			inlinePolicies: {},
-		}) as IAM.IRole
+		})
 
 		this.unauthenticatedUserRole = new IAM.Role(
 			this,
@@ -156,10 +156,10 @@ export class UserAuthentication extends Construct {
 						},
 					},
 					'sts:AssumeRoleWithWebIdentity',
-				) as IAM.IPrincipal,
+				),
 				inlinePolicies: {},
 			},
-		) as IAM.IRole
+		)
 
 		new Cognito.CfnIdentityPoolRoleAttachment(this, 'identityPoolRoles', {
 			identityPoolId: this.identityPool.ref.toString(),

@@ -58,7 +58,7 @@ export const handler = middy<SQSEvent>()
 			)
 
 			// Parse payload based on source port
-			let deviceId: string | null = null
+			let deviceId: string
 			let maybeLwM2M: ReturnType<typeof parse>
 			if (sourcePort === 6667) {
 				// Port 6667: CBOR-encoded SenML containing LwM2M objects

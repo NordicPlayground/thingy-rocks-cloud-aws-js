@@ -74,10 +74,9 @@ const groupResult = (
 			parseFloat(transform(v).toFixed(3)),
 			Math.max(0, Math.floor((base.getTime() - ts.getTime()) / 1000)),
 		]
-		if (summaries[deviceId] === undefined)
-			summaries[deviceId] = {
-				base,
-			} as Summary
+		summaries[deviceId] ??= {
+			base,
+		}
 		if (summaries[deviceId][key] === undefined) {
 			;(summaries[deviceId][key] as unknown as Readings) = [reading]
 		} else {
@@ -282,10 +281,8 @@ const groupLwM2MResult = <PartialInstance extends LwM2MResult>(
 ) => {
 	for (const result of results) {
 		const { deviceId, ...resources } = result
-		if (summaries[deviceId] === undefined) {
-			summaries[deviceId] = {
-				base: now,
-			}
+		summaries[deviceId] ??= {
+			base: now,
 		}
 		const v = getValue(result)
 		if (v === undefined) continue

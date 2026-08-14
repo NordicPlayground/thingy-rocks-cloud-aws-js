@@ -94,9 +94,7 @@ export class LwM2MObjectsHistory extends Construct {
 		})
 
 		this.storeFn.fn.addPermission('invokeByRule', {
-			principal: new IAM.ServicePrincipal(
-				'iot.amazonaws.com',
-			) as IAM.IPrincipal,
+			principal: new IAM.ServicePrincipal('iot.amazonaws.com'),
 			sourceArn: rule.attrArn,
 		})
 	}
