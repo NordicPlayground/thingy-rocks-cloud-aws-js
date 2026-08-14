@@ -34,6 +34,9 @@ aws ssm put-parameter --name thingy-rocks-backend-Wirepas5GMeshGatewayEndpoint -
 
 ### Deploy
 
+> [!NOTE]  
+> Requires [go](https://go.dev/) to be installed.
+
 ```bash
 npm run build:container
 # export the environment variable UDP_INGEST_CONTAINER_TAG as printed
