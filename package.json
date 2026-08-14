@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --no-warnings --experimental-transform-types --test \"!(node_modules|e2e-tests)/**/*.spec.ts\"",
-    "prepare": "husky && check-node-version --package",
+    "prepare": "husky && case \"$npm_command\" in install|ci) check-node-version --package ;; esac",
     "build:container": "node --experimental-transform-types --no-warnings ./build-container.ts",
     "cdk:lambda:update": "node --no-warnings --experimental-transform-types ./cdk/cli/update-lambdas.ts"
   },
