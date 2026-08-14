@@ -440,7 +440,7 @@ class NodeRole$Type extends MessageType<NodeRole> {
 					break
 				case /* repeated wirepas.proto.gateway_api.NodeRole.RoleFlags flags */ 2:
 					if (wireType === WireType.LengthDelimited)
-						for (let e = reader.int32() + reader.pos; reader.pos < e; )
+						for (let e = reader.int32() + reader.pos; reader.pos < e;)
 							message.flags.push(reader.int32())
 					else message.flags.push(reader.int32())
 					break

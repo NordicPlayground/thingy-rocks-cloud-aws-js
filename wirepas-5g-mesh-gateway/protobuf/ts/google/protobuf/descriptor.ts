@@ -3376,13 +3376,13 @@ class SourceCodeInfo_Location$Type extends MessageType<SourceCodeInfo_Location> 
 			switch (fieldNo) {
 				case /* repeated int32 path = 1 [packed = true];*/ 1:
 					if (wireType === WireType.LengthDelimited)
-						for (let e = reader.int32() + reader.pos; reader.pos < e; )
+						for (let e = reader.int32() + reader.pos; reader.pos < e;)
 							message.path.push(reader.int32())
 					else message.path.push(reader.int32())
 					break
 				case /* repeated int32 span = 2 [packed = true];*/ 2:
 					if (wireType === WireType.LengthDelimited)
-						for (let e = reader.int32() + reader.pos; reader.pos < e; )
+						for (let e = reader.int32() + reader.pos; reader.pos < e;)
 							message.span.push(reader.int32())
 					else message.span.push(reader.int32())
 					break
