@@ -11,6 +11,13 @@
 Cloud backend for the thingy.rocks IoT dashboard developed using AWS CDK in
 [TypeScript](https://www.typescriptlang.org/).
 
+## Node & NPM
+
+This project requires Node.js `>=24.19.0 <25` and npm `>=12.0.2 <13` (enforced
+via `check-node-version` on `npm install` and `npm ci`). The check is skipped
+during `npm publish` and `npm pack`, because `semantic-release` bundles its own
+npm and runs the release with that version rather than the one installed in CI.
+
 ## Installation in your AWS account
 
 ### Setup
