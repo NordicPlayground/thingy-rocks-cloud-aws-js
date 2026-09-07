@@ -23,6 +23,7 @@ export type UserAuthenticationProps = {
 const DEFAULT_REDIRECT_URLS = [
 	'http://localhost:8080',
 	'https://world.thingy.rocks',
+	'nrfcloud://thingy-auth', // for the mobile app
 ]
 
 export class UserAuthentication extends Construct {
