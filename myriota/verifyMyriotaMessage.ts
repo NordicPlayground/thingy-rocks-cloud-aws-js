@@ -81,13 +81,9 @@ export const verifyMyriotaMessage =
 				error: `Unexpected certificate subject: ${JSON.stringify(cert.subject)}`,
 			}
 
-		// Keys are rotated, so check the certificate was valid when the request was generated
-		const requestTime = new Date(message.Timestamp * 1000)
-		if (requestTime < cert.validFromDate || requestTime > cert.validToDate)
-			return {
-				verified: false,
-				error: `Certificate was not valid at ${requestTime.toISOString()}`,
-			}
+		// The certificate's validity period is deliberately not checked: Myriota
+		// still signs with a self-signed certificate that expired in 2020. Trust
+		// comes from fetching it via HTTPS from security.myriota.com.
 
 		const signedData = [
 			message.EndpointRef,

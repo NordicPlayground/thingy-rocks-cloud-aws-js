@@ -50,11 +50,19 @@ void describe('verifyMyriotaMessage()', () => {
 		assert.equal(res.verified, false)
 	})
 
-	void it('should reject messages generated outside of the certificate validity', async () => {
-		const res = await verify({
-			...exampleMessage,
-			Timestamp: Math.floor(new Date('2025-01-01').getTime() / 1000),
-		})
-		assert.equal(res.verified, false)
+	void it('should verify a message signed after the certificate expired', async () => {
+		// Received from the Myriota Device Manager on 2026-10-07
+		assert.deepEqual(
+			await verify({
+				Timestamp: 1791374832,
+				Id: 'ecc0cda6-ab15-44da-a248-ba8398ee738a',
+				Data: '{"Packets": [{"Timestamp": 1791374831463, "TerminalId": "89883380001010376490", "Value": "DECAFBADDECAFBADDECAFBADDECAFBAD"}]}',
+				EndpointRef: 'gRufUoeATku_:ZOBvKex_R8qj',
+				Signature:
+					'uQtgZR52Hk8JdeX8B/eexcjRMm1x46D6EnqOMTEv3CroRTmifxG4wHaRQ/FId447ScPFtRzT3DWDvi6mwLruMSgIo+XG2LsW7jPAkkc+NXCjXUG8Jks0L9dBe43vhMuqvd8/nDLn9q0UrEKWUmKHZZUO5v7qxi3MF9Hd8AiG3vMmUxnENzHUAPVp9maM6FtVzD0a+GrVswKjW6SWBxKcPpV89l8hnQUAnUzDER3nIJzDUga4JnmmEDpvCX8/skhhtMOzh7FIWJd/coaJSzKisrDZeTeR56CYX24y6jWZfQtdZ0iHqqOpmNiRT6Z6P8Q1QCehMBTu6dFEduIZwvcm5w==',
+				CertificateUrl: exampleMessage.CertificateUrl,
+			}),
+			{ verified: true },
+		)
 	})
 })
