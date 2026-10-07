@@ -11,3 +11,5 @@ export const NRPLUS_DEMO_STACK_NAME =
 	process.env.NRPLUS_DEMO_STACK_NAME ?? `${STACK_NAME}-nrplus-demo`
 export const VIDEO_INTEGRATION_STACK_NAME =
 	process.env.VIDEO_INTEGRATION_STACK_NAME ?? `${STACK_NAME}-video-integration`
+export const MYRIOTA_STACK_NAME =
+	process.env.MYRIOTA_STACK_NAME ?? `${STACK_NAME}-myriota`

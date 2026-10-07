@@ -20,4 +20,5 @@ type BackendLambdas = {
 	udpDatagramsLogs: PackedLambda
 	storeObjectsInTimestream: PackedLambda
 	webhookHandler: PackedLambda
+	myriotaWebhook: PackedLambda
 }

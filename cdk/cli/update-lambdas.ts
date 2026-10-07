@@ -5,6 +5,7 @@ import { updateLambdaCode } from '@bifravst/aws-cdk-lambda-helpers/util'
 import chalk from 'chalk'
 import { packLambdas } from '../resources/packLambdas.ts'
 import {
+	MYRIOTA_STACK_NAME,
 	NRPLUS_DEMO_STACK_NAME,
 	NRPLUS_STACK_NAME,
 	STACK_NAME,
@@ -24,6 +25,7 @@ const stackLambdas: Array<[string, Record<string, PackedLambda>]> = [
 	[UDP_INGEST_STACK_NAME, lambdas],
 	[NRPLUS_STACK_NAME, lambdas],
 	[NRPLUS_DEMO_STACK_NAME, lambdas],
+	[MYRIOTA_STACK_NAME, lambdas],
 ]
 
 await Promise.all(
