@@ -1,26 +1,28 @@
+import { IoTClient } from '@aws-sdk/client-iot'
+import { IoTDataPlaneClient } from '@aws-sdk/client-iot-data-plane'
 import middy from '@middy/core'
 import inputOutputLogger from '@middy/input-output-logger'
 import type {
 	APIGatewayProxyEventV2,
 	APIGatewayProxyResultV2,
 } from 'aws-lambda'
+import { findThingByMyriotaDeviceId } from '../myriota/findThingByMyriotaDeviceId.ts'
+import {
+	parseMyriotaData,
+	parseMyriotaPacketValue,
+} from '../myriota/parseMyriotaData.ts'
 import {
 	fetchCertificateCached,
 	MyriotaMessage,
 	verifyMyriotaMessage,
 } from '../myriota/verifyMyriotaMessage.ts'
+import { updateShadow } from './updateShadow.ts'
 import { validateWithTypeBox } from './validateWithTypeBox.ts'
 
 const verify = verifyMyriotaMessage(fetchCertificateCached())
 const validate = validateWithTypeBox(MyriotaMessage)
-
-const parseData = (data: string): unknown => {
-	try {
-		return JSON.parse(data) as unknown
-	} catch {
-		return data
-	}
-}
+const findThing = findThingByMyriotaDeviceId(new IoTClient({}))
+const u = updateShadow(new IoTDataPlaneClient({}))
 
 /**
  * Receives messages from the Myriota Device Manager
@@ -67,15 +69,35 @@ export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 			return { statusCode: 403, body: 'Forbidden' }
 		}
 
-		console.log(
-			'[myriota]',
-			JSON.stringify({
-				EndpointRef: message.EndpointRef,
-				Timestamp: message.Timestamp,
-				Id: message.Id,
-				Data: parseData(message.Data),
-			}),
-		)
+		const maybeData = parseMyriotaData(message.Data)
+		if ('error' in maybeData) {
+			console.error('[myriota]', 'Invalid data', maybeData.error.message)
+			return { statusCode: 400, body: 'Invalid data' }
+		}
+
+		for (const packet of maybeData.packets) {
+			const maybeLwM2M = parseMyriotaPacketValue(packet.Value)
+			if ('error' in maybeLwM2M) {
+				console.error(
+					'[myriota]',
+					'Failed to parse packet',
+					maybeLwM2M.error.message,
+					JSON.stringify(packet),
+				)
+				continue
+			}
+			const thingName = await findThing(packet.TerminalId)
+			if (thingName === null) {
+				console.error(
+					'[myriota]',
+					'No thing found for Myriota device',
+					packet.TerminalId,
+				)
+				continue
+			}
+			console.debug('[myriota]', thingName, JSON.stringify(maybeLwM2M.lwm2m))
+			await u(thingName, maybeLwM2M.lwm2m)
+		}
 
 		return { statusCode: 202 }
 	})

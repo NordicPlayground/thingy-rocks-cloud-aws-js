@@ -1,5 +1,5 @@
 import { PackedLambdaFn } from '@bifravst/aws-cdk-lambda-helpers/cdk'
-import { Duration, aws_lambda as Lambda } from 'aws-cdk-lib'
+import { Duration, aws_iam as IAM, aws_lambda as Lambda } from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import type { BackendLambdas } from '../BackendLambdas.ts'
 
@@ -30,6 +30,12 @@ export class Myriota extends Construct {
 				description: 'Receives messages from the Myriota Device Manager',
 				layers: [baseLayer],
 				timeout: Duration.seconds(10),
+				initialPolicy: [
+					new IAM.PolicyStatement({
+						actions: ['iot:ListThings', 'iot:UpdateThingShadow'],
+						resources: ['*'],
+					}),
+				],
 			},
 		)
 
