@@ -76,7 +76,10 @@ export const handler = middy<APIGatewayProxyEventV2, APIGatewayProxyResultV2>()
 		}
 
 		for (const packet of maybeData.packets) {
-			const maybeLwM2M = parseMyriotaPacketValue(packet.Value)
+			const maybeLwM2M = parseMyriotaPacketValue(
+				packet.Value,
+				new Date(packet.Timestamp),
+			)
 			if ('error' in maybeLwM2M) {
 				console.error(
 					'[myriota]',

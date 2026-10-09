@@ -66,6 +66,21 @@ void describe('parseMyriotaPacketValue()', () => {
 			},
 		))
 
+	void it('should parse the legacy text format', () => {
+		const res = parseMyriotaPacketValue(
+			Buffer.from(
+				'359404234996941,,-1,139,0,0,90129,-33.705,150.963,0,99.9,67,999.99,99.99',
+			).toString('hex'),
+			new Date(1791510050874),
+		)
+		assert.equal('lwm2m' in res, true)
+		if ('lwm2m' in res) {
+			assert.equal(res.lwm2m[0]?.ObjectID, 14204)
+			assert.equal(res.lwm2m[0]?.Resources[0], '359404234996941')
+			assert.equal(res.lwm2m[0]?.Resources[99], 1791510050)
+		}
+	})
+
 	void it('should reject values that are not CBOR encoded SenML', () =>
 		assert.equal(
 			'error' in parseMyriotaPacketValue('DECAFBADDECAFBADDECAFBADDECAFBAD'),
