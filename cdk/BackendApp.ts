@@ -2,6 +2,7 @@ import type { PackedLayer } from '@bifravst/aws-cdk-lambda-helpers/layer'
 import { App, type Environment } from 'aws-cdk-lib'
 import type { BackendLambdas } from './BackendLambdas.ts'
 import { BackendStack } from './stacks/BackendStack.ts'
+import { MyriotaStack } from './stacks/MyriotaStack.ts'
 import { NRPlusDemoStack } from './stacks/NRPlusDemoStack.ts'
 import { NRPlusStack } from './stacks/NRPlusStack.ts'
 import { UDPIngestStack } from './stacks/UDPIngestStack.ts'
@@ -48,6 +49,11 @@ export class BackendApp extends App {
 			layer,
 		})
 		new NRPlusDemoStack(this, {
+			lambdaSources,
+			layer,
+		})
+
+		new MyriotaStack(this, {
 			lambdaSources,
 			layer,
 		})

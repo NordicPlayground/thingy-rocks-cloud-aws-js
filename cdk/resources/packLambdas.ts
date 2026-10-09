@@ -26,6 +26,7 @@ type Lambdas = {
 	udpDatagramsLogs: PackedLambda
 	storeObjectsInTimestream: PackedLambda
 	webhookHandler: PackedLambda
+	myriotaWebhook: PackedLambda
 }
 
 export const packLambdas = async (): Promise<Lambdas> => ({
@@ -48,4 +49,5 @@ export const packLambdas = async (): Promise<Lambdas> => ({
 	udpDatagramsLogs: await pack('udpDatagramsLogs'),
 	storeObjectsInTimestream: await pack('storeObjectsInTimestream'),
 	webhookHandler: await pack('webhookHandler'),
+	myriotaWebhook: await pack('myriotaWebhook'),
 })
