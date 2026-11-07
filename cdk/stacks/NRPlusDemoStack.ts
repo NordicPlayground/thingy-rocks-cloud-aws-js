@@ -8,6 +8,7 @@ import CloudFormation, {
 	Stack,
 } from 'aws-cdk-lib'
 import type { BackendLambdas } from '../BackendLambdas.ts'
+import type { WebsocketAPI } from '../resources/WebsocketAPI.ts'
 import { NRPLUS_DEMO_STACK_NAME } from './stackName.ts'
 
 export class NRPlusDemoStack extends Stack {
@@ -16,9 +17,11 @@ export class NRPlusDemoStack extends Stack {
 		{
 			lambdaSources,
 			layer,
+			websocketAPI,
 		}: {
 			lambdaSources: BackendLambdas
 			layer: PackedLayer
+			websocketAPI: WebsocketAPI
 		},
 	) {
 		super(parent, NRPLUS_DEMO_STACK_NAME)
@@ -52,9 +55,19 @@ export class NRPlusDemoStack extends Stack {
 							`arn:aws:iot:${Stack.of(this).region}:${Stack.of(this).account}:thing/*/shadow/lwm2m`,
 						],
 					}),
+					new IAM.PolicyStatement({
+						actions: ['execute-api:ManageConnections'],
+						resources: [websocketAPI.websocketAPIArn],
+					}),
 				],
+				environment: {
+					CONNECTIONS_TABLE_NAME: websocketAPI.connectionsTable.tableName,
+					WEBSOCKET_MANAGEMENT_API_URL: websocketAPI.websocketManagementAPIURL,
+				},
 			},
 		)
+
+		websocketAPI.connectionsTable.grantReadWriteData(webhookHandler.fn)
 
 		const functionUrl = webhookHandler.fn.addFunctionUrl({
 			authType: Lambda.FunctionUrlAuthType.NONE,
