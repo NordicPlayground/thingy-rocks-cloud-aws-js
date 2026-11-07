@@ -4,11 +4,13 @@ import type { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DeleteItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb'
 import type { Summary } from './chartSummary.ts'
 
-export enum LocationSource {
-	MCELL = 'MCELL',
-	SCELL = 'SCELL',
-	WIFI = 'WIFI',
-}
+export const LocationSource = {
+	MCELL: 'MCELL',
+	SCELL: 'SCELL',
+	WIFI: 'WIFI',
+} as const
+export type LocationSource =
+	(typeof LocationSource)[keyof typeof LocationSource]
 
 export type GeoLocation = {
 	lat: number
@@ -17,10 +19,11 @@ export type GeoLocation = {
 	source: LocationSource
 }
 
-export enum Network {
-	lteM = 'LTE-m',
-	nbIoT = 'NB-IoT',
-}
+export const Network = {
+	lteM: 'LTE-m',
+	nbIoT: 'NB-IoT',
+} as const
+export type Network = (typeof Network)[keyof typeof Network]
 type Cell = {
 	area: number //30401
 	cell: number //21679616

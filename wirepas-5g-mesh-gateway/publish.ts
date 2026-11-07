@@ -3,23 +3,27 @@ import type mqtt from 'mqtt'
 import { GenericMessage } from '../wirepas-5g-mesh-gateway/protobuf/ts/generic_message.ts'
 
 // https://github.com/wirepas/wm-sdk/tree/v1.4.0/source/example_apps/evaluation_app
-enum ExampleAppMessages {
-	LED_STATE_SET = 129,
-	LED_STATE_GET = 130,
-}
+const ExampleAppMessages = {
+	LED_STATE_SET: 129,
+	LED_STATE_GET: 130,
+} as const
+type ExampleAppMessages =
+	(typeof ExampleAppMessages)[keyof typeof ExampleAppMessages]
 
-export enum LED_COLOR {
-	RED = 0,
-	BLUE = 1,
-	GREEN = 2,
-	ALL = 255,
-}
+export const LED_COLOR = {
+	RED: 0,
+	BLUE: 1,
+	GREEN: 2,
+	ALL: 255,
+} as const
+export type LED_COLOR = (typeof LED_COLOR)[keyof typeof LED_COLOR]
 
 // LED state (Decimal value 0 => switch off, 1 => switch on)
-export enum LED_STATE {
-	OFF = 0,
-	ON = 1,
-}
+export const LED_STATE = {
+	OFF: 0,
+	ON: 1,
+} as const
+export type LED_STATE = (typeof LED_STATE)[keyof typeof LED_STATE]
 
 const sendPacket = (node: number, payload: Buffer): GenericMessage => ({
 	wirepas: {
