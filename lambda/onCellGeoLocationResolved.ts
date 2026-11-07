@@ -35,10 +35,11 @@ const notifier = notifyClients({
 	apiGwManagementClient,
 })
 
-enum Nw {
-	lteM = 'ltem',
-	nbIoT = 'nbiot',
-}
+const Nw = {
+	lteM: 'ltem',
+	nbIoT: 'nbiot',
+} as const
+type Nw = (typeof Nw)[keyof typeof Nw]
 
 const iot = new IoTClient({})
 const iotData = new IoTDataPlaneClient({})

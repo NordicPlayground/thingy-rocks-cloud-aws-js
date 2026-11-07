@@ -18,35 +18,37 @@ export type Wirepas5GMeshNodePayload = {
 	}
 }
 
-enum MessageType {
-	COUNTER = 0x01, //          [0x04]   [size_t counter]
+const MessageType = {
+	COUNTER: 0x01, //          [0x04]   [size_t counter]
 	// Uptime in nanoseconds, e.g. 251355997789000 / 1000 / 1000 / 1000 / 60 / 60 / 24 = 2.909 days
-	TIMESTAMP = 0x02, //        [0x08]   [int64_t timestamp]
-	IAQ = 0x03, //              [0x02]   [uint16_t iaq]
-	IAQ_ACC = 0x04, //          [0x01]   [uint8_t iaq_acc]
-	SIAQ = 0x05, //             [0x02]   [uint16_t siaq]
-	SIAQ_ACC = 0x06, //         [0x01]   [uint8_t siaq_acc]
-	SENSOR_STATUS = 0x07, //    [0x01]   [uint8_t sensor_status]
-	SENSOR_STABILITY = 0x08, // [0x01]   [uint8_t sensor_stable]
-	GAS = 0x09, //              [0x01]   [uint8_t gas]
-	GAS_ACC = 0x0a, //          [0x01]   [uint8_t gas_acc]
-	VOC = 0x0b, //              [0x02]   [uint16_t voc]
-	VOC_ACC = 0x0c, //          [0x01]   [uint8_t voc_acc]
-	CO2 = 0x0d, //              [0x02]   [uint16_t co2]
-	CO2_ACC = 0x0e, //          [0x01]   [uint8_t co2_acc]
-	TEMPERATURE = 0x0f, //      [0x04]   [float temperature]
-	HUMIDITY = 0x10, //         [0x04]   [float humidity]
-	TEMP_RAW = 0x11, //         [0x04]   [float raw_temperature]
-	HUM_RAW = 0x12, //          [0x04]   [float raw_humidity]
-	PRESS_RAW = 0x13, //        [0x04]   [float raw_pressure]
-	GAS_RAW = 0x14, //          [0x04]   [float raw_gas]
-}
+	TIMESTAMP: 0x02, //        [0x08]   [int64_t timestamp]
+	IAQ: 0x03, //              [0x02]   [uint16_t iaq]
+	IAQ_ACC: 0x04, //          [0x01]   [uint8_t iaq_acc]
+	SIAQ: 0x05, //             [0x02]   [uint16_t siaq]
+	SIAQ_ACC: 0x06, //         [0x01]   [uint8_t siaq_acc]
+	SENSOR_STATUS: 0x07, //    [0x01]   [uint8_t sensor_status]
+	SENSOR_STABILITY: 0x08, // [0x01]   [uint8_t sensor_stable]
+	GAS: 0x09, //              [0x01]   [uint8_t gas]
+	GAS_ACC: 0x0a, //          [0x01]   [uint8_t gas_acc]
+	VOC: 0x0b, //              [0x02]   [uint16_t voc]
+	VOC_ACC: 0x0c, //          [0x01]   [uint8_t voc_acc]
+	CO2: 0x0d, //              [0x02]   [uint16_t co2]
+	CO2_ACC: 0x0e, //          [0x01]   [uint8_t co2_acc]
+	TEMPERATURE: 0x0f, //      [0x04]   [float temperature]
+	HUMIDITY: 0x10, //         [0x04]   [float humidity]
+	TEMP_RAW: 0x11, //         [0x04]   [float raw_temperature]
+	HUM_RAW: 0x12, //          [0x04]   [float raw_humidity]
+	PRESS_RAW: 0x13, //        [0x04]   [float raw_pressure]
+	GAS_RAW: 0x14, //          [0x04]   [float raw_gas]
+} as const
+type MessageType = (typeof MessageType)[keyof typeof MessageType]
 
-enum LED_COLOR {
-	RED = 0,
-	BLUE = 1,
-	GREEN = 2,
-}
+const LED_COLOR = {
+	RED: 0,
+	BLUE: 1,
+	GREEN: 2,
+} as const
+type LED_COLOR = (typeof LED_COLOR)[keyof typeof LED_COLOR]
 
 /*
 
