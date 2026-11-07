@@ -23,6 +23,7 @@ import { Wirepas5GMeshGateway } from '../resources/Wirepas5GMeshGateway.ts'
 import { STACK_NAME } from './stackName.ts'
 
 export class BackendStack extends Stack {
+	public readonly websocketAPI: WebsocketAPI
 	public constructor(
 		parent: App,
 		{
@@ -44,10 +45,10 @@ export class BackendStack extends Stack {
 			compatibleRuntimes: [Lambda.Runtime.NODEJS_24_X],
 		})
 
-		const api = new WebsocketAPI(this, {
+		const api = (this.websocketAPI = new WebsocketAPI(this, {
 			lambdaSources,
 			baseLayer,
-		})
+		}))
 
 		new ResolveCellLocation(this, {
 			lambdaSources,

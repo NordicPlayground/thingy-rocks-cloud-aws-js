@@ -31,7 +31,7 @@ export class BackendApp extends App {
 				isTest: false,
 			},
 		})
-		new BackendStack(this, {
+		const backend = new BackendStack(this, {
 			lambdaSources,
 			layer,
 			assetTrackerStackName,
@@ -51,6 +51,7 @@ export class BackendApp extends App {
 		new NRPlusDemoStack(this, {
 			lambdaSources,
 			layer,
+			websocketAPI: backend.websocketAPI,
 		})
 
 		new MyriotaStack(this, {
